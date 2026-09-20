@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        node: [24, 26]
+    steps:
+      - uses: actions/checkout@v4
+
+      # No version here: the action reads it from package.json's
+      # "packageManager" field, and specifying both is an error.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Build leads: packages expose their types from dist, so typechecking a
+      # dependent before its dependencies are built reports phantom errors.
+      - run: pnpm build
+      - run: pnpm typecheck
+      - run: pnpm test
+
+      # Generated cases are committed. If regenerating would change them, the
+      # workflow and its cases have drifted apart.
+      # pnpm does not link a workspace package's own bin, so `exec payload-contract`
+      # fails with "Command not found". It is run from its build output
+      # directly, as the pre-commit hook does.
+      - name: Check generated cases are current
+        working-directory: packages/cli
+        run: node dist/bin.js gen --check
+
+      - name: Run tier 1
+        working-directory: packages/cli
+        run: node dist/bin.js run --format sarif > "$GITHUB_WORKSPACE/payload-contract.sarif"
+
+      # Kept as a build artifact rather than sent to code scanning: uploading
+      # SARIF needs code scanning enabled, which on a private repository means
+      # GitHub Advanced Security. Restore github/codeql-action/upload-sarif
+      # (with security-events: write) if that is ever turned on.
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: payload-contract-sarif-node${{ matrix.node }}
+          path: payload-contract.sarif
+          if-no-files-found: warn
+
+  # The install-level acceptance test: a fresh clone builds and runs, and the
+  # packed tarball installs into an empty project and runs the same quickstart.
+  # Unit tests cannot see a missing dependency or a data file that did not ship.
+  smoke:
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        # macOS minutes are billed at 10x on private repositories, so the macOS lane
+        # switches on by itself the moment the repository is public.
+        os: ${{ fromJSON(github.event.repository.private && '["ubuntu-latest"]' || '["ubuntu-latest","macos-latest"]') }}
+        node: [24, 26]
+    steps:
+      - uses: actions/checkout@v4
+
+      # No version here: read from package.json's "packageManager" field.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm smoke
+
+      # Lint what would be published. Both pack packages/cli themselves.
+      # attw reports "This package does not contain types" and exits 0: the
+      # package is a CLI with no programmatic API, so that is the right answer.
+      - name: package-lint
+        if: matrix.os == 'ubuntu-latest' && matrix.node == 22
+        working-directory: packages/cli
+        run: |
+          npx --yes publint --strict
+          npx --yes @arethetypeswrong/cli --pack .

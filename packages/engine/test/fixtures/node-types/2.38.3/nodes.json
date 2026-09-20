@@ -1,0 +1,27 @@
+[
+  {
+    "displayName": "No Operation, do nothing",
+    "name": "noOp",
+    "version": 1,
+    "inputs": ["main"],
+    "outputs": ["main"],
+    "properties": []
+  },
+  {
+    "displayName": "Edit Fields (Set)",
+    "name": "set",
+    "version": 3.4,
+    "inputs": ["main"],
+    "outputs": ["main"],
+    "properties": [
+      {
+        "displayName": "Mode",
+        "name": "mode",
+        "type": "options",
+        "required": true,
+        "default": "manual",
+        "options": [{ "name": "Manual Mapping", "value": "manual" }]
+      }
+    ]
+  }
+]

@@ -1,0 +1,49 @@
+{
+  "name": "payload-contract-generator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Turns a materialised payload-contract contract into the payload variants worth running",
+  "keywords": [
+    "n8n",
+    "n8n-workflow",
+    "testing",
+    "test-generation",
+    "webhook",
+    "json-schema"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LudwigGerdes/payload-contract.git",
+    "directory": "packages/generator"
+  },
+  "homepage": "https://github.com/LudwigGerdes/payload-contract#readme",
+  "bugs": "https://github.com/LudwigGerdes/payload-contract/issues",
+  "engines": {
+    "node": ">=24"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "payload-contract-contracts": "workspace:*",
+    "payload-contract-structure": "workspace:*",
+    "ajv": "^8.17.1",
+    "n8n-workflow": "2.38.1"
+  }
+}

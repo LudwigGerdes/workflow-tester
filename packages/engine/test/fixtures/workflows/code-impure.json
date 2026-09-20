@@ -1,0 +1,13 @@
+{
+  "id": "code-impure",
+  "name": "code-impure",
+  "nodes": [
+    { "parameters": { "httpMethod": "POST", "path": "c", "options": {} }, "id": "n1", "name": "Webhook", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [0, 0] },
+    { "parameters": { "mode": "runOnceForAllItems", "jsCode": "return $helpers.httpRequest({ url: 'https://example.invalid' });" }, "id": "n2", "name": "Fetch In Code", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [220, 0] },
+    { "parameters": { "mode": "manual", "includeOtherFields": false, "assignments": { "assignments": [ { "id": "a1", "name": "done", "value": "yes", "type": "string" } ] }, "options": {} }, "id": "n3", "name": "After", "type": "n8n-nodes-base.set", "typeVersion": 3.4, "position": [440, 0] }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "Fetch In Code", "type": "main", "index": 0 }]] },
+    "Fetch In Code": { "main": [[{ "node": "After", "type": "main", "index": 0 }]] }
+  }
+}

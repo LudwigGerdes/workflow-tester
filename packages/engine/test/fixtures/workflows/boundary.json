@@ -1,0 +1,15 @@
+{
+  "id": "boundary",
+  "name": "boundary",
+  "nodes": [
+    { "parameters": { "httpMethod": "POST", "path": "b", "options": {} }, "id": "n1", "name": "Webhook", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [0, 0] },
+    { "parameters": { "mode": "manual", "includeOtherFields": false, "assignments": { "assignments": [ { "id": "a1", "name": "email", "value": "={{ $json.body.email }}", "type": "string" } ] }, "options": {} }, "id": "n2", "name": "Prepare", "type": "n8n-nodes-base.set", "typeVersion": 3.4, "position": [220, 0] },
+    { "parameters": { "url": "https://example.invalid/x", "options": {} }, "id": "n3", "name": "Call API", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [440, 0] },
+    { "parameters": { "mode": "manual", "includeOtherFields": false, "assignments": { "assignments": [ { "id": "a2", "name": "done", "value": "yes", "type": "string" } ] }, "options": {} }, "id": "n4", "name": "After", "type": "n8n-nodes-base.set", "typeVersion": 3.4, "position": [660, 0] }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "Prepare", "type": "main", "index": 0 }]] },
+    "Prepare": { "main": [[{ "node": "Call API", "type": "main", "index": 0 }]] },
+    "Call API": { "main": [[{ "node": "After", "type": "main", "index": 0 }]] }
+  }
+}

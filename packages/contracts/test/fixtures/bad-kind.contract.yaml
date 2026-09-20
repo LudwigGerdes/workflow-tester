@@ -1,0 +1,6 @@
+version: 1
+trigger: Webhook
+source:
+  kind: recorded
+  vendor: stripe
+  events: [invoice.paid]

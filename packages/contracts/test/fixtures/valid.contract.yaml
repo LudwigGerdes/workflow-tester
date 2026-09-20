@@ -1,0 +1,17 @@
+version: 1
+trigger: Webhook
+source:
+  kind: vendor
+  vendor: stripe
+  events:
+    - invoice.paid
+    - invoice.payment_failed
+  specVersion: 2026-08-26.dahlia
+overrides:
+  required:
+    - data.object.customer_email
+  never:
+    # `[]` are YAML flow indicators, so a path containing them needs quoting
+    # (or a block list entry, as here)
+    - "data.object.lines.data[].tax_amounts"
+  only: []

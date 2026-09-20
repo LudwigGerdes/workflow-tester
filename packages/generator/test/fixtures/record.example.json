@@ -1,0 +1,9 @@
+{
+  "record": { "name": "Ada" },
+  "email": "ada@example.com",
+  "phone": "555-0100",
+  "status": "active",
+  "items": [{ "sku": "A-1" }],
+  "created": "2026-01-01T00:00:00Z",
+  "unread": { "deep": { "buried": "nobody reads this" } }
+}

@@ -1,0 +1,536 @@
+{
+  "id": "3",
+  "finished": true,
+  "mode": "manual",
+  "retryOf": null,
+  "retrySuccessId": null,
+  "status": "success",
+  "createdAt": "2026-08-31T04:02:17.357Z",
+  "startedAt": "2026-08-31T04:02:17.361Z",
+  "stoppedAt": "2026-08-31T04:02:17.398Z",
+  "deletedAt": null,
+  "workflowId": "wf-fixture-0006",
+  "waitTill": null,
+  "storedAt": "db",
+  "data": {
+    "version": 1,
+    "startData": {},
+    "resultData": {
+      "runData": {
+        "When clicking Execute": [
+          {
+            "startTime": 1788148937363,
+            "executionIndex": 0,
+            "source": [],
+            "hints": [],
+            "executionTime": 0,
+            "executionStatus": "success",
+            "data": {
+              "main": [
+                [
+                  {
+                    "json": {},
+                    "pairedItem": {
+                      "item": 0
+                    }
+                  }
+                ]
+              ]
+            }
+          }
+        ],
+        "Make Items": [
+          {
+            "startTime": 1788148937363,
+            "executionIndex": 1,
+            "source": [
+              {
+                "previousNode": "When clicking Execute",
+                "previousNodeOutput": 0,
+                "previousNodeRun": 0
+              }
+            ],
+            "hints": [],
+            "executionTime": 8,
+            "executionStatus": "success",
+            "data": {
+              "main": [
+                [
+                  {
+                    "json": {
+                      "n": 1
+                    },
+                    "pairedItem": {
+                      "item": 0
+                    }
+                  },
+                  {
+                    "json": {
+                      "n": 2
+                    },
+                    "pairedItem": {
+                      "item": 0
+                    }
+                  },
+                  {
+                    "json": {
+                      "n": 3
+                    },
+                    "pairedItem": {
+                      "item": 0
+                    }
+                  }
+                ]
+              ]
+            }
+          }
+        ],
+        "Loop Over Items": [
+          {
+            "startTime": 1788148937371,
+            "executionIndex": 2,
+            "source": [
+              {
+                "previousNode": "Make Items",
+                "previousNodeOutput": 0,
+                "previousNodeRun": 0
+              }
+            ],
+            "hints": [],
+            "executionTime": 0,
+            "executionStatus": "success",
+            "data": {
+              "main": [
+                [],
+                [
+                  {
+                    "json": {
+                      "n": 1
+                    },
+                    "pairedItem": {
+                      "item": 0
+                    }
+                  }
+                ]
+              ]
+            }
+          },
+          {
+            "startTime": 1788148937395,
+            "executionIndex": 4,
+            "source": [
+              {
+                "previousNode": "Per Item",
+                "previousNodeOutput": 0,
+                "previousNodeRun": 0
+              }
+            ],
+            "hints": [],
+            "executionTime": 0,
+            "executionStatus": "success",
+            "data": {
+              "main": [
+                [],
+                [
+                  {
+                    "json": {
+                      "n": 2
+                    },
+                    "pairedItem": {
+                      "item": 1,
+                      "sourceOverwrite": {
+                        "previousNode": "Make Items",
+                        "previousNodeOutput": 0,
+                        "previousNodeRun": 0
+                      }
+                    }
+                  }
+                ]
+              ]
+            }
+          },
+          {
+            "startTime": 1788148937397,
+            "executionIndex": 6,
+            "source": [
+              {
+                "previousNode": "Per Item",
+                "previousNodeOutput": 0,
+                "previousNodeRun": 1
+              }
+            ],
+            "hints": [],
+            "executionTime": 0,
+            "executionStatus": "success",
+            "data": {
+              "main": [
+                [],
+                [
+                  {
+                    "json": {
+                      "n": 3
+                    },
+                    "pairedItem": {
+                      "item": 2,
+                      "sourceOverwrite": {
+                        "previousNode": "Make Items",
+                        "previousNodeOutput": 0,
+                        "previousNodeRun": 0
+                      }
+                    }
+                  }
+                ]
+              ]
+            }
+          },
+          {
+            "startTime": 1788148937397,
+            "executionIndex": 8,
+            "source": [
+              {
+                "previousNode": "Per Item",
+                "previousNodeOutput": 0,
+                "previousNodeRun": 2
+              }
+            ],
+            "hints": [],
+            "executionTime": 1,
+            "executionStatus": "success",
+            "data": {
+              "main": [
+                [
+                  {
+                    "json": {
+                      "seen": "1"
+                    },
+                    "pairedItem": {
+                      "sourceOverwrite": {
+                        "previousNode": "Per Item",
+                        "previousNodeOutput": 0,
+                        "previousNodeRun": 0
+                      },
+                      "item": 0
+                    }
+                  },
+                  {
+                    "json": {
+                      "seen": "2"
+                    },
+                    "pairedItem": {
+                      "sourceOverwrite": {
+                        "previousNode": "Per Item",
+                        "previousNodeOutput": 0,
+                        "previousNodeRun": 1
+                      },
+                      "item": 0
+                    }
+                  },
+                  {
+                    "json": {
+                      "seen": "3"
+                    },
+                    "pairedItem": {
+                      "sourceOverwrite": {
+                        "previousNode": "Per Item",
+                        "previousNodeOutput": 0,
+                        "previousNodeRun": 2
+                      },
+                      "item": 0
+                    }
+                  }
+                ],
+                []
+              ]
+            }
+          }
+        ],
+        "Per Item": [
+          {
+            "startTime": 1788148937371,
+            "executionIndex": 3,
+            "source": [
+              {
+                "previousNode": "Loop Over Items",
+                "previousNodeOutput": 1,
+                "previousNodeRun": 0
+              }
+            ],
+            "hints": [],
+            "executionTime": 24,
+            "executionStatus": "success",
+            "data": {
+              "main": [
+                [
+                  {
+                    "json": {
+                      "seen": "1"
+                    },
+                    "pairedItem": {
+                      "item": 0
+                    }
+                  }
+                ]
+              ]
+            }
+          },
+          {
+            "startTime": 1788148937395,
+            "executionIndex": 5,
+            "source": [
+              {
+                "previousNode": "Loop Over Items",
+                "previousNodeOutput": 1,
+                "previousNodeRun": 1
+              }
+            ],
+            "hints": [],
+            "executionTime": 1,
+            "executionStatus": "success",
+            "data": {
+              "main": [
+                [
+                  {
+                    "json": {
+                      "seen": "2"
+                    },
+                    "pairedItem": {
+                      "item": 0
+                    }
+                  }
+                ]
+              ]
+            }
+          },
+          {
+            "startTime": 1788148937397,
+            "executionIndex": 7,
+            "source": [
+              {
+                "previousNode": "Loop Over Items",
+                "previousNodeOutput": 1,
+                "previousNodeRun": 2
+              }
+            ],
+            "hints": [],
+            "executionTime": 0,
+            "executionStatus": "success",
+            "data": {
+              "main": [
+                [
+                  {
+                    "json": {
+                      "seen": "3"
+                    },
+                    "pairedItem": {
+                      "item": 0
+                    }
+                  }
+                ]
+              ]
+            }
+          }
+        ]
+      },
+      "lastNodeExecuted": "Loop Over Items"
+    },
+    "executionData": {
+      "contextData": {
+        "node:Loop Over Items": {
+          "currentRunIndex": 3,
+          "maxRunIndex": 3,
+          "sourceData": {
+            "previousNode": "Make Items",
+            "previousNodeOutput": 0,
+            "previousNodeRun": 0
+          },
+          "items": [],
+          "processedItems": [
+            {
+              "json": {
+                "seen": "1"
+              },
+              "pairedItem": {
+                "sourceOverwrite": {
+                  "previousNode": "Per Item",
+                  "previousNodeOutput": 0,
+                  "previousNodeRun": 0
+                },
+                "item": 0
+              }
+            },
+            {
+              "json": {
+                "seen": "2"
+              },
+              "pairedItem": {
+                "sourceOverwrite": {
+                  "previousNode": "Per Item",
+                  "previousNodeOutput": 0,
+                  "previousNodeRun": 1
+                },
+                "item": 0
+              }
+            },
+            {
+              "json": {
+                "seen": "3"
+              },
+              "pairedItem": {
+                "sourceOverwrite": {
+                  "previousNode": "Per Item",
+                  "previousNodeOutput": 0,
+                  "previousNodeRun": 2
+                },
+                "item": 0
+              }
+            }
+          ],
+          "noItemsLeft": true,
+          "done": true
+        }
+      },
+      "nodeExecutionStack": [],
+      "metadata": {},
+      "waitingExecution": {},
+      "waitingExecutionSource": {},
+      "runtimeData": {
+        "version": 1,
+        "establishedAt": 1788148937362,
+        "source": "manual",
+        "triggerNode": {
+          "name": "When clicking Execute",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      }
+    }
+  },
+  "workflowData": {
+    "id": "wf-fixture-0006",
+    "name": "conformance multi-run",
+    "active": false,
+    "activeVersionId": null,
+    "nodes": [
+      {
+        "id": "mt",
+        "name": "When clicking Execute",
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          0,
+          0
+        ],
+        "parameters": {
+          "notice": ""
+        }
+      },
+      {
+        "id": "code",
+        "name": "Make Items",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          220,
+          0
+        ],
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "return [{json:{n:1}},{json:{n:2}},{json:{n:3}}];",
+          "notice": ""
+        }
+      },
+      {
+        "id": "loop",
+        "name": "Loop Over Items",
+        "type": "n8n-nodes-base.splitInBatches",
+        "typeVersion": 3,
+        "position": [
+          440,
+          0
+        ],
+        "parameters": {
+          "splitInBatchesNotice": "",
+          "batchSize": 1,
+          "options": {}
+        }
+      },
+      {
+        "id": "set",
+        "name": "Per Item",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          660,
+          120
+        ],
+        "parameters": {
+          "mode": "manual",
+          "duplicateItem": false,
+          "assignments": {
+            "assignments": [
+              {
+                "id": "b1",
+                "name": "seen",
+                "value": "={{ $json.n }}",
+                "type": "string"
+              }
+            ]
+          },
+          "includeOtherFields": false,
+          "options": {}
+        }
+      }
+    ],
+    "connections": {
+      "When clicking Execute": {
+        "main": [
+          [
+            {
+              "node": "Make Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Make Items": {
+        "main": [
+          [
+            {
+              "node": "Loop Over Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Loop Over Items": {
+        "main": [
+          [],
+          [
+            {
+              "node": "Per Item",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Per Item": {
+        "main": [
+          [
+            {
+              "node": "Loop Over Items",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1"
+    }
+  },
+  "customData": {}
+}

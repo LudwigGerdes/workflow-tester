@@ -1,0 +1,156 @@
+{
+  "id": "1",
+  "finished": true,
+  "mode": "manual",
+  "retryOf": null,
+  "retrySuccessId": null,
+  "status": "success",
+  "createdAt": "2026-08-31T04:02:15.144Z",
+  "startedAt": "2026-08-31T04:02:15.160Z",
+  "stoppedAt": "2026-08-31T04:02:15.179Z",
+  "deletedAt": null,
+  "workflowId": "wf-fixture-0009",
+  "waitTill": null,
+  "storedAt": "db",
+  "data": {
+    "version": 1,
+    "startData": {},
+    "resultData": {
+      "runData": {
+        "When clicking Execute": [
+          {
+            "startTime": 1788148935171,
+            "executionIndex": 0,
+            "source": [],
+            "hints": [],
+            "executionTime": 3,
+            "executionStatus": "success",
+            "data": {
+              "main": [
+                [
+                  {
+                    "json": {},
+                    "pairedItem": {
+                      "item": 0
+                    }
+                  }
+                ]
+              ]
+            }
+          }
+        ],
+        "Edit Fields": [
+          {
+            "startTime": 1788148935175,
+            "executionIndex": 1,
+            "source": [
+              {
+                "previousNode": "When clicking Execute",
+                "previousNodeOutput": 0,
+                "previousNodeRun": 0
+              }
+            ],
+            "hints": [],
+            "executionTime": 3,
+            "executionStatus": "success",
+            "data": {
+              "main": [
+                [
+                  {
+                    "json": {
+                      "greeting": "hello"
+                    },
+                    "pairedItem": {
+                      "item": 0
+                    }
+                  }
+                ]
+              ]
+            }
+          }
+        ]
+      },
+      "lastNodeExecuted": "Edit Fields"
+    },
+    "executionData": {
+      "contextData": {},
+      "nodeExecutionStack": [],
+      "metadata": {},
+      "waitingExecution": {},
+      "waitingExecutionSource": {},
+      "runtimeData": {
+        "version": 1,
+        "establishedAt": 1788148935169,
+        "source": "manual",
+        "triggerNode": {
+          "name": "When clicking Execute",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      }
+    }
+  },
+  "workflowData": {
+    "id": "wf-fixture-0009",
+    "name": "conformance success",
+    "active": false,
+    "activeVersionId": null,
+    "nodes": [
+      {
+        "id": "mt",
+        "name": "When clicking Execute",
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          0,
+          0
+        ],
+        "parameters": {
+          "notice": ""
+        }
+      },
+      {
+        "id": "set",
+        "name": "Edit Fields",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          240,
+          0
+        ],
+        "parameters": {
+          "mode": "manual",
+          "duplicateItem": false,
+          "assignments": {
+            "assignments": [
+              {
+                "id": "a1",
+                "name": "greeting",
+                "value": "hello",
+                "type": "string"
+              }
+            ]
+          },
+          "includeOtherFields": false,
+          "options": {}
+        }
+      }
+    ],
+    "connections": {
+      "When clicking Execute": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1"
+    }
+  },
+  "customData": {}
+}

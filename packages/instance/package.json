@@ -1,0 +1,41 @@
+{
+  "name": "payload-contract-instance",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Everything in payload-contract that talks to an n8n instance or the npm registry",
+  "keywords": [
+    "n8n",
+    "n8n-workflow",
+    "n8n-api",
+    "node-types"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LudwigGerdes/payload-contract.git",
+    "directory": "packages/instance"
+  },
+  "homepage": "https://github.com/LudwigGerdes/payload-contract#readme",
+  "bugs": "https://github.com/LudwigGerdes/payload-contract/issues",
+  "engines": {
+    "node": ">=24"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  }
+}

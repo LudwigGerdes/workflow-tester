@@ -1,0 +1,34 @@
+workflow: ../../workflows/signup.json
+cases:
+  - id: flat-name
+    title: no profile object, flat name — the ?? gotcha
+    when:
+      trigger: webhook
+      payload:
+        email: bob@example.com
+        name: Bob
+    then:
+      execution.status: success
+      node.Normalize.output[0].json.name: Bob
+      node.Respond Free.items: 1
+  - id: no-email
+    title: no email at all
+    when:
+      trigger: webhook
+      payload:
+        name: Carol
+    then:
+      execution.status: success
+  - id: pro-nested
+    title: pro user with nested profile
+    when:
+      trigger: webhook
+      payload:
+        email: ada@example.com
+        name: Ada
+        plan: pro
+        profile:
+          first_name: Ada
+    then:
+      execution.status: success
+      node.Respond Pro.items: 1

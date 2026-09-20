@@ -1,0 +1,70 @@
+# Where each vendor's webhook definitions come from.
+#
+# Fetching these is the ONLY networked code in payload-contract, and it runs at dev time
+# (`pnpm ingest`) or behind `payload-contract contracts update --fetch` — never during a
+# normal run. Raw spec bytes land in the cache
+# (~/.payload-contract/vendor-specs/<vendor>/<specVersion>/spec.json); the
+# derived catalogs under data/ are what gets committed.
+#
+# `events` is a curated allowlist. Deref'd webhook schemas run 20-75 KB each, so
+# committing all 270 of GitHub's would be ~13 MB; the catalog carries the full
+# list of available event names for discovery and materialises only these.
+version: 1
+
+vendors:
+  github:
+    kind: openapi-x-webhooks
+    specUrl: https://raw.githubusercontent.com/github/rest-api-description/main/descriptions/api.github.com/api.github.com.json
+    versionFrom: info.version
+    # GitHub names the event in a header and the action inside the payload;
+    # the x-webhooks key joins them, and operationId splits them back apart.
+    eventHeader: x-github-event
+    # Only 6 of GitHub's 270 webhook operations link an example payload in the
+    # REST description, and none of push / pull_request / issues do. octokit
+    # publishes a real payload per event and action, which is what the generator
+    # needs: spec §4 anchors every mutation to a payload someone actually sent,
+    # and without these most oneOf branches have to be synthesised.
+    examplesBaseUrl: https://raw.githubusercontent.com/octokit/webhooks/main/payload-examples/api.github.com
+    events:
+      - ping
+      - push
+      # one of only six GitHub webhook operations that link a real example payload
+      - check-run-completed
+      - pull-request-opened
+      - pull-request-closed
+      - issues-opened
+      - issue-comment-created
+      - release-published
+      - workflow-run-completed
+      - star-created
+
+  stripe:
+    kind: stripe-events
+    specUrl: https://raw.githubusercontent.com/stripe/openapi/master/openapi/spec3.json
+    versionFrom: info.version
+    # The `event` schema is the envelope for every event type. Its `type`
+    # property carries no enum, so the event list comes from the enabled_events
+    # allowlist on the webhook-endpoint create body — the only machine-readable
+    # enumeration of event names in the spec.
+    envelopeSchema: event
+    eventEnumPath: paths./v1/webhook_endpoints.post.requestBody.content.application/x-www-form-urlencoded.schema.properties.enabled_events.items.enum
+    events:
+      - invoice.paid
+      - invoice.payment_failed
+      - customer.subscription.created
+      - customer.subscription.deleted
+      - payment_intent.succeeded
+      - checkout.session.completed
+      - charge.refunded
+
+  slack:
+    kind: none
+    # Slack publishes no machine-readable schema or example feed for Events API
+    # payloads: its OpenAPI document (specs/openapi/v2/slack_web.json) describes
+    # the Web API only, and the event payload shapes live in prose docs. Recorded
+    # here so the gap is visible rather than guessed at; see AUDIT.md.
+    notes: >-
+      No machine-readable source for Events API payloads. The plan's
+      https://api.slack.com/events?examples=json is an HTML docs page, not a
+      JSON feed. Needs hand-authored examples or a third-party schema set before
+      it can ship.

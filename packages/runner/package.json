@@ -1,0 +1,55 @@
+{
+  "name": "payload-contract-runner",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Loads payload-contract test files, runs cases through the engine in a worker pool, evaluates expectations and renders reports",
+  "keywords": [
+    "n8n",
+    "n8n-workflow",
+    "testing",
+    "test-runner",
+    "sarif",
+    "junit"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LudwigGerdes/payload-contract.git",
+    "directory": "packages/runner"
+  },
+  "homepage": "https://github.com/LudwigGerdes/payload-contract#readme",
+  "bugs": "https://github.com/LudwigGerdes/payload-contract/issues",
+  "engines": {
+    "node": ">=24"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js"
+    },
+    "./schema": "./schema/payload-contract.test.schema.json"
+  },
+  "files": [
+    "dist",
+    "schema"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "payload-contract-contracts": "workspace:*",
+    "payload-contract-engine": "workspace:*",
+    "payload-contract-generator": "workspace:*",
+    "payload-contract-paths": "workspace:*",
+    "payload-contract-structure": "workspace:*",
+    "ajv": "^8.17.1",
+    "n8n-workflow": "2.38.1",
+    "yaml": "^2.5.0"
+  }
+}

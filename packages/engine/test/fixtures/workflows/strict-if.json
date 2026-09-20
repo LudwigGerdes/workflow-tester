@@ -1,0 +1,14 @@
+{
+  "id": "strict-if",
+  "name": "strict-if",
+  "nodes": [
+    { "parameters": { "httpMethod": "POST", "path": "s", "options": {} }, "id": "n1", "name": "Webhook", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [0, 0] },
+    { "parameters": { "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 }, "conditions": [ { "id": "c1", "leftValue": "={{ $json.body.amount }}", "rightValue": 100, "operator": { "type": "number", "operation": "gt" } } ], "combinator": "and" }, "options": {} }, "id": "n2", "name": "Big?", "type": "n8n-nodes-base.if", "typeVersion": 2.2, "position": [220, 0] },
+    { "parameters": {}, "id": "n3", "name": "Big", "type": "n8n-nodes-base.noOp", "typeVersion": 1, "position": [440, -100] },
+    { "parameters": {}, "id": "n4", "name": "Small", "type": "n8n-nodes-base.noOp", "typeVersion": 1, "position": [440, 100] }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "Big?", "type": "main", "index": 0 }]] },
+    "Big?": { "main": [[{ "node": "Big", "type": "main", "index": 0 }], [{ "node": "Small", "type": "main", "index": 0 }]] }
+  }
+}

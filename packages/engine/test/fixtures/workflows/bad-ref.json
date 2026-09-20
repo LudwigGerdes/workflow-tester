@@ -1,0 +1,9 @@
+{
+  "id": "bad-ref",
+  "name": "bad-ref",
+  "nodes": [
+    { "parameters": { "httpMethod": "POST", "path": "r", "options": {} }, "id": "n1", "name": "Webhook", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [0, 0] },
+    { "parameters": { "mode": "manual", "includeOtherFields": false, "assignments": { "assignments": [ { "id": "a1", "name": "x", "value": "={{ $('NoSuchNode').item.json.x }}", "type": "string" } ] }, "options": {} }, "id": "n2", "name": "Broken", "type": "n8n-nodes-base.set", "typeVersion": 3.4, "position": [220, 0] }
+  ],
+  "connections": { "Webhook": { "main": [[{ "node": "Broken", "type": "main", "index": 0 }]] } }
+}

@@ -1,0 +1,30 @@
+{
+  "type": "object",
+  "properties": {
+    "record": {
+      "oneOf": [
+        { "type": "object", "properties": { "name": { "type": "string" } }, "required": ["name"] },
+        {
+          "type": "object",
+          "properties": {
+            "details": { "type": "object", "properties": { "name": { "type": "string" } }, "required": ["name"] }
+          },
+          "required": ["details"]
+        }
+      ]
+    },
+    "email": { "type": "string", "format": "email" },
+    "phone": { "type": ["string", "null"] },
+    "status": { "type": "string", "enum": ["active", "cancelled", "paused"] },
+    "items": {
+      "type": "array",
+      "items": { "type": "object", "properties": { "sku": { "type": "string" } } }
+    },
+    "created": { "type": "string", "format": "date-time" },
+    "unread": {
+      "type": "object",
+      "properties": { "deep": { "type": "object", "properties": { "buried": { "type": "string" } } } }
+    }
+  },
+  "required": ["record", "status"]
+}

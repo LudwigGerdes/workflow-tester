@@ -1,0 +1,38 @@
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { describe, expect, it } from 'vitest';
+import { readConfig } from '../src/config.js';
+import type { Io } from '../src/io.js';
+
+const repo = (yaml?: string): Io => {
+  const cwd = mkdtempSync(join(tmpdir(), 'payload-contract-cfg-'));
+  if (yaml !== undefined) {
+    mkdirSync(join(cwd, '.payload-contract'), { recursive: true });
+    writeFileSync(join(cwd, '.payload-contract', 'config.yaml'), yaml);
+  }
+  return { cwd, env: {}, out: () => {}, err: () => {} };
+};
+
+describe('readConfig', () => {
+  it('reads the pinned n8n version', () => {
+    expect(readConfig(repo('n8nVersion: 2.38.3\n')).n8nVersion).toBe('2.38.3');
+  });
+
+  it('is empty when there is no config at all', () => {
+    expect(readConfig(repo()).n8nVersion).toBeUndefined();
+  });
+
+  it('is empty rather than throwing when the file is malformed', () => {
+    // A broken config must not stop a run: the floor still works.
+    expect(readConfig(repo('n8nVersion: [this is not a version\n')).n8nVersion).toBeUndefined();
+  });
+
+  it('ignores a version that is not one', () => {
+    expect(readConfig(repo('n8nVersion: latest\n')).n8nVersion).toBeUndefined();
+  });
+
+  it('accepts a quoted version', () => {
+    expect(readConfig(repo('n8nVersion: "2.10.0"\n')).n8nVersion).toBe('2.10.0');
+  });
+});

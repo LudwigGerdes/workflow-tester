@@ -1,0 +1,188 @@
+{
+  "id": "2",
+  "finished": false,
+  "mode": "manual",
+  "retryOf": null,
+  "retrySuccessId": null,
+  "status": "error",
+  "createdAt": "2026-08-31T04:02:15.970Z",
+  "startedAt": "2026-08-31T04:02:15.974Z",
+  "stoppedAt": "2026-08-31T04:02:16.037Z",
+  "deletedAt": null,
+  "workflowId": "wf-fixture-0003",
+  "waitTill": null,
+  "storedAt": "db",
+  "data": {
+    "version": 1,
+    "startData": {},
+    "resultData": {
+      "error": {
+        "level": "error",
+        "tags": {},
+        "description": "conformance",
+        "lineNumber": 1,
+        "message": "deliberate failure [line 1]",
+        "stack": "Error: conformance: deliberate failure\n    at VmCodeWrapper (evalmachine.<anonymous>:1:596)\n    at evalmachine.<anonymous>:2:2\n    at Script.runInContext (node:vm:149:12)\n    at runInContext (node:vm:301:6)\n    at result (/usr/local/lib/node_modules/n8n/node_modules/.pnpm/@n8n+task-runner@file+packages+@n8n+task-runner_@opentelemetry+api@1.9.0_@opentelemetry_abc4e288c7f66f0b9b114d073d3c169d/node_modules/@n8n/task-runner/dist/js-task-runner/js-task-runner.js:219:61)\n    at new Promise (<anonymous>)\n    at JsTaskRunner.runForAllItems (/usr/local/lib/node_modules/n8n/node_modules/.pnpm/@n8n+task-runner@file+packages+@n8n+task-runner_@opentelemetry+api@1.9.0_@opentelemetry_abc4e288c7f66f0b9b114d073d3c169d/node_modules/@n8n/task-runner/dist/js-task-runner/js-task-runner.js:212:34)\n    at JsTaskRunner.executeTask (/usr/local/lib/node_modules/n8n/node_modules/.pnpm/@n8n+task-runner@file+packages+@n8n+task-runner_@opentelemetry+api@1.9.0_@opentelemetry_abc4e288c7f66f0b9b114d073d3c169d/node_modules/@n8n/task-runner/dist/js-task-runner/js-task-runner.js:136:26)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async Object.waitingForSettings (/usr/local/lib/node_modules/n8n/node_modules/.pnpm/@n8n+task-runner@file+packages+@n8n+task-runner_@opentelemetry+api@1.9.0_@opentelemetry_abc4e288c7f66f0b9b114d073d3c169d/node_modules/@n8n/task-runner/dist/task-runner.js:259:17)"
+      },
+      "runData": {
+        "When clicking Execute": [
+          {
+            "startTime": 1788148935976,
+            "executionIndex": 0,
+            "source": [],
+            "hints": [],
+            "executionTime": 0,
+            "executionStatus": "success",
+            "data": {
+              "main": [
+                [
+                  {
+                    "json": {},
+                    "pairedItem": {
+                      "item": 0
+                    }
+                  }
+                ]
+              ]
+            }
+          }
+        ],
+        "Boom": [
+          {
+            "startTime": 1788148935976,
+            "executionIndex": 1,
+            "source": [
+              {
+                "previousNode": "When clicking Execute",
+                "previousNodeOutput": 0,
+                "previousNodeRun": 0
+              }
+            ],
+            "hints": [],
+            "executionTime": 61,
+            "executionStatus": "error",
+            "error": {
+              "level": "error",
+              "tags": {},
+              "description": "conformance",
+              "lineNumber": 1,
+              "message": "deliberate failure [line 1]",
+              "stack": "Error: conformance: deliberate failure\n    at VmCodeWrapper (evalmachine.<anonymous>:1:596)\n    at evalmachine.<anonymous>:2:2\n    at Script.runInContext (node:vm:149:12)\n    at runInContext (node:vm:301:6)\n    at result (/usr/local/lib/node_modules/n8n/node_modules/.pnpm/@n8n+task-runner@file+packages+@n8n+task-runner_@opentelemetry+api@1.9.0_@opentelemetry_abc4e288c7f66f0b9b114d073d3c169d/node_modules/@n8n/task-runner/dist/js-task-runner/js-task-runner.js:219:61)\n    at new Promise (<anonymous>)\n    at JsTaskRunner.runForAllItems (/usr/local/lib/node_modules/n8n/node_modules/.pnpm/@n8n+task-runner@file+packages+@n8n+task-runner_@opentelemetry+api@1.9.0_@opentelemetry_abc4e288c7f66f0b9b114d073d3c169d/node_modules/@n8n/task-runner/dist/js-task-runner/js-task-runner.js:212:34)\n    at JsTaskRunner.executeTask (/usr/local/lib/node_modules/n8n/node_modules/.pnpm/@n8n+task-runner@file+packages+@n8n+task-runner_@opentelemetry+api@1.9.0_@opentelemetry_abc4e288c7f66f0b9b114d073d3c169d/node_modules/@n8n/task-runner/dist/js-task-runner/js-task-runner.js:136:26)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async Object.waitingForSettings (/usr/local/lib/node_modules/n8n/node_modules/.pnpm/@n8n+task-runner@file+packages+@n8n+task-runner_@opentelemetry+api@1.9.0_@opentelemetry_abc4e288c7f66f0b9b114d073d3c169d/node_modules/@n8n/task-runner/dist/task-runner.js:259:17)"
+            }
+          }
+        ]
+      },
+      "lastNodeExecuted": "Boom"
+    },
+    "executionData": {
+      "contextData": {},
+      "nodeExecutionStack": [
+        {
+          "node": {
+            "id": "code",
+            "name": "Boom",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+              240,
+              0
+            ],
+            "parameters": {
+              "mode": "runOnceForAllItems",
+              "language": "javaScript",
+              "jsCode": "throw new Error('conformance: deliberate failure');",
+              "notice": ""
+            }
+          },
+          "data": {
+            "main": [
+              [
+                {
+                  "json": {},
+                  "pairedItem": {
+                    "item": 0
+                  }
+                }
+              ]
+            ]
+          },
+          "source": {
+            "main": [
+              {
+                "previousNode": "When clicking Execute",
+                "previousNodeOutput": 0,
+                "previousNodeRun": 0
+              }
+            ]
+          }
+        }
+      ],
+      "metadata": {},
+      "waitingExecution": {},
+      "waitingExecutionSource": {},
+      "runtimeData": {
+        "version": 1,
+        "establishedAt": 1788148935975,
+        "source": "manual",
+        "triggerNode": {
+          "name": "When clicking Execute",
+          "type": "n8n-nodes-base.manualTrigger"
+        }
+      }
+    }
+  },
+  "workflowData": {
+    "id": "wf-fixture-0003",
+    "name": "conformance error",
+    "active": false,
+    "activeVersionId": null,
+    "nodes": [
+      {
+        "id": "mt",
+        "name": "When clicking Execute",
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          0,
+          0
+        ],
+        "parameters": {
+          "notice": ""
+        }
+      },
+      {
+        "id": "code",
+        "name": "Boom",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          240,
+          0
+        ],
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "throw new Error('conformance: deliberate failure');",
+          "notice": ""
+        }
+      }
+    ],
+    "connections": {
+      "When clicking Execute": {
+        "main": [
+          [
+            {
+              "node": "Boom",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1"
+    }
+  },
+  "customData": {}
+}

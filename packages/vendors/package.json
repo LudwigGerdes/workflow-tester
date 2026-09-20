@@ -1,0 +1,59 @@
+{
+  "name": "payload-contract-vendors",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Vendor webhook catalogs (GitHub, Stripe) for payload-contract, with their coverage audit",
+  "keywords": [
+    "n8n",
+    "n8n-workflow",
+    "webhook",
+    "github",
+    "stripe",
+    "json-schema"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LudwigGerdes/payload-contract.git",
+    "directory": "packages/vendors"
+  },
+  "homepage": "https://github.com/LudwigGerdes/payload-contract#readme",
+  "bugs": "https://github.com/LudwigGerdes/payload-contract/issues",
+  "engines": {
+    "node": ">=24"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js"
+    },
+    "./ingest": {
+      "types": "./dist/ingest.d.ts",
+      "development": "./src/ingest.ts",
+      "import": "./dist/ingest.js"
+    }
+  },
+  "files": [
+    "dist",
+    "data",
+    "sources.yaml"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "ingest": "tsx scripts/ingest.ts"
+  },
+  "dependencies": {
+    "payload-contract-paths": "workspace:*",
+    "ajv": "^8.17.1",
+    "yaml": "^2.5.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.16.0"
+  }
+}

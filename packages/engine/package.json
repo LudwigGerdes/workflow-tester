@@ -1,0 +1,48 @@
+{
+  "name": "payload-contract-engine",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Offline n8n workflow walker: expression evaluation with n8n-workflow, pure-node semantics, boundaries, a node:vm sandbox for Code nodes",
+  "keywords": [
+    "n8n",
+    "n8n-workflow",
+    "testing",
+    "expression-engine",
+    "sandbox",
+    "workflow-automation"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LudwigGerdes/payload-contract.git",
+    "directory": "packages/engine"
+  },
+  "homepage": "https://github.com/LudwigGerdes/payload-contract#readme",
+  "bugs": "https://github.com/LudwigGerdes/payload-contract/issues",
+  "engines": {
+    "node": ">=24"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "bundled"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "payload-contract-paths": "workspace:*",
+    "n8n-workflow": "2.38.1"
+  }
+}

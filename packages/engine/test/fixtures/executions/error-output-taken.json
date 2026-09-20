@@ -1,0 +1,295 @@
+{
+  "id": "3",
+  "finished": true,
+  "mode": "webhook",
+  "retryOf": null,
+  "retrySuccessId": null,
+  "status": "success",
+  "createdAt": "2026-09-07T16:21:07.872Z",
+  "startedAt": "2026-09-07T16:21:07.879Z",
+  "stoppedAt": "2026-09-07T16:21:07.948Z",
+  "deletedAt": null,
+  "workflowId": "wf-fixture-0001",
+  "waitTill": null,
+  "storedAt": "db",
+  "tracingContext": null,
+  "deduplicationKey": null,
+  "jsonSizeBytes": 4073,
+  "binaryDataSizeBytes": 0,
+  "workflowVersionId": "00000000-0000-4000-8000-000000000001",
+  "usedPrivateCredentials": false,
+  "data": {
+    "version": 1,
+    "startData": {},
+    "resultData": {
+      "runData": {
+        "Webhook": [
+          {
+            "startTime": 1788798067891,
+            "executionIndex": 0,
+            "source": [],
+            "hints": [],
+            "executionTime": 0,
+            "executionStatus": "success",
+            "data": {
+              "main": [
+                [
+                  {
+                    "json": {
+                      "headers": {
+                        "host": "n8n.example",
+                        "user-agent": "redacted",
+                        "content-length": "37",
+                        "accept": "application/json, text/plain, */*",
+                        "accept-encoding": "gzip, br",
+                        "cf-connecting-ip": "redacted",
+                        "cf-ray": "redacted",
+                        "content-type": "application/json",
+                        "x-forwarded-for": "redacted",
+                        "x-forwarded-host": "n8n.example",
+                        "x-forwarded-proto": "https",
+                        "x-real-ip": "redacted",
+                        "x-request-start": "redacted"
+                      },
+                      "params": {},
+                      "query": {},
+                      "body": {
+                        "explode": true,
+                        "order": {
+                          "id": "A-1"
+                        }
+                      },
+                      "webhookUrl": "https://n8n.example/webhook/payload-contract-err-branch",
+                      "executionMode": "production"
+                    },
+                    "pairedItem": {
+                      "item": 0
+                    }
+                  }
+                ]
+              ]
+            }
+          }
+        ],
+        "Risky Step": [
+          {
+            "startTime": 1788798067891,
+            "executionIndex": 1,
+            "source": [
+              {
+                "previousNode": "Webhook",
+                "previousNodeOutput": 0,
+                "previousNodeRun": 0
+              }
+            ],
+            "hints": [],
+            "executionTime": 56,
+            "executionStatus": "success",
+            "data": {
+              "main": [
+                [],
+                [
+                  {
+                    "json": {
+                      "error": "boom: downstream refused [line 1]"
+                    },
+                    "pairedItem": {
+                      "item": 0
+                    }
+                  }
+                ]
+              ]
+            }
+          }
+        ],
+        "Handled Failure": [
+          {
+            "startTime": 1788798067947,
+            "executionIndex": 2,
+            "source": [
+              {
+                "previousNode": "Risky Step",
+                "previousNodeOutput": 1,
+                "previousNodeRun": 0
+              }
+            ],
+            "hints": [],
+            "executionTime": 1,
+            "executionStatus": "success",
+            "data": {
+              "main": [
+                [
+                  {
+                    "json": {
+                      "outcome": "handled"
+                    },
+                    "pairedItem": {
+                      "item": 0
+                    }
+                  }
+                ]
+              ]
+            }
+          }
+        ]
+      },
+      "lastNodeExecuted": "Handled Failure"
+    },
+    "executionData": {
+      "contextData": {},
+      "nodeExecutionStack": [],
+      "metadata": {},
+      "waitingExecution": {},
+      "waitingExecutionSource": {},
+      "runtimeData": {
+        "version": 1,
+        "establishedAt": 1788798067872,
+        "source": "webhook",
+        "triggerNode": {
+          "name": "Webhook",
+          "type": "n8n-nodes-base.webhook"
+        },
+        "redaction": {
+          "version": 2,
+          "production": false,
+          "manual": false
+        }
+      }
+    },
+    "resumeToken": "redacted"
+  },
+  "workflowData": {
+    "id": "wf-fixture-0001",
+    "name": "payload-contract fixture \u2014 error output branch",
+    "nodes": [
+      {
+        "id": "wh1",
+        "name": "Webhook",
+        "webhookId": "00000000-0000-4000-8000-000000000011",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          0,
+          0
+        ],
+        "parameters": {
+          "multipleMethods": false,
+          "httpMethod": "POST",
+          "path": "payload-contract-err-branch",
+          "authentication": "none",
+          "responseMode": "lastNode",
+          "responseData": "firstEntryJson",
+          "options": {}
+        }
+      },
+      {
+        "id": "code1",
+        "name": "Risky Step",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "onError": "continueErrorOutput",
+        "position": [
+          220,
+          0
+        ],
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "if ($json.body.explode) { throw new Error('boom: downstream refused'); }\nreturn [{ json: { ok: true } }];",
+          "notice": ""
+        }
+      },
+      {
+        "id": "set1",
+        "name": "Happy Path",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          460,
+          -80
+        ],
+        "parameters": {
+          "mode": "manual",
+          "duplicateItem": false,
+          "assignments": {
+            "assignments": [
+              {
+                "id": "h1",
+                "name": "outcome",
+                "value": "succeeded",
+                "type": "string"
+              }
+            ]
+          },
+          "includeOtherFields": false,
+          "options": {}
+        }
+      },
+      {
+        "id": "set2",
+        "name": "Handled Failure",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          460,
+          80
+        ],
+        "parameters": {
+          "mode": "manual",
+          "duplicateItem": false,
+          "assignments": {
+            "assignments": [
+              {
+                "id": "e1",
+                "name": "outcome",
+                "value": "handled",
+                "type": "string"
+              }
+            ]
+          },
+          "includeOtherFields": false,
+          "options": {}
+        }
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Risky Step",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Risky Step": {
+        "main": [
+          [
+            {
+              "node": "Happy Path",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Handled Failure",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "saveManualExecutions": true,
+      "saveDataErrorExecution": "all",
+      "saveDataSuccessExecution": "all",
+      "executionOrder": "v1"
+    },
+    "nodeGroups": []
+  },
+  "customData": {}
+}

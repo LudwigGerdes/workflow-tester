@@ -1,0 +1,13 @@
+{
+  "id": "code-pure",
+  "name": "code-pure",
+  "nodes": [
+    { "parameters": { "httpMethod": "POST", "path": "p", "options": {} }, "id": "n1", "name": "Webhook", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [0, 0] },
+    { "parameters": { "mode": "runOnceForAllItems", "jsCode": "return [{ shouted: $input.first().json.body.name.toUpperCase() }];" }, "id": "n2", "name": "Shout", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [220, 0] },
+    { "parameters": { "mode": "manual", "includeOtherFields": false, "assignments": { "assignments": [ { "id": "a1", "name": "greeting", "value": "={{ 'hi ' + $json.shouted }}", "type": "string" } ] }, "options": {} }, "id": "n3", "name": "Greet", "type": "n8n-nodes-base.set", "typeVersion": 3.4, "position": [440, 0] }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "Shout", "type": "main", "index": 0 }]] },
+    "Shout": { "main": [[{ "node": "Greet", "type": "main", "index": 0 }]] }
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "name": "payload-contract",
+  "version": "0.1.0",
+  "description": "Contract-driven tests for n8n workflows: generate the payload variants a trigger can receive and check every expression against them, offline",
+  "keywords": [
+    "n8n",
+    "n8n-workflow",
+    "testing",
+    "contract-testing",
+    "webhook",
+    "cli",
+    "workflow-automation"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LudwigGerdes/payload-contract.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/LudwigGerdes/payload-contract#readme",
+  "bugs": "https://github.com/LudwigGerdes/payload-contract/issues",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "type": "module",
+  "bin": {
+    "payload-contract": "./dist/bin.js"
+  },
+  "exports": {
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "data",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json --noEmit && node scripts/build.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "prepack": "node ../../scripts/pack-files.mjs pre",
+    "postpack": "node ../../scripts/pack-files.mjs post"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "n8n-workflow": "2.38.1",
+    "yaml": "^2.5.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.12",
+    "payload-contract-contracts": "workspace:*",
+    "payload-contract-engine": "workspace:*",
+    "payload-contract-generator": "workspace:*",
+    "payload-contract-instance": "workspace:*",
+    "payload-contract-paths": "workspace:*",
+    "payload-contract-runner": "workspace:*",
+    "payload-contract-structure": "workspace:*",
+    "payload-contract-vendors": "workspace:*"
+  }
+}

@@ -1,0 +1,11 @@
+node_modules/
+dist/
+**/.payload-contract/reports/
+*.log
+.DS_Store
+
+# copied into the published package at pack time by scripts/pack-files.mjs
+packages/cli/LICENSE
+packages/cli/README.md
+packages/cli/THIRD_PARTY_NOTICES.md
+packages/cli/data/

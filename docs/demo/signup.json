@@ -1,0 +1,20 @@
+{
+  "name": "signup",
+  "nodes": [
+    { "parameters": { "httpMethod": "POST", "path": "signup", "responseMode": "responseNode", "options": {} }, "id": "n1", "name": "Webhook", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [0, 0] },
+    { "parameters": { "mode": "manual", "includeOtherFields": false, "assignments": { "assignments": [
+        { "id": "a1", "name": "email", "value": "={{ $json.body.email }}", "type": "string" },
+        { "id": "a2", "name": "name", "value": "={{ $json.body.profile.first_name ?? $json.body.name }}", "type": "string" },
+        { "id": "a3", "name": "plan", "value": "={{ $json.body.plan || 'free' }}", "type": "string" },
+        { "id": "a4", "name": "is_dot_com", "value": "={{ $json.body.email.endsWith('.com') }}", "type": "boolean" }
+      ] }, "options": {} }, "id": "n2", "name": "Normalize", "type": "n8n-nodes-base.set", "typeVersion": 3.4, "position": [220, 0] },
+    { "parameters": { "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 }, "conditions": [ { "id": "c1", "leftValue": "={{ $json.plan }}", "rightValue": "pro", "operator": { "type": "string", "operation": "equals" } } ], "combinator": "and" }, "options": {} }, "id": "n3", "name": "Is Pro?", "type": "n8n-nodes-base.if", "typeVersion": 2.2, "position": [440, 0] },
+    { "parameters": { "respondWith": "json", "responseBody": "={{ { \"ok\": true, \"tier\": \"pro\", \"name\": $json.name } }}", "options": {} }, "id": "n4", "name": "Respond Pro", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1.1, "position": [660, -80] },
+    { "parameters": { "respondWith": "firstIncomingItem", "options": {} }, "id": "n5", "name": "Respond Free", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1.1, "position": [660, 80] }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "Normalize", "type": "main", "index": 0 }]] },
+    "Normalize": { "main": [[{ "node": "Is Pro?", "type": "main", "index": 0 }]] },
+    "Is Pro?": { "main": [[{ "node": "Respond Pro", "type": "main", "index": 0 }], [{ "node": "Respond Free", "type": "main", "index": 0 }]] }
+  }
+}

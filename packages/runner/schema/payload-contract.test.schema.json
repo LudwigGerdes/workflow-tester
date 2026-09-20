@@ -1,0 +1,286 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/LudwigGerdes/payload-contract/schema/payload-contract.test.schema.json",
+  "title": "payload-contract test file",
+  "description": "A workflow test file. Carries either a single case (top-level when/then) or a cases list \u2014 never both.",
+  "type": "object",
+  "properties": {
+    "workflow": {
+      "description": "Workflow id, or a path to workflow JSON imported as a temp workflow.",
+      "type": "string"
+    },
+    "instance": {
+      "type": "string"
+    },
+    "given": {
+      "$ref": "#/$defs/given"
+    },
+    "when": {
+      "$ref": "#/$defs/when"
+    },
+    "then": {
+      "$ref": "#/$defs/then"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "oneOf": [
+    {
+      "description": "cases form",
+      "required": [
+        "cases"
+      ],
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "when"
+            ]
+          },
+          {
+            "required": [
+              "then"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "description": "single-case form",
+      "required": [
+        "when"
+      ],
+      "not": {
+        "required": [
+          "cases"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "given": {
+      "type": "object",
+      "properties": {
+        "snapshot": {
+          "type": "string"
+        },
+        "packs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "seed": {
+          "description": "Per-service collections for the generic resource store.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          }
+        },
+        "faults": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/faultSpec"
+          }
+        },
+        "pinData": {
+          "description": "Seam S8: INodeExecutionData[] pinned per node, so a case can start from recorded boundary items.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "json": {},
+                "binary": {
+                  "type": "object"
+                },
+                "pairedItem": {}
+              },
+              "required": [
+                "json"
+              ]
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "faultSpec": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "body": {},
+        "delayMs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "empty": {
+          "type": "boolean"
+        },
+        "after": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "once": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "when": {
+      "type": "object",
+      "properties": {
+        "trigger": {
+          "oneOf": [
+            {
+              "enum": [
+                "manual",
+                "webhook"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "node": {
+                  "type": "string"
+                },
+                "payload": {}
+              },
+              "required": [
+                "node"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "payload": {},
+        "timeout": {
+          "description": "Duration such as 60s or 2m.",
+          "type": "string",
+          "pattern": "^[0-9]+(ms|s|m)$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "then": {
+      "type": "object",
+      "properties": {
+        "execution": {
+          "description": "Nested form; the dotted form execution.status is equally valid.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "oneOf": [
+                {
+                  "enum": [
+                    "success",
+                    "error"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "errorNode": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "errorNode"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "additionalProperties": true
+        },
+        "calls": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/callAssertion"
+          }
+        },
+        "noUnmatched": {
+          "type": "boolean"
+        }
+      },
+      "patternProperties": {
+        "^execution\\.": {},
+        "^node\\.": {}
+      },
+      "additionalProperties": false
+    },
+    "callAssertion": {
+      "type": "object",
+      "properties": {
+        "service": {
+          "type": "string"
+        },
+        "method": {
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE",
+            "HEAD",
+            "OPTIONS"
+          ]
+        },
+        "path": {
+          "type": "string"
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "gte": {
+          "type": "integer"
+        },
+        "lte": {
+          "type": "integer"
+        }
+      },
+      "patternProperties": {
+        "^(body|query|headers)(\\.|$)": {}
+      },
+      "additionalProperties": false
+    },
+    "case": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Unique within the file; results are reported keyed by it.",
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string"
+        },
+        "given": {
+          "$ref": "#/$defs/given"
+        },
+        "when": {
+          "$ref": "#/$defs/when"
+        },
+        "then": {
+          "$ref": "#/$defs/then"
+        }
+      },
+      "required": [
+        "id",
+        "when"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

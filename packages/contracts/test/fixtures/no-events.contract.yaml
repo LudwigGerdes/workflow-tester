@@ -1,0 +1,6 @@
+version: 1
+trigger: Webhook
+source:
+  kind: vendor
+  vendor: stripe
+  events: []

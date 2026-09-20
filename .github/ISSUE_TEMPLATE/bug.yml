@@ -1,0 +1,50 @@
+name: Bug report
+description: Something payload-contract did wrong, or failed to do
+labels: [bug]
+body:
+  - type: input
+    id: tool-version
+    attributes:
+      label: payload-contract version
+      description: Output of `node packages/cli/dist/bin.js --version`
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: n8n-version
+    attributes:
+      label: n8n version
+      description: The `n8nVersion` in `.payload-contract/config.yaml` if set, and the version your instance runs
+      placeholder: 2.38.3
+    validations:
+      required: true
+  - type: input
+    id: node-version
+    attributes:
+      label: Node version
+      description: Output of `node --version`
+      placeholder: v22.x
+    validations:
+      required: true
+  - type: textarea
+    id: workflow
+    attributes:
+      label: Minimal workflow JSON
+      description: The smallest workflow that shows the problem, plus the test file or contract if one is involved. Remove credentials, instance ids and anything private first.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected
+      description: What you expected payload-contract to report or do
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual
+      description: What it reported or did instead — paste the exact output and exit code
+    validations:
+      required: true
