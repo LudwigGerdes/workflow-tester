@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![n8n 2.38](https://img.shields.io/badge/n8n-2.38-orange.svg)](#compatibility)
 
-![payload-contract run catching a swallowed expression error](docs/demo/quickstart.gif)
+![payload-contract run catching a swallowed expression error](https://raw.githubusercontent.com/LudwigGerdes/payload-contract/main/docs/demo/quickstart.gif)
 
 <details><summary>Text transcript</summary>
 
@@ -38,14 +38,14 @@ An n8n workflow is only ever checked by running it, and its expressions are only
 
 ## Quickstart
 
-Needs Node >= 24 (see [Compatibility](#compatibility) for why). From the 0.1.0 release it is one package on npm, with everything it needs inside it (the node descriptions, the vendor catalogues, the test-file schema):
+Needs Node >= 24 (see [Compatibility](#compatibility) for why). It is one package on npm, with everything it needs inside it (the node descriptions, the vendor catalogues, the test-file schema):
 
 ```bash
 npx payload-contract --help                 # run it without installing
 npm install --save-dev payload-contract     # or pin it in the repo that holds your workflows
 ```
 
-Until 0.1.0 is published the npm name is a placeholder; build from a checkout instead (pnpm 10):
+To work on the tool itself, build from a checkout (pnpm 10):
 
 ```bash
 git clone https://github.com/LudwigGerdes/payload-contract && cd payload-contract
@@ -169,7 +169,7 @@ When `profile` is missing, reading `.first_name` off it throws, and the whole ex
 
 A contract sits beside each workflow and names what its trigger receives. The event names are payload-contract's slugs (`issues-opened`, not GitHub's `issues`); a wrong one is rejected before anything is written, and the error lists what is available:
 
-![contracts add rejecting an unknown event and succeeding on retry](docs/images/payload-contract-3.png)
+![contracts add rejecting an unknown event and succeeding on retry](https://raw.githubusercontent.com/LudwigGerdes/payload-contract/main/docs/images/payload-contract-3.png)
 
 <details><summary>Text transcript</summary>
 
@@ -225,7 +225,7 @@ workflows/issue-triage.json → github.issues-opened: 14 case(s) unchanged
 
 Case ids are content hashes, so an unchanged contract and workflow always produce byte-identical files, and `--check` is the pre-commit shape. Running them on the walkthrough's issue-triage workflow, whose Set reads `issue.assignee.login` off a nullable `assignee`:
 
-![run --only generated on realistic GitHub cases](docs/images/payload-contract-2.png)
+![run --only generated on realistic GitHub cases](https://raw.githubusercontent.com/LudwigGerdes/payload-contract/main/docs/images/payload-contract-2.png)
 
 <details><summary>Text transcript</summary>
 
