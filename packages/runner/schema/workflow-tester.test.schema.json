@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/LudwigGerdes/workflow-test/schema/workflow-test.test.schema.json",
-  "title": "workflow-test test file",
+  "$id": "https://github.com/LudwigGerdes/workflow-tester/schema/workflow-tester.test.schema.json",
+  "title": "workflow-tester test file",
   "description": "A workflow test file. Carries either a single case (top-level when/then) or a cases list \u2014 never both.",
   "type": "object",
   "properties": {

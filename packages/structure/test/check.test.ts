@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Shape } from 'workflow-test-contracts';
+import type { Shape } from 'workflow-tester-contracts';
 import { checkChain } from '../src/check.js';
 import type { Chain } from '../src/chain.js';
 

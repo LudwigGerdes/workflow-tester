@@ -1,4 +1,4 @@
-import { catalogVersions, listVendors, loadCatalog, readAudit, vendorSource } from 'workflow-test-vendors';
+import { catalogVersions, listVendors, loadCatalog, readAudit, vendorSource } from 'workflow-tester-vendors';
 import { EXIT, type Io } from '../io.js';
 
 export function vendorsCommand(argv: string[], io: Io): number {
@@ -25,6 +25,6 @@ export function vendorsCommand(argv: string[], io: Io): number {
     return EXIT.ok;
   }
 
-  io.err(`workflow-test vendors: unknown subcommand "${String(verb)}" (expected list or audit)`);
+  io.err(`workflow-tester vendors: unknown subcommand "${String(verb)}" (expected list or audit)`);
   return EXIT.usage;
 }

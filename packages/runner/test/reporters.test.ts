@@ -41,7 +41,7 @@ const regionOf = (doc: Sarif, index: number) =>
   doc.runs[0]?.results[index]?.locations[0]?.physicalLocation.region;
 
 describe('SARIF regions', () => {
-  it('emits a file-level region, because workflow-test does not read the workflow file', async () => {
+  it('emits a file-level region, because workflow-tester does not read the workflow file', async () => {
     expect(regionOf(await sarif(), 0)).toBeUndefined();
     expect(regionOf(await sarif(), 1)).toBeUndefined();
   });

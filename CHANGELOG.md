@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to workflow-test are recorded here. The format follows
+All notable changes to workflow-tester are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
@@ -8,12 +8,11 @@ All notable changes to workflow-test are recorded here. The format follows
 
 ### Changed
 
-- **Renamed** to workflow-test before the first release (the working name was
-  "payload contract"):
-  the package, the binary, the `WORKFLOW_TEST_*` environment variables, the
-  `.workflow-test/` project directory and `~/.workflow-test` all follow the new name.
-- **One package.** `workflow-test` is now the only published package and is
-  self-contained: the internal libraries (`workflow-test-engine`, `-runner`,
+- **Renamed** to workflow-tester before the first release:
+  the package, the binary, the `WORKFLOW_TESTER_*` environment variables, the
+  `.workflow-tester/` project directory and `~/.workflow-tester` all follow the new name.
+- **One package.** `workflow-tester` is now the only published package and is
+  self-contained: the internal libraries (`workflow-tester-engine`, `-runner`,
   `-contracts`, `-generator`, `-structure`, `-vendors`, `-instance`) are private
   and bundled into it, and the node descriptions, vendor catalogues and
   test-file schema ship inside it under `data/`. Installing the tarball used to
@@ -23,7 +22,7 @@ All notable changes to workflow-test are recorded here. The format follows
 - **Node >= 24 is now required.** The install-level smoke test found that plain
   `npm install` fails on Node 20, because `n8n-workflow` 2.38 pulls in the native
   module `isolated-vm` 7, which supports Node 24 and newer only.
-- `WORKFLOW_TEST_DATA=<dir>` overrides where the shipped data is read from
+- `WORKFLOW_TESTER_DATA=<dir>` overrides where the shipped data is read from
   (`<dir>/node-types`, `<dir>/vendors`, `<dir>/schema`).
 
 ### Fixed
@@ -36,12 +35,12 @@ All notable changes to workflow-test are recorded here. The format follows
   longer reads `0 passed` with every case at "needs a real execution".
   A response body that resolves to `undefined` is a warning, as a Set
   assignment is. `jwt` (needs a credential) and `binary` stay boundaries.
-- `workflow-test gen` writes by default. It used to write nothing unless
-  `WORKFLOW_TEST_MODE=dev`, and told you to run the command you had just run.
+- `workflow-tester gen` writes by default. It used to write nothing unless
+  `WORKFLOW_TESTER_MODE=dev`, and told you to run the command you had just run.
   `gen --check` is the read-only form for pre-commit and CI, in every mode.
 - `--help` / `-h` is honoured by every command and prints that command's
   usage (`run --help` used to run the suite; `init --help` scaffolded;
-  `node-types --help` refused). `workflow-test help <command>` does the same.
+  `node-types --help` refused). `workflow-tester help <command>` does the same.
 - `--version` / `-v`.
 - `run <workflow.json>` exits 2 with a one-line error when the file does not
   exist or is not JSON, instead of `0 passed` and exit 0.
@@ -64,7 +63,7 @@ All notable changes to workflow-test are recorded here. The format follows
   Node 24 and 26, and lints the package with publint and arethetypeswrong.
 - Community files: CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, issue and pull
   request templates.
-- Publish-ready package metadata for `workflow-test` (nothing is published yet).
+- Publish-ready package metadata for `workflow-tester` (nothing is published yet).
 
 ## 0.1.0 — unreleased
 

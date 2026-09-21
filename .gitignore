@@ -1,6 +1,6 @@
 node_modules/
 dist/
-**/.workflow-test/reports/
+**/.workflow-tester/reports/
 *.log
 .DS_Store
 

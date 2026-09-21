@@ -25,10 +25,10 @@ Start a disposable container. Nothing on it survives the capture, so the
 credentials below are throwaway by design:
 
 ```bash
-docker run -d --name workflow-test-fixtures -p 5680:5678 \
+docker run -d --name workflow-tester-fixtures -p 5680:5678 \
   -e N8N_DIAGNOSTICS_ENABLED=false \
   n8nio/n8n:2.10.0
-docker exec workflow-test-fixtures n8n --version    # must print 2.10.0
+docker exec workflow-tester-fixtures n8n --version    # must print 2.10.0
 ```
 
 Confirm nothing else already answers on the host port before trusting it —
@@ -42,8 +42,8 @@ lsof -nP -iTCP:5680 -sTCP:LISTEN
 If the port is contested, address the container directly instead:
 
 ```bash
-docker exec workflow-test-fixtures sh -c 'wget -qO- http://localhost:5678/rest/settings'
-docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' workflow-test-fixtures
+docker exec workflow-tester-fixtures sh -c 'wget -qO- http://localhost:5678/rest/settings'
+docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' workflow-tester-fixtures
 ```
 
 Confirm the public API is on: `/api/v1/executions` must answer **401**
@@ -58,7 +58,7 @@ create everything over HTTP, no browser needed:
 # owner account (throwaway; this instance is disposable)
 curl -s -c /tmp/cookie -X POST http://localhost:5680/rest/owner/setup \
   -H 'Content-Type: application/json' \
-  -d '{"email":"fixtures@workflow-test.local","firstName":"Fixture","lastName":"Capture","password":"Throwaway-local-1"}'
+  -d '{"email":"fixtures@workflow-tester.local","firstName":"Fixture","lastName":"Capture","password":"Throwaway-local-1"}'
 
 # scopes must be real names, so ask for the list, then request all of them
 curl -s -b /tmp/cookie http://localhost:5680/rest/api-keys/scopes
@@ -98,7 +98,7 @@ curl -s -H "X-N8N-API-KEY: $KEY" -H 'Content-Type: application/json' \
   -X POST http://localhost:5680/api/v1/workflows -d @wf.json
 
 docker exec -e N8N_RUNNERS_BROKER_PORT=5799 -e N8N_RUNNERS_ENABLED=false \
-  workflow-test-fixtures n8n execute --id <workflowId>
+  workflow-tester-fixtures n8n execute --id <workflowId>
 ```
 
 **Both env overrides are required.** `n8n execute` inside a container that is
@@ -147,5 +147,5 @@ guessed wrong.
 ## 6. Clean up
 
 ```bash
-docker rm -f workflow-test-fixtures
+docker rm -f workflow-tester-fixtures
 ```

@@ -33,9 +33,9 @@ const DUMP = JSON.stringify([
   { name: 'slack', version: 1, properties: [], inputs: ['main'], outputs: ['main'] },
 ]);
 
-describe('workflow-test node-types --version', () => {
-  it('writes a version directory holding only what workflow-test reads', async () => {
-    const cache = mkdtempSync(join(tmpdir(), 'workflow-test-cache-'));
+describe('workflow-tester node-types --version', () => {
+  it('writes a version directory holding only what workflow-tester reads', async () => {
+    const cache = mkdtempSync(join(tmpdir(), 'workflow-tester-cache-'));
     const tar = gzipSync(tarWith('package/dist/types/nodes.json', DUMP));
     const fetchImpl = (async (input: RequestInfo | URL) => {
       const url = String(input);
@@ -48,7 +48,7 @@ describe('workflow-test node-types --version', () => {
       return new Response(tar, { status: 200 });
     }) as unknown as typeof globalThis.fetch;
 
-    const { lines, io } = sink({ WORKFLOW_TEST_CACHE: cache });
+    const { lines, io } = sink({ WORKFLOW_TESTER_CACHE: cache });
     const code = await nodeTypesCommand(['--version', '2.38.3'], io, fetchImpl);
 
     expect(code).toBe(0);
@@ -74,10 +74,10 @@ describe('workflow-test node-types --version', () => {
   });
 });
 
-describe('workflow-test node-types --from', () => {
+describe('workflow-tester node-types --from', () => {
   it('reads hand-authored descriptions off disk, without the network', async () => {
-    const cache = mkdtempSync(join(tmpdir(), 'workflow-test-cache-'));
-    const from = mkdtempSync(join(tmpdir(), 'workflow-test-from-'));
+    const cache = mkdtempSync(join(tmpdir(), 'workflow-tester-cache-'));
+    const from = mkdtempSync(join(tmpdir(), 'workflow-tester-from-'));
     // A custom type: the allowlist would discard it, and --from must not.
     writeFileSync(
       join(from, 'nodes.json'),
@@ -85,7 +85,7 @@ describe('workflow-test node-types --from', () => {
     );
     writeFileSync(join(from, 'meta.json'), JSON.stringify({ n8nVersion: '9.9.9' }));
 
-    const { io } = sink({ WORKFLOW_TEST_CACHE: cache });
+    const { io } = sink({ WORKFLOW_TESTER_CACHE: cache });
     const explode = (() => {
       throw new Error('the network must not be touched by --from');
     }) as unknown as typeof globalThis.fetch;
@@ -100,7 +100,7 @@ describe('workflow-test node-types --from', () => {
   });
 
   it('rejects a directory that is not a description source', async () => {
-    const from = mkdtempSync(join(tmpdir(), 'workflow-test-from-'));
+    const from = mkdtempSync(join(tmpdir(), 'workflow-tester-from-'));
     mkdirSync(join(from, 'empty'), { recursive: true });
     const { lines, io } = sink();
     const code = await nodeTypesCommand(['--from', from], io);
@@ -109,7 +109,7 @@ describe('workflow-test node-types --from', () => {
   });
 });
 
-describe('workflow-test node-types', () => {
+describe('workflow-tester node-types', () => {
   it('rejects an unknown flag rather than ignoring it', async () => {
     // A stub that throws, so a regression here fails loudly instead of
     // quietly reaching the network.
@@ -123,9 +123,9 @@ describe('workflow-test node-types', () => {
   });
 });
 
-describe('workflow-test node-types --instance', () => {
+describe('workflow-tester node-types --instance', () => {
   it('detects the version, then extracts for it, with no api key', async () => {
-    const cache = mkdtempSync(join(tmpdir(), 'workflow-test-cache-'));
+    const cache = mkdtempSync(join(tmpdir(), 'workflow-tester-cache-'));
     const payload = Buffer.from(JSON.stringify({ release: 'n8n@2.38.3' })).toString('base64');
     const tar = gzipSync(tarWith('package/dist/types/nodes.json', DUMP));
     const fetchImpl = (async (input: RequestInfo | URL) => {
@@ -143,7 +143,7 @@ describe('workflow-test node-types --instance', () => {
     }) as unknown as typeof globalThis.fetch;
 
     // No N8N_API_KEY in the environment: detection must not need one.
-    const { lines, io } = sink({ WORKFLOW_TEST_CACHE: cache });
+    const { lines, io } = sink({ WORKFLOW_TESTER_CACHE: cache });
     const code = await nodeTypesCommand(['--instance', 'https://n8n.example.invalid'], io, fetchImpl);
 
     expect(code).toBe(0);
@@ -167,9 +167,9 @@ describe('workflow-test node-types --instance', () => {
   });
 });
 
-describe('workflow-test node-types --list', () => {
+describe('workflow-tester node-types --list', () => {
   it('names every extracted version and what run would choose', async () => {
-    const cache = mkdtempSync(join(tmpdir(), 'workflow-test-cache-'));
+    const cache = mkdtempSync(join(tmpdir(), 'workflow-tester-cache-'));
     mkdirSync(join(cache, 'node-types', '2.38.3'), { recursive: true });
     writeFileSync(
       join(cache, 'node-types', '2.38.3', 'meta.json'),
@@ -180,7 +180,7 @@ describe('workflow-test node-types --list', () => {
       JSON.stringify([{ name: 'set', version: 1, properties: [] }]),
     );
 
-    const { lines, io } = sink({ WORKFLOW_TEST_CACHE: cache });
+    const { lines, io } = sink({ WORKFLOW_TESTER_CACHE: cache });
     const code = await nodeTypesCommand(['--list'], io);
 
     expect(code).toBe(0);
@@ -191,7 +191,7 @@ describe('workflow-test node-types --list', () => {
   });
 
   it('works with nothing extracted at all', async () => {
-    const { lines, io } = sink({ WORKFLOW_TEST_CACHE: mkdtempSync(join(tmpdir(), 'workflow-test-empty-')) });
+    const { lines, io } = sink({ WORKFLOW_TESTER_CACHE: mkdtempSync(join(tmpdir(), 'workflow-tester-empty-')) });
     expect(await nodeTypesCommand(['--list'], io)).toBe(0);
     expect(lines.join('\n')).toMatch(/bundled/i);
   });

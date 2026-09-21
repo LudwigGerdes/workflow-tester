@@ -15,19 +15,19 @@ describe('modeOf', () => {
   });
 
   it('is test when the variable is empty', () => {
-    expect(modeOf(io({ WORKFLOW_TEST_MODE: '' }))).toBe('test');
+    expect(modeOf(io({ WORKFLOW_TESTER_MODE: '' }))).toBe('test');
   });
 
   it('is dev when asked for', () => {
-    expect(modeOf(io({ WORKFLOW_TEST_MODE: 'dev' }))).toBe('dev');
+    expect(modeOf(io({ WORKFLOW_TESTER_MODE: 'dev' }))).toBe('dev');
   });
 
   it('is test when asked for', () => {
-    expect(modeOf(io({ WORKFLOW_TEST_MODE: 'test' }))).toBe('test');
+    expect(modeOf(io({ WORKFLOW_TESTER_MODE: 'test' }))).toBe('test');
   });
 
   it('ignores case and surrounding space', () => {
-    expect(modeOf(io({ WORKFLOW_TEST_MODE: '  DEV ' }))).toBe('dev');
+    expect(modeOf(io({ WORKFLOW_TESTER_MODE: '  DEV ' }))).toBe('dev');
   });
 
   it('falls back to test on an unrecognised value, and says so', () => {
@@ -36,7 +36,7 @@ describe('modeOf', () => {
       cwd: '/tmp',
       out: () => {},
       err: (s) => said.push(s),
-      env: { WORKFLOW_TEST_MODE: 'yolo' },
+      env: { WORKFLOW_TESTER_MODE: 'yolo' },
     };
     expect(modeOf(noisy)).toBe('test');
     expect(said.join('\n')).toMatch(/yolo/);
@@ -49,7 +49,7 @@ describe('modeOf', () => {
       cwd: '/tmp',
       out: () => {},
       err: (s) => said.push(s),
-      env: { WORKFLOW_TEST_MODE: 'dev' },
+      env: { WORKFLOW_TESTER_MODE: 'dev' },
     };
     modeOf(quiet);
     expect(said).toEqual([]);

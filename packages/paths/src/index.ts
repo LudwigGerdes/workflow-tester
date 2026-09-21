@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /**
- * The data workflow-test ships, by what it is rather than where it lives.
+ * The data workflow-tester ships, by what it is rather than where it lives.
  *
  * - `node-types`: n8n node descriptions, one directory per n8n version.
  * - `vendors`: `sources.yaml`, `AUDIT.md` and `data/<vendor>/<spec>/catalog.json`.
@@ -19,7 +19,7 @@ const IN_WORKSPACE: Record<DataKind, string[]> = {
 };
 
 /** Overrides every other layout; holds one directory per kind. */
-export const DATA_ENV = 'WORKFLOW_TEST_DATA';
+export const DATA_ENV = 'WORKFLOW_TESTER_DATA';
 
 export interface DataLayout {
   /** The directory of the module asking. Defaults to this one. */
@@ -31,7 +31,7 @@ export interface DataLayout {
 /**
  * The one place that knows where shipped data is. Three layouts, in order:
  *
- * 1. `WORKFLOW_TEST_DATA=<dir>`: `<dir>/<kind>`, no questions asked.
+ * 1. `WORKFLOW_TESTER_DATA=<dir>`: `<dir>/<kind>`, no questions asked.
  * 2. A checkout. This module sits at `packages/<pkg>/{src,dist}/` — as its own
  *    file under `packages/paths`, or bundled into `packages/cli/dist/` — so the
  *    sibling packages are two levels up, and the data is read where it is

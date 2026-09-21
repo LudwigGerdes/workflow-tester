@@ -10,7 +10,7 @@ describe('dataDir', () => {
     expect(existsSync(join(dataDir('node-types'), '2.10.0'))).toBe(true);
     expect(existsSync(join(dataDir('vendors'), 'sources.yaml'))).toBe(true);
     expect(existsSync(join(dataDir('vendors'), 'data', 'github'))).toBe(true);
-    expect(existsSync(join(dataDir('schema'), 'workflow-test.test.schema.json'))).toBe(true);
+    expect(existsSync(join(dataDir('schema'), 'workflow-tester.test.schema.json'))).toBe(true);
   });
 
   it('resolves the same checkout data from the bundled CLI in packages/cli/dist', () => {
@@ -22,20 +22,20 @@ describe('dataDir', () => {
   });
 
   it('reads <package>/data/<kind> when installed', () => {
-    const layout = { here: '/app/node_modules/workflow-test/dist', env: {}, exists: () => false };
-    expect(dataDir('node-types', layout)).toBe('/app/node_modules/workflow-test/data/node-types');
-    expect(dataDir('vendors', layout)).toBe('/app/node_modules/workflow-test/data/vendors');
-    expect(dataDir('schema', layout)).toBe('/app/node_modules/workflow-test/data/schema');
+    const layout = { here: '/app/node_modules/workflow-tester/dist', env: {}, exists: () => false };
+    expect(dataDir('node-types', layout)).toBe('/app/node_modules/workflow-tester/data/node-types');
+    expect(dataDir('vendors', layout)).toBe('/app/node_modules/workflow-tester/data/vendors');
+    expect(dataDir('schema', layout)).toBe('/app/node_modules/workflow-tester/data/schema');
   });
 
   it('is not fooled by a neighbouring package that happens to be called engine', () => {
     const exists = only('/app/node_modules/engine/bundled');
-    const layout = { here: '/app/node_modules/workflow-test/dist', env: {}, exists };
-    expect(dataDir('vendors', layout)).toBe('/app/node_modules/workflow-test/data/vendors');
+    const layout = { here: '/app/node_modules/workflow-tester/dist', env: {}, exists };
+    expect(dataDir('vendors', layout)).toBe('/app/node_modules/workflow-tester/data/vendors');
   });
 
-  it('lets WORKFLOW_TEST_DATA override both', () => {
-    const layout = { here: '/repo/packages/cli/dist', env: { WORKFLOW_TEST_DATA: '/mine' }, exists: () => true };
+  it('lets WORKFLOW_TESTER_DATA override both', () => {
+    const layout = { here: '/repo/packages/cli/dist', env: { WORKFLOW_TESTER_DATA: '/mine' }, exists: () => true };
     expect(dataDir('schema', layout)).toBe('/mine/schema');
   });
 });

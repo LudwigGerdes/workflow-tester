@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { EngineResult } from 'workflow-test-engine';
+import type { EngineResult } from 'workflow-tester-engine';
 import { evaluatePath } from '../src/assert.js';
 import { evaluateThen, oracle } from '../src/oracle.js';
 

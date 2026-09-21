@@ -12,7 +12,7 @@ const workflowIn = (dir: string, sidecar: string): string => {
 
 describe('outcomesFor', () => {
   it('reads declarations from the sidecar', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'workflow-test-out-'));
+    const dir = mkdtempSync(join(tmpdir(), 'workflow-tester-out-'));
     const file = workflowIn(
       dir,
       `version: 1
@@ -28,18 +28,18 @@ outcomes:
   });
 
   it('returns nothing when the sidecar declares none', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'workflow-test-out-'));
+    const dir = mkdtempSync(join(tmpdir(), 'workflow-tester-out-'));
     expect(outcomesFor(workflowIn(dir, 'version: 1\n'))).toEqual([]);
   });
 
   it('returns nothing when there is no sidecar', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'workflow-test-out-'));
+    const dir = mkdtempSync(join(tmpdir(), 'workflow-tester-out-'));
     writeFileSync(join(dir, 'wf.json'), '{}');
     expect(outcomesFor(join(dir, 'wf.json'))).toEqual([]);
   });
 
   it('ignores an entry with an unknown expectation rather than guessing', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'workflow-test-out-'));
+    const dir = mkdtempSync(join(tmpdir(), 'workflow-tester-out-'));
     const file = workflowIn(dir, 'version: 1\noutcomes:\n  - node: X\n    expect: maybe\n');
     expect(outcomesFor(file)).toEqual([]);
   });

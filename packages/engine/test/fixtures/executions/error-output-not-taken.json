@@ -59,7 +59,7 @@
                           "id": "A-2"
                         }
                       },
-                      "webhookUrl": "https://n8n.example/webhook/workflow-test-err-branch",
+                      "webhookUrl": "https://n8n.example/webhook/workflow-tester-err-branch",
                       "executionMode": "production"
                     },
                     "pairedItem": {
@@ -160,7 +160,7 @@
   },
   "workflowData": {
     "id": "wf-fixture-0001",
-    "name": "workflow-test fixture \u2014 error output branch",
+    "name": "workflow-tester fixture \u2014 error output branch",
     "nodes": [
       {
         "id": "wh1",
@@ -175,7 +175,7 @@
         "parameters": {
           "multipleMethods": false,
           "httpMethod": "POST",
-          "path": "workflow-test-err-branch",
+          "path": "workflow-tester-err-branch",
           "authentication": "none",
           "responseMode": "lastNode",
           "responseData": "firstEntryJson",

@@ -22,8 +22,8 @@ const envelope = (body: unknown) => ({ headers: {}, params: {}, query: {}, body 
  * required-parameter check is lost — and the run says so.
  */
 describe('running without any node descriptions', () => {
-  const emptyFloor = mkdtempSync(join(tmpdir(), 'workflow-test-no-bundle-'));
-  const emptyCache = mkdtempSync(join(tmpdir(), 'workflow-test-no-cache-'));
+  const emptyFloor = mkdtempSync(join(tmpdir(), 'workflow-tester-no-bundle-'));
+  const emptyCache = mkdtempSync(join(tmpdir(), 'workflow-tester-no-cache-'));
 
   it('loads an empty source with a warning instead of throwing', async () => {
     const source = await loadNodeTypes(undefined, { floor: emptyFloor, root: emptyCache });

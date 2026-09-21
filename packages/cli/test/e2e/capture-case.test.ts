@@ -88,7 +88,7 @@ const SIDECAR = [
 ].join('\n');
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'workflow-test-capture-'));
+  dir = mkdtempSync(join(tmpdir(), 'workflow-tester-capture-'));
   out = [];
   err = [];
   mkdirSync(join(dir, 'workflows'), { recursive: true });
@@ -111,7 +111,7 @@ describe('a capture is a test', () => {
   });
 
   it('still reports nothing to run when there is no capture either', async () => {
-    dir = mkdtempSync(join(tmpdir(), 'workflow-test-capture-'));
+    dir = mkdtempSync(join(tmpdir(), 'workflow-tester-capture-'));
     out = [];
     mkdirSync(join(dir, 'workflows'), { recursive: true });
     write('string');

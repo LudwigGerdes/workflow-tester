@@ -1,8 +1,8 @@
-# Walkthrough: what workflow-test generates for a new workflow
+# Walkthrough: what workflow-tester generates for a new workflow
 
 Run end to end against an n8n 2.38.3 instance, with a workflow created and
 published for the purpose and deleted afterwards. Commands assume
-`workflow-test` resolves to `node packages/cli/dist/bin.js` in a built checkout
+`workflow-tester` resolves to `node packages/cli/dist/bin.js` in a built checkout
 (see the README).
 
 ## The workflow
@@ -28,28 +28,28 @@ nullable, and the workflow reads `.login` off it unconditionally.
 
 ```bash
 # 1. scaffold, recording which n8n release these workflows run on
-workflow-test init --n8n-version 2.38.3
-#    → .workflow-test/tests/example.test.yaml, .workflow-test/README.md, .workflow-test/config.yaml
+workflow-tester init --n8n-version 2.38.3
+#    → .workflow-tester/tests/example.test.yaml, .workflow-tester/README.md, .workflow-tester/config.yaml
 
 # 2. say what the trigger can receive
-workflow-test contracts add workflows/issue-triage.json --vendor github --events issues-opened
+workflow-tester contracts add workflows/issue-triage.json --vendor github --events issues-opened
 #    → workflows/issue-triage.contract.yaml
-#    → .workflow-test/contracts/github.issues-opened.{schema,examples}.json
+#    → .workflow-tester/contracts/github.issues-opened.{schema,examples}.json
 
 # 3. generate the cases (--max raises the default budget of ~3.5 per node)
-workflow-test gen --max 200
-#    → 200 cases under .workflow-test/cases/issue-triage/github.issues-opened/
+workflow-tester gen --max 200
+#    → 200 cases under .workflow-tester/cases/issue-triage/github.issues-opened/
 #      "200 added, 0 retired, 0 unchanged (capped, 1120 discarded)"
 
 # 4. run them
-workflow-test run
+workflow-tester run
 
 # 5. read one failure as a paste-ready test file
-workflow-test explain 11df5e3da2dee888
+workflow-tester explain 11df5e3da2dee888
 
 # 6. optional: match the instance's own n8n version exactly
-workflow-test node-types --instance https://your-n8n
-workflow-test node-types --list
+workflow-tester node-types --instance https://your-n8n
+workflow-tester node-types --list
 ```
 
 ## What it generated

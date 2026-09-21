@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { EngineResult } from 'workflow-test-engine';
-import type { CaptureRecord } from 'workflow-test-contracts';
+import type { EngineResult } from 'workflow-tester-engine';
+import type { CaptureRecord } from 'workflow-tester-contracts';
 import { checkTerminalShape } from '../src/terminal-shape.js';
 
 const resultWith = (outputs: Record<string, unknown[][]>): EngineResult =>

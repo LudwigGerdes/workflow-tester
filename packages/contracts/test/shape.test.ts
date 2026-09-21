@@ -133,7 +133,7 @@ describe('hostile keys', () => {
    * hands it over like any other. Assigning it with `=` onto a plain object
    * invokes the setter and replaces that object's prototype — so a field
    * lookup could then find something inherited and report a field that is not
-   * there. workflow-test reads untrusted webhook payloads, so this is reachable.
+   * there. workflow-tester reads untrusted webhook payloads, so this is reachable.
    */
   const hostile = () => JSON.parse('{"__proto__": {"polluted": "yes"}, "ok": 1}') as unknown;
 

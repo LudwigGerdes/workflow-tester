@@ -19,7 +19,7 @@ export interface EnvelopeOptions {
 /**
  * Per-vendor request headers.
  *
- * Signature values are fixed placeholders, never real signatures: workflow-test has no
+ * Signature values are fixed placeholders, never real signatures: workflow-tester has no
  * webhook secret and signing one would be meaningless. A workflow that verifies
  * a signature is therefore a tier-2 concern — the mock has to stand in for the
  * verifying call. What matters at tier 1 is that the *shape* is right, so
@@ -30,7 +30,7 @@ const VENDOR_HEADERS: Record<string, (event?: string) => Record<string, string>>
     'x-github-event': event ?? 'ping',
     'x-github-delivery': '00000000-0000-4000-8000-000000000000',
     'x-hub-signature-256': `sha256=${'0'.repeat(64)}`,
-    'user-agent': 'GitHub-Hookshot/workflow-test',
+    'user-agent': 'GitHub-Hookshot/workflow-tester',
   }),
   stripe: () => ({
     'stripe-signature': `t=1700000000,v1=${'0'.repeat(64)}`,

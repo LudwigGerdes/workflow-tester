@@ -16,10 +16,10 @@ export type Mode = 'dev' | 'test';
  * fixtures would be the worst outcome of the two.
  */
 export function modeOf(io: Io): Mode {
-  const raw = io.env?.['WORKFLOW_TEST_MODE'];
+  const raw = io.env?.['WORKFLOW_TESTER_MODE'];
   if (raw === undefined || raw.trim() === '') return 'test';
   const value = raw.trim().toLowerCase();
   if (value === 'dev' || value === 'test') return value;
-  io.err(`workflow-test: unknown WORKFLOW_TEST_MODE "${raw.trim()}"; using test`);
+  io.err(`workflow-tester: unknown WORKFLOW_TESTER_MODE "${raw.trim()}"; using test`);
   return 'test';
 }

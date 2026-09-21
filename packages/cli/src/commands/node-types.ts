@@ -1,16 +1,16 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { SUPPORTED_N8N_VERSION, cacheRoot, harvest } from 'workflow-test-engine';
+import { SUPPORTED_N8N_VERSION, cacheRoot, harvest } from 'workflow-tester-engine';
 import {
   fetchDescriptionDump,
   fetchInstanceVersion,
   resolveLibraryVersion,
-} from 'workflow-test-instance';
+} from 'workflow-tester-instance';
 import { EXIT, parseArgs, type Io } from '../io.js';
 import { readConfig } from '../config.js';
 
 /**
- * Extract the node descriptions workflow-test reads, for one n8n version.
+ * Extract the node descriptions workflow-tester reads, for one n8n version.
  *
  * `--version` is the only path that reaches the network, and only when run.
  * `--from` is entirely offline and is how a custom node gets described.
@@ -32,24 +32,24 @@ export async function nodeTypesCommand(
     (name) => name !== 'version' && name !== 'from' && name !== 'instance' && name !== 'list',
   );
   if (unknown !== undefined) {
-    io.err(`workflow-test: node-types does not take --${unknown}`);
+    io.err(`workflow-tester: node-types does not take --${unknown}`);
     return EXIT.usage;
   }
   if (list) {
     if ([version, from, instance].some((value) => value !== undefined)) {
-      io.err('workflow-test: --list takes no other flags; it only reports what is available');
+      io.err('workflow-tester: --list takes no other flags; it only reports what is available');
       return EXIT.usage;
     }
     return listSources(io);
   }
   if ([version, from, instance].filter((value) => value !== undefined).length !== 1) {
     io.err(
-      'workflow-test: node-types needs exactly one of --version <n8n version>, --instance <url> or --from <dir>',
+      'workflow-tester: node-types needs exactly one of --version <n8n version>, --instance <url> or --from <dir>',
     );
     return EXIT.usage;
   }
 
-  // `cacheRoot` already reads WORKFLOW_TEST_CACHE; `?? {}` keeps a developer's own
+  // `cacheRoot` already reads WORKFLOW_TESTER_CACHE; `?? {}` keeps a developer's own
   // exported value out of the tests.
   const root = join(cacheRoot(io.env ?? {}), 'node-types');
 
@@ -65,7 +65,7 @@ export async function nodeTypesCommand(
         : fromDirectory(from);
 
     if (extracted.nodes.length === 0) {
-      io.err(`workflow-test: no usable node descriptions found (${extracted.source})`);
+      io.err(`workflow-tester: no usable node descriptions found (${extracted.source})`);
       return EXIT.usage;
     }
 
@@ -89,7 +89,7 @@ export async function nodeTypesCommand(
     io.out(`n8n ${extracted.n8nVersion}: ${extracted.nodes.length} node descriptions written to ${dir}`);
     return EXIT.ok;
   } catch (error) {
-    io.err(`workflow-test: ${error instanceof Error ? error.message : String(error)}`);
+    io.err(`workflow-tester: ${error instanceof Error ? error.message : String(error)}`);
     return EXIT.usage;
   }
 }
@@ -159,14 +159,14 @@ function listSources(io: Io): number {
   const pinned = readConfig(io).n8nVersion;
   io.out(
     pinned === undefined
-      ? 'pinned version: none (set n8nVersion in .workflow-test/config.yaml)'
-      : `pinned version: ${pinned} (.workflow-test/config.yaml)`,
+      ? 'pinned version: none (set n8nVersion in .workflow-tester/config.yaml)'
+      : `pinned version: ${pinned} (.workflow-tester/config.yaml)`,
   );
   io.out('');
-  io.out(`bundled:   ${SUPPORTED_N8N_VERSION} (inside workflow-test, always available)`);
+  io.out(`bundled:   ${SUPPORTED_N8N_VERSION} (inside workflow-tester, always available)`);
   io.out(
     extracted.length === 0
-      ? 'extracted: none — `workflow-test node-types --version <v>` to add one'
+      ? 'extracted: none — `workflow-tester node-types --version <v>` to add one'
       : `extracted: ${extracted.join(', ')}`,
   );
   io.out('');

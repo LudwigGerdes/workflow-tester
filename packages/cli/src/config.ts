@@ -8,7 +8,7 @@ import type { Io } from './io.js';
  *
  * The n8n version lives here rather than in an environment variable because it
  * describes the workflows in this repository: it is the same for everyone who
- * clones it, and it belongs in git beside them. `WORKFLOW_TEST_MODE` is the opposite —
+ * clones it, and it belongs in git beside them. `WORKFLOW_TESTER_MODE` is the opposite —
  * it describes where you are working, so a committed value would claim one
  * environment and be wrong for the other. Same reasoning, opposite conclusion.
  */
@@ -17,7 +17,7 @@ export interface Config {
 }
 
 export function configPath(cwd: string): string {
-  return join(cwd, '.workflow-test', 'config.yaml');
+  return join(cwd, '.workflow-tester', 'config.yaml');
 }
 
 /**

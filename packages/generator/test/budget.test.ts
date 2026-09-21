@@ -53,7 +53,7 @@ describe('what the budget is spent on', () => {
   });
 
   it('keeps every single mutation on a read path, however small the budget', () => {
-    // The floor: workflow-test must not silently stop testing a field the workflow's
+    // The floor: workflow-tester must not silently stop testing a field the workflow's
     // own expressions read.
     const all = run({ max: 10_000 }).cases;
     const wanted = all.filter((c) => !isExample(c) && mutationCount(c) === 1 && inFocus(c)).map((c) => c.id);

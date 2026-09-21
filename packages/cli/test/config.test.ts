@@ -6,10 +6,10 @@ import { readConfig } from '../src/config.js';
 import type { Io } from '../src/io.js';
 
 const repo = (yaml?: string): Io => {
-  const cwd = mkdtempSync(join(tmpdir(), 'workflow-test-cfg-'));
+  const cwd = mkdtempSync(join(tmpdir(), 'workflow-tester-cfg-'));
   if (yaml !== undefined) {
-    mkdirSync(join(cwd, '.workflow-test'), { recursive: true });
-    writeFileSync(join(cwd, '.workflow-test', 'config.yaml'), yaml);
+    mkdirSync(join(cwd, '.workflow-tester'), { recursive: true });
+    writeFileSync(join(cwd, '.workflow-tester', 'config.yaml'), yaml);
   }
   return { cwd, env: {}, out: () => {}, err: () => {} };
 };

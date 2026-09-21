@@ -60,7 +60,7 @@ representative at an online or offline event.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the community leaders responsible for enforcement by opening an
-issue at https://github.com/LudwigGerdes/workflow-test/issues (mark it "conduct";
+issue at https://github.com/LudwigGerdes/workflow-tester/issues (mark it "conduct";
 it can be made private on request).
 All complaints will be reviewed and investigated promptly and fairly.
 

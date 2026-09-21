@@ -30,7 +30,7 @@ export interface Suite {
   generated?: Record<string, unknown>;
   given?: Record<string, unknown>;
   cases: SuiteCase[];
-  /** True when these cases came from `.workflow-test/cases`, not a written suite. */
+  /** True when these cases came from `.workflow-tester/cases`, not a written suite. */
   synthetic: boolean;
 }
 

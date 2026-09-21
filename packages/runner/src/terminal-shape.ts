@@ -1,5 +1,5 @@
-import { diffShape, shapeOfItems, type CaptureRecord, type ShapeChange } from 'workflow-test-contracts';
-import type { EngineResult } from 'workflow-test-engine';
+import { diffShape, shapeOfItems, type CaptureRecord, type ShapeChange } from 'workflow-tester-contracts';
+import type { EngineResult } from 'workflow-tester-engine';
 import type { Terminus } from './termini.js';
 
 export interface TerminalShapeFinding {

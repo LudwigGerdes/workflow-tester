@@ -1,17 +1,17 @@
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
-import type { Catalog } from 'workflow-test-vendors';
+import type { Catalog } from 'workflow-tester-vendors';
 import { parseDocument } from 'yaml';
 import type { Contract } from './types.js';
 
 /** Annotation naming the event a oneOf branch belongs to. */
-export const EVENT_KEY = 'x-workflow-test-event';
+export const EVENT_KEY = 'x-workflow-tester-event';
 /** Annotation carrying the value the vendor sends in its event header. */
-export const EVENT_HEADER_KEY = 'x-workflow-test-event-header';
+export const EVENT_HEADER_KEY = 'x-workflow-tester-event-header';
 
 export interface MaterializeOptions {
-  /** Where the shape files go, e.g. `<repo>/.workflow-test/contracts`. */
+  /** Where the shape files go, e.g. `<repo>/.workflow-tester/contracts`. */
   outDir: string;
   /** Directory the contract lives in; shape paths are written relative to it. */
   contractDir: string;

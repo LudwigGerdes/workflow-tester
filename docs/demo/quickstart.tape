@@ -18,19 +18,19 @@ Set TypingSpeed 35ms
 Set Theme "Catppuccin Mocha"
 
 Hide
-  Type 'alias workflow-test="node $PWD/packages/cli/dist/bin.js"' Enter
-  Type "rm -rf /tmp/workflow-test-demo && mkdir -p /tmp/workflow-test-demo/workflows && cp docs/demo/signup.json /tmp/workflow-test-demo/workflows/ && cd /tmp/workflow-test-demo && clear" Enter
+  Type 'alias workflow-tester="node $PWD/packages/cli/dist/bin.js"' Enter
+  Type "rm -rf /tmp/workflow-tester-demo && mkdir -p /tmp/workflow-tester-demo/workflows && cp docs/demo/signup.json /tmp/workflow-tester-demo/workflows/ && cd /tmp/workflow-tester-demo && clear" Enter
 Show
 
-Type "workflow-test init < /dev/null" Enter
+Type "workflow-tester init < /dev/null" Enter
 Sleep 2s
 
 Type "clear" Enter
-Type "cp $OLDPWD/docs/demo/signup.test.yaml .workflow-test/tests/ && workflow-test run" Enter
+Type "cp $OLDPWD/docs/demo/signup.test.yaml .workflow-tester/tests/ && workflow-tester run" Enter
 Sleep 4s
 
 Type "clear" Enter
 Type "sed -i '' 's/profile.first_name ??/profile?.first_name ??/' workflows/signup.json   # the fix: optional chaining" Enter
 Sleep 800ms
-Type "workflow-test run" Enter
+Type "workflow-tester run" Enter
 Sleep 4s

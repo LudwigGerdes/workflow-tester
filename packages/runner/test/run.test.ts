@@ -58,15 +58,15 @@ const withBoundary = {
 
 const setup = (wf: unknown = workflow): void => {
   mkdirSync(join(dir, 'workflows'), { recursive: true });
-  mkdirSync(join(dir, '.workflow-test/tests'), { recursive: true });
+  mkdirSync(join(dir, '.workflow-tester/tests'), { recursive: true });
   writeFileSync(join(dir, 'workflows/invoice.json'), JSON.stringify(wf, null, 2));
 };
 
 const writeSuite = (body: string): void =>
-  writeFileSync(join(dir, '.workflow-test/tests/invoice.test.yaml'), body);
+  writeFileSync(join(dir, '.workflow-tester/tests/invoice.test.yaml'), body);
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'workflow-test-run-'));
+  dir = mkdtempSync(join(tmpdir(), 'workflow-tester-run-'));
 });
 
 const run = (options = {}) => runTier1({ dir, sandbox: false, ...options });
@@ -169,7 +169,7 @@ cases:
   });
 
   it('fails a case whose workflow is missing rather than crashing', async () => {
-    mkdirSync(join(dir, '.workflow-test/tests'), { recursive: true });
+    mkdirSync(join(dir, '.workflow-tester/tests'), { recursive: true });
     writeSuite(`workflow: ../../workflows/nope.json
 cases:
   - id: x

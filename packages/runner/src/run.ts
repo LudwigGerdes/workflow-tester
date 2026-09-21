@@ -2,8 +2,8 @@ import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { availableParallelism } from 'node:os';
 import { dirname, relative, resolve } from 'node:path';
-import { runInSandbox, walk, loadNodeTypes, type EngineInput, type EngineResult } from 'workflow-test-engine';
-import { wrapWebhook, substitutesFor, readCapture, outcomesFor } from 'workflow-test-contracts';
+import { runInSandbox, walk, loadNodeTypes, type EngineInput, type EngineResult } from 'workflow-tester-engine';
+import { wrapWebhook, substitutesFor, readCapture, outcomesFor } from 'workflow-tester-contracts';
 import { loadSuites } from './load.js';
 import { evaluateThen, type Outcome } from './oracle.js';
 import { applyStructure, checkStructure } from './structure-check.js';
@@ -29,7 +29,7 @@ export interface RunOptions {
    */
   sandbox?: boolean;
   /**
-   * The n8n release these workflows run on, from `.workflow-test/config.yaml`.
+   * The n8n release these workflows run on, from `.workflow-tester/config.yaml`.
    * Absent, the bundled descriptions are used and the report says so.
    */
   n8nVersion?: string;

@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /**
- * Build `workflow-test-engine` before the suite runs.
+ * Build `workflow-tester-engine` before the suite runs.
  *
  * The e2e cases run through the sandbox, and the sandbox executes the engine's
  * *built* worker — a worker thread cannot load our TypeScript. Without this the
@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 export default function setup(): void {
   const engineDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'engine');
   const tsc = createRequire(import.meta.url).resolve('typescript/bin/tsc');
-  // `workflow-test-paths` first: the built worker imports it from its `dist`.
+  // `workflow-tester-paths` first: the built worker imports it from its `dist`.
   for (const dir of [join(engineDir, '..', 'paths'), engineDir]) {
     execFileSync(process.execPath, [tsc, '-p', join(dir, 'tsconfig.json')], { stdio: 'inherit' });
   }

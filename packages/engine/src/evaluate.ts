@@ -19,7 +19,7 @@ import { nodeType, predecessors } from './workflow.js';
  */
 const ADDITIONAL_KEYS: IWorkflowDataProxyAdditionalKeys = {
   $execution: {
-    id: 'workflow-test',
+    id: 'workflow-tester',
     mode: 'test',
     resumeUrl: '',
     resumeFormUrl: '',

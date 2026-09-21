@@ -10,10 +10,10 @@ let out: string[];
 let err: string[];
 const io = () => ({ cwd: dir, out: (s: string) => out.push(s), err: (s: string) => err.push(s) });
 
-const caseDir = () => join(dir, '.workflow-test/cases/invoice/stripe.invoice');
+const caseDir = () => join(dir, '.workflow-tester/cases/invoice/stripe.invoice');
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'workflow-test-promote-'));
+  dir = mkdtempSync(join(tmpdir(), 'workflow-tester-promote-'));
   out = [];
   err = [];
   mkdirSync(join(dir, 'workflows'), { recursive: true });
@@ -35,7 +35,7 @@ describe('promote', () => {
   it('copies the generated payload into a hand-written test', async () => {
     expect(await run(['promote', 'abc123'], io())).toBe(0);
 
-    const file = join(dir, '.workflow-test/tests/promoted-abc123.test.yaml');
+    const file = join(dir, '.workflow-tester/tests/promoted-abc123.test.yaml');
     expect(existsSync(file)).toBe(true);
 
     const text = readFileSync(file, 'utf8');
@@ -50,7 +50,7 @@ describe('promote', () => {
 
   it('leaves a `then:` skeleton to fill in', async () => {
     await run(['promote', 'abc123'], io());
-    const text = readFileSync(join(dir, '.workflow-test/tests/promoted-abc123.test.yaml'), 'utf8');
+    const text = readFileSync(join(dir, '.workflow-tester/tests/promoted-abc123.test.yaml'), 'utf8');
     expect(text).toMatch(/# +then:/);
     expect(text).toContain('execution.status: success');
   });
@@ -62,7 +62,7 @@ describe('promote', () => {
 
   it('accepts a name', async () => {
     expect(await run(['promote', 'abc123', '--name', 'missing-email'], io())).toBe(0);
-    expect(existsSync(join(dir, '.workflow-test/tests/missing-email.test.yaml'))).toBe(true);
+    expect(existsSync(join(dir, '.workflow-tester/tests/missing-email.test.yaml'))).toBe(true);
   });
 
   it('refuses to overwrite an existing test', async () => {

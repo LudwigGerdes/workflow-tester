@@ -36,28 +36,28 @@ importers:
       esbuild:
         specifier: ^0.25.12
         version: 0.25.12
-      workflow-test-contracts:
+      workflow-tester-contracts:
         specifier: workspace:*
         version: link:../contracts
-      workflow-test-engine:
+      workflow-tester-engine:
         specifier: workspace:*
         version: link:../engine
-      workflow-test-generator:
+      workflow-tester-generator:
         specifier: workspace:*
         version: link:../generator
-      workflow-test-instance:
+      workflow-tester-instance:
         specifier: workspace:*
         version: link:../instance
-      workflow-test-paths:
+      workflow-tester-paths:
         specifier: workspace:*
         version: link:../paths
-      workflow-test-runner:
+      workflow-tester-runner:
         specifier: workspace:*
         version: link:../runner
-      workflow-test-structure:
+      workflow-tester-structure:
         specifier: workspace:*
         version: link:../structure
-      workflow-test-vendors:
+      workflow-tester-vendors:
         specifier: workspace:*
         version: link:../vendors
 
@@ -66,7 +66,7 @@ importers:
       n8n-workflow:
         specifier: 2.38.1
         version: 2.38.1(@opentelemetry/core@2.11.0(@opentelemetry/api@1.9.1))(zod@3.25.76)
-      workflow-test-vendors:
+      workflow-tester-vendors:
         specifier: workspace:*
         version: link:../vendors
       yaml:
@@ -78,7 +78,7 @@ importers:
       n8n-workflow:
         specifier: 2.38.1
         version: 2.38.1(@opentelemetry/core@2.11.0(@opentelemetry/api@1.9.1))(zod@3.25.76)
-      workflow-test-paths:
+      workflow-tester-paths:
         specifier: workspace:*
         version: link:../paths
 
@@ -90,10 +90,10 @@ importers:
       n8n-workflow:
         specifier: 2.38.1
         version: 2.38.1(@opentelemetry/core@2.11.0(@opentelemetry/api@1.9.1))(zod@3.25.76)
-      workflow-test-contracts:
+      workflow-tester-contracts:
         specifier: workspace:*
         version: link:../contracts
-      workflow-test-structure:
+      workflow-tester-structure:
         specifier: workspace:*
         version: link:../structure
 
@@ -109,19 +109,19 @@ importers:
       n8n-workflow:
         specifier: 2.38.1
         version: 2.38.1(@opentelemetry/core@2.11.0(@opentelemetry/api@1.9.1))(zod@3.25.76)
-      workflow-test-contracts:
+      workflow-tester-contracts:
         specifier: workspace:*
         version: link:../contracts
-      workflow-test-engine:
+      workflow-tester-engine:
         specifier: workspace:*
         version: link:../engine
-      workflow-test-generator:
+      workflow-tester-generator:
         specifier: workspace:*
         version: link:../generator
-      workflow-test-paths:
+      workflow-tester-paths:
         specifier: workspace:*
         version: link:../paths
-      workflow-test-structure:
+      workflow-tester-structure:
         specifier: workspace:*
         version: link:../structure
       yaml:
@@ -130,7 +130,7 @@ importers:
 
   packages/structure:
     dependencies:
-      workflow-test-contracts:
+      workflow-tester-contracts:
         specifier: workspace:*
         version: link:../contracts
 
@@ -139,7 +139,7 @@ importers:
       ajv:
         specifier: ^8.17.1
         version: 8.20.0
-      workflow-test-paths:
+      workflow-tester-paths:
         specifier: workspace:*
         version: link:../paths
       yaml:

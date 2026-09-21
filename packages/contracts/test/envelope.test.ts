@@ -62,27 +62,27 @@ describe('wrapWebhookSchema', () => {
     const wrapped = wrapWebhookSchema(
       {
         oneOf: [
-          { type: 'object', 'x-workflow-test-event': 'push', 'x-workflow-test-event-header': 'push' },
-          { type: 'object', 'x-workflow-test-event': 'pull-request-opened', 'x-workflow-test-event-header': 'pull_request' },
+          { type: 'object', 'x-workflow-tester-event': 'push', 'x-workflow-tester-event-header': 'push' },
+          { type: 'object', 'x-workflow-tester-event': 'pull-request-opened', 'x-workflow-tester-event-header': 'pull_request' },
         ],
       },
       { vendor: 'github' },
-    ) as { oneOf: Array<{ properties: { headers: { properties: Record<string, { const?: string }> } }; 'x-workflow-test-event': string }> };
+    ) as { oneOf: Array<{ properties: { headers: { properties: Record<string, { const?: string }> } }; 'x-workflow-tester-event': string }> };
 
     expect(wrapped.oneOf).toHaveLength(2);
     // GitHub discriminates by header, so that is where the const has to land
     expect(wrapped.oneOf[0]?.properties.headers.properties['x-github-event']?.const).toBe('push');
     expect(wrapped.oneOf[1]?.properties.headers.properties['x-github-event']?.const).toBe('pull_request');
-    expect(wrapped.oneOf[1]?.['x-workflow-test-event']).toBe('pull-request-opened');
+    expect(wrapped.oneOf[1]?.['x-workflow-tester-event']).toBe('pull-request-opened');
   });
 
-  it('does not leave workflow-test annotations inside the body schema', () => {
+  it('does not leave workflow-tester annotations inside the body schema', () => {
     const wrapped = wrapWebhookSchema(
-      { oneOf: [{ type: 'object', 'x-workflow-test-event': 'push', 'x-workflow-test-event-header': 'push' }] },
+      { oneOf: [{ type: 'object', 'x-workflow-tester-event': 'push', 'x-workflow-tester-event-header': 'push' }] },
       { vendor: 'github' },
     ) as { oneOf: Array<{ properties: { body: Record<string, unknown> } }> };
-    expect(wrapped.oneOf[0]?.properties.body).not.toHaveProperty('x-workflow-test-event');
-    expect(wrapped.oneOf[0]?.properties.body).not.toHaveProperty('x-workflow-test-event-header');
+    expect(wrapped.oneOf[0]?.properties.body).not.toHaveProperty('x-workflow-tester-event');
+    expect(wrapped.oneOf[0]?.properties.body).not.toHaveProperty('x-workflow-tester-event-header');
   });
 
   it('keeps focus-set paths lining up with expressions', () => {

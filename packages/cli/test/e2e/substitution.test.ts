@@ -55,12 +55,12 @@ const testFile = [
 ].join('\n');
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'workflow-test-sub-'));
+  dir = mkdtempSync(join(tmpdir(), 'workflow-tester-sub-'));
   out = [];
   mkdirSync(join(dir, 'workflows'), { recursive: true });
-  mkdirSync(join(dir, '.workflow-test/tests'), { recursive: true });
+  mkdirSync(join(dir, '.workflow-tester/tests'), { recursive: true });
   writeFileSync(join(dir, 'workflows/billing.json'), JSON.stringify(workflow, null, 2));
-  writeFileSync(join(dir, '.workflow-test/tests/billing.test.yaml'), testFile);
+  writeFileSync(join(dir, '.workflow-tester/tests/billing.test.yaml'), testFile);
   writeFileSync(join(dir, 'exec.json'), JSON.stringify(execution));
 });
 

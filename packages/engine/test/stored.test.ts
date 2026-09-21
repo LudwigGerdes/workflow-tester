@@ -16,25 +16,25 @@ describe('readStored', () => {
   });
 
   it('returns nothing for a directory that is not there', () => {
-    expect(readStored(join(tmpdir(), 'workflow-test-nope'))).toBeUndefined();
+    expect(readStored(join(tmpdir(), 'workflow-tester-nope'))).toBeUndefined();
   });
 
   it('returns nothing rather than throwing on unreadable json', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'workflow-test-bad-'));
+    const dir = mkdtempSync(join(tmpdir(), 'workflow-tester-bad-'));
     writeFileSync(join(dir, 'meta.json'), '{ not json');
     writeFileSync(join(dir, 'nodes.json'), '[]');
     expect(readStored(dir)).toBeUndefined();
   });
 
   it('returns nothing when meta names no version', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'workflow-test-bad-'));
+    const dir = mkdtempSync(join(tmpdir(), 'workflow-tester-bad-'));
     writeFileSync(join(dir, 'meta.json'), '{"libraryVersion":"2.38.1"}');
     writeFileSync(join(dir, 'nodes.json'), '[]');
     expect(readStored(dir)).toBeUndefined();
   });
 
   it('returns nothing when nodes is not an array', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'workflow-test-bad-'));
+    const dir = mkdtempSync(join(tmpdir(), 'workflow-tester-bad-'));
     writeFileSync(join(dir, 'meta.json'), '{"n8nVersion":"2.38.3","libraryVersion":"2.38.1"}');
     writeFileSync(join(dir, 'nodes.json'), '{}');
     expect(readStored(dir)).toBeUndefined();
@@ -42,22 +42,22 @@ describe('readStored', () => {
 });
 
 describe('cacheRoot', () => {
-  it('honours WORKFLOW_TEST_CACHE', () => {
-    expect(cacheRoot({ WORKFLOW_TEST_CACHE: '/somewhere' })).toBe('/somewhere');
+  it('honours WORKFLOW_TESTER_CACHE', () => {
+    expect(cacheRoot({ WORKFLOW_TESTER_CACHE: '/somewhere' })).toBe('/somewhere');
   });
 
-  it('ignores WORKFLOW_TEST_HOME, which means the checkout', () => {
-    expect(cacheRoot({ WORKFLOW_TEST_HOME: '/checkout' })).not.toBe('/checkout');
+  it('ignores WORKFLOW_TESTER_HOME, which means the checkout', () => {
+    expect(cacheRoot({ WORKFLOW_TESTER_HOME: '/checkout' })).not.toBe('/checkout');
   });
 
   it('falls back to a directory under the home directory', () => {
-    expect(cacheRoot({})).toMatch(/\.workflow-test$/);
+    expect(cacheRoot({})).toMatch(/\.workflow-tester$/);
   });
 });
 
 describe('storedVersions', () => {
   it('lists the version directories under a root', () => {
-    const root = mkdtempSync(join(tmpdir(), 'workflow-test-root-'));
+    const root = mkdtempSync(join(tmpdir(), 'workflow-tester-root-'));
     for (const v of ['2.10.0', '2.38.3']) {
       mkdirSync(join(root, 'node-types', v), { recursive: true });
       writeFileSync(join(root, 'node-types', v, 'meta.json'),
@@ -68,6 +68,6 @@ describe('storedVersions', () => {
   });
 
   it('is empty when the root does not exist', () => {
-    expect(storedVersions(join(tmpdir(), 'workflow-test-absent'))).toEqual([]);
+    expect(storedVersions(join(tmpdir(), 'workflow-tester-absent'))).toEqual([]);
   });
 });

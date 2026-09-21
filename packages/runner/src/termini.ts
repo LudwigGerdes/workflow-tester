@@ -1,5 +1,5 @@
-import type { EngineResult } from 'workflow-test-engine';
-import type { WorkflowJson } from 'workflow-test-generator';
+import type { EngineResult } from 'workflow-tester-engine';
+import type { WorkflowJson } from 'workflow-tester-generator';
 
 /** A node the walk ended at, and the edge that carried items into it. */
 export interface Terminus {

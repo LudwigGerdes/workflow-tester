@@ -1,4 +1,4 @@
-# Contributing to workflow-test
+# Contributing to workflow-tester
 
 Thanks for looking. This is a one-maintainer project, so small, focused pull
 requests with tests land fastest. `AGENTS.md` is the detailed guide to the
@@ -36,7 +36,7 @@ type-checks with `tsc` and then bundles every workspace library into
 `packages/cli/package.json` `dependencies` as well as to the library that uses
 it, or the bundle refuses to build.
 
-One package: `pnpm --filter workflow-test-engine test`. One file:
+One package: `pnpm --filter workflow-tester-engine test`. One file:
 `cd packages/engine && pnpm vitest run test/walk.test.ts`.
 
 Run the CLI you just built: `node packages/cli/dist/bin.js --help`.
@@ -69,7 +69,7 @@ what the vendor actually publishes.
 ## Adding a CLI command
 
 `packages/cli/src/commands/<name>.ts`, wired in `src/index.ts`, with its usage
-block added to `USAGE` there — that is what `workflow-test <command> --help` prints.
+block added to `USAGE` there — that is what `workflow-tester <command> --help` prints.
 Exit codes: 0 clean, 1 findings, 2 usage or configuration error. Error
 messages are part of the contract; tests assert on them.
 
@@ -80,7 +80,7 @@ messages are part of the contract; tests assert on them.
   `as` casts. Match the surrounding style (2 spaces, single quotes, trailing
   commas); there is no linter config to run.
 - Conventional commits (`fix:`, `feat:`, `docs:`, `test:`, `chore:`).
-- No network calls outside `workflow-test-instance` and the vendor ingest script.
+- No network calls outside `workflow-tester-instance` and the vendor ingest script.
 - `pnpm verify` green before you open the PR.
 
 By contributing you agree that your work is licensed under the MIT license

@@ -6,9 +6,9 @@ import { runTier1 } from '../src/run.js';
 
 /** A repo with one workflow and one case. */
 function repo(): string {
-  const dir = mkdtempSync(join(tmpdir(), 'workflow-test-run-'));
+  const dir = mkdtempSync(join(tmpdir(), 'workflow-tester-run-'));
   mkdirSync(join(dir, 'workflows'), { recursive: true });
-  mkdirSync(join(dir, '.workflow-test', 'tests'), { recursive: true });
+  mkdirSync(join(dir, '.workflow-tester', 'tests'), { recursive: true });
   writeFileSync(
     join(dir, 'workflows', 'w.json'),
     JSON.stringify({
@@ -26,7 +26,7 @@ function repo(): string {
     }),
   );
   writeFileSync(
-    join(dir, '.workflow-test', 'tests', 'a.test.yaml'),
+    join(dir, '.workflow-tester', 'tests', 'a.test.yaml'),
     'workflow: ../../workflows/w.json\ncases:\n  - id: one\n    when: {}\n',
   );
   return dir;

@@ -9,12 +9,12 @@ import {
   testSchema,
   type ReportFormat,
   type RunReport,
-} from 'workflow-test-runner';
+} from 'workflow-tester-runner';
 import { stringify } from 'yaml';
 import { EXIT, parseArgs, type Io } from '../io.js';
 import { configPath, readConfig } from '../config.js';
 
-const REPORT_PATH = join('.workflow-test', 'reports', 'last.json');
+const REPORT_PATH = join('.workflow-tester', 'reports', 'last.json');
 
 export async function runCommand(argv: string[], io: Io): Promise<number> {
   const { positional, flags } = parseArgs(argv);
@@ -49,13 +49,13 @@ export async function runCommand(argv: string[], io: Io): Promise<number> {
   if (target !== undefined) {
     const file = resolve(io.cwd, target);
     if (!existsSync(file)) {
-      io.err(`workflow-test: no such workflow file: ${target}`);
+      io.err(`workflow-tester: no such workflow file: ${target}`);
       return EXIT.usage;
     }
     try {
       JSON.parse(await readFile(file, 'utf8'));
     } catch (error) {
-      io.err(`workflow-test: ${target} is not a workflow JSON file (${error instanceof Error ? error.message : String(error)})`);
+      io.err(`workflow-tester: ${target} is not a workflow JSON file (${error instanceof Error ? error.message : String(error)})`);
       return EXIT.usage;
     }
   }
@@ -77,7 +77,7 @@ export async function runCommand(argv: string[], io: Io): Promise<number> {
   io.out(await renderReport(report, format, { root: io.cwd }));
 
   // `explain` reads this; it is gitignored, being a record of one run.
-  await mkdir(join(io.cwd, '.workflow-test', 'reports'), { recursive: true });
+  await mkdir(join(io.cwd, '.workflow-tester', 'reports'), { recursive: true });
   await writeFile(join(io.cwd, REPORT_PATH), `${JSON.stringify(report, null, 2)}\n`);
 
   if (report.summary.fail > 0) return EXIT.findings;
@@ -90,10 +90,10 @@ export function schemaCommand(io: Io): number {
   return EXIT.ok;
 }
 
-const EXAMPLE = `# A hand-written test. workflow-test runs these exactly like generated cases,
+const EXAMPLE = `# A hand-written test. workflow-tester runs these exactly like generated cases,
 # as far as the expression-pure part of the workflow reaches.
 #
-# \`workflow-test schema\` prints the JSON Schema for this file — point an LLM at it and
+# \`workflow-tester schema\` prints the JSON Schema for this file — point an LLM at it and
 # it can write more without guessing.
 #
 # Everything below is commented out on purpose. It names a workflow you have
@@ -108,7 +108,7 @@ const EXAMPLE = `# A hand-written test. workflow-test runs these exactly like ge
 #     when:
 #       # A node name, or a kind: webhook, form, chat.
 #       trigger: webhook
-#       # Just the body: workflow-test wraps it in the envelope a Webhook node
+#       # Just the body: workflow-tester wraps it in the envelope a Webhook node
 #       # delivers, so \`$json.body.…\` resolves the way your expressions are
 #       # written.
 #       payload:
@@ -124,9 +124,9 @@ const EXAMPLE = `# A hand-written test. workflow-test runs these exactly like ge
 #       node.Extract.output[0].json.name: Ada
 `;
 
-const README = `# .workflow-test
+const README = `# .workflow-tester
 
-Everything workflow-test keeps for this repo.
+Everything workflow-tester keeps for this repo.
 
 | Path | What it is | Commit it? |
 |---|---|---|
@@ -136,7 +136,7 @@ Everything workflow-test keeps for this repo.
 | \`reports/\` | The last run's output | no — add to .gitignore |
 
 Generated files are committed on purpose: a pull request should show exactly
-which cases changed. \`workflow-test gen --check\` fails when they are stale.
+which cases changed. \`workflow-tester gen --check\` fails when they are stale.
 `;
 
 export async function initCommand(io: Io, argv: string[] = []): Promise<number> {
@@ -145,13 +145,13 @@ export async function initCommand(io: Io, argv: string[] = []): Promise<number> 
   // Checked before anything is written: scaffolding and then refusing would
   // leave a half-initialised directory behind.
   if (given !== undefined && !/^\d+\.\d+/.test(given)) {
-    io.err(`workflow-test: "${given}" is not an n8n version — try 2.38.3`);
+    io.err(`workflow-tester: "${given}" is not an n8n version — try 2.38.3`);
     return EXIT.usage;
   }
 
-  const testsDir = join(io.cwd, '.workflow-test', 'tests');
+  const testsDir = join(io.cwd, '.workflow-tester', 'tests');
   const example = join(testsDir, 'example.test.yaml');
-  const readme = join(io.cwd, '.workflow-test', 'README.md');
+  const readme = join(io.cwd, '.workflow-tester', 'README.md');
 
   for (const file of [example, readme]) {
     if (existsSync(file)) {
@@ -164,11 +164,11 @@ export async function initCommand(io: Io, argv: string[] = []): Promise<number> 
   await writeFile(example, EXAMPLE);
   await writeFile(readme, README);
 
-  io.out('created .workflow-test/tests/example.test.yaml');
-  io.out('created .workflow-test/README.md');
+  io.out('created .workflow-tester/tests/example.test.yaml');
+  io.out('created .workflow-tester/README.md');
 
   // Which n8n release these workflows run on. Skip is a real answer — the
-  // descriptions bundled inside workflow-test work — so this never blocks and never
+  // descriptions bundled inside workflow-tester work — so this never blocks and never
   // insists. A prompt that hangs a script is worse than a prompt that is
   // never shown.
   const answer =
@@ -179,16 +179,16 @@ export async function initCommand(io: Io, argv: string[] = []): Promise<number> 
 
   if (answer !== undefined && answer !== '' && /^\d+\.\d+/.test(answer)) {
     await writeFile(configPath(io.cwd), `n8nVersion: ${answer}\n`);
-    io.out(`created .workflow-test/config.yaml (n8n ${answer})`);
+    io.out(`created .workflow-tester/config.yaml (n8n ${answer})`);
   } else {
     io.out('');
-    io.out('No n8n version recorded, so workflow-test uses the descriptions bundled inside it.');
-    io.out('To match your instance: `workflow-test node-types --instance <url>`, then put');
-    io.out('`n8nVersion: <version>` in .workflow-test/config.yaml.');
+    io.out('No n8n version recorded, so workflow-tester uses the descriptions bundled inside it.');
+    io.out('To match your instance: `workflow-tester node-types --instance <url>`, then put');
+    io.out('`n8nVersion: <version>` in .workflow-tester/config.yaml.');
   }
 
   io.out('');
-  io.out('Point it at a real workflow, then run `workflow-test run`.');
+  io.out('Point it at a real workflow, then run `workflow-tester run`.');
   return EXIT.ok;
 }
 
@@ -214,13 +214,13 @@ async function ask(question: string): Promise<string> {
 export async function explainCommand(argv: string[], io: Io): Promise<number> {
   const [caseId] = argv;
   if (caseId === undefined) {
-    io.err('usage: workflow-test explain <caseId>');
+    io.err('usage: workflow-tester explain <caseId>');
     return EXIT.usage;
   }
 
   const reportFile = join(io.cwd, REPORT_PATH);
   if (!existsSync(reportFile)) {
-    io.err('no report yet — run `workflow-test run` first');
+    io.err('no report yet — run `workflow-tester run` first');
     return EXIT.usage;
   }
   const report = JSON.parse(await readFile(reportFile, 'utf8')) as RunReport;
@@ -231,7 +231,7 @@ export async function explainCommand(argv: string[], io: Io): Promise<number> {
     .find(({ entry }) => entry.id === caseId);
 
   if (found === undefined) {
-    io.err(`no case "${caseId}" in .workflow-test (looked in generated cases and written tests)`);
+    io.err(`no case "${caseId}" in .workflow-tester (looked in generated cases and written tests)`);
     return EXIT.usage;
   }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { CaptureRecord } from 'workflow-test-contracts';
+import type { CaptureRecord } from 'workflow-tester-contracts';
 import { caseFromCapture } from '../src/capture-case.js';
 
 const capture: CaptureRecord = {

@@ -10,7 +10,7 @@ const node = (name: string) =>
 
 /** A cache root holding the given versions. */
 const rootWith = (...versions: string[]): string => {
-  const root = mkdtempSync(join(tmpdir(), 'workflow-test-res-'));
+  const root = mkdtempSync(join(tmpdir(), 'workflow-tester-res-'));
   for (const v of versions) {
     mkdirSync(join(root, 'node-types', v), { recursive: true });
     writeFileSync(join(root, 'node-types', v, 'meta.json'),
@@ -89,7 +89,7 @@ describe('an extracted cache that cannot be read', () => {
   it('says so rather than falling back silently', async () => {
     // Absent and corrupt are different situations, and a report that treats
     // them the same hides the fact that someone extracted this version.
-    const root = mkdtempSync(join(tmpdir(), 'workflow-test-resolve-'));
+    const root = mkdtempSync(join(tmpdir(), 'workflow-tester-resolve-'));
     mkdirSync(join(root, 'node-types', '2.10.0'), { recursive: true });
     writeFileSync(join(root, 'node-types', '2.10.0', 'nodes.json'), 'not json at all');
 

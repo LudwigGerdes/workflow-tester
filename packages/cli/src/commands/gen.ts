@@ -1,10 +1,10 @@
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, resolve } from 'node:path';
-import { ContractError, readContract, wrapWebhook, wrapWebhookSchema } from 'workflow-test-contracts';
-import { extractFocusPaths, generate, stableHash, type Case, type WorkflowJson } from 'workflow-test-generator';
-import { walkWith } from 'workflow-test-engine';
-import { shapeHasPath, shapeOfItems } from 'workflow-test-contracts';
+import { ContractError, readContract, wrapWebhook, wrapWebhookSchema } from 'workflow-tester-contracts';
+import { extractFocusPaths, generate, stableHash, type Case, type WorkflowJson } from 'workflow-tester-generator';
+import { walkWith } from 'workflow-tester-engine';
+import { shapeHasPath, shapeOfItems } from 'workflow-tester-contracts';
 import { EXIT, parseArgs, type Io } from '../io.js';
 import { contractPathFor, findContracts } from './contracts.js';
 
@@ -44,7 +44,7 @@ function headerValueFor(wrapped: unknown, event: string | undefined): string | u
   if (event === undefined || !isRecord(wrapped)) return undefined;
   const branches = Array.isArray(wrapped.oneOf) ? wrapped.oneOf : [wrapped];
   for (const branch of branches) {
-    if (!isRecord(branch) || branch['x-workflow-test-event'] !== event) continue;
+    if (!isRecord(branch) || branch['x-workflow-tester-event'] !== event) continue;
     const properties = isRecord(branch.properties) ? branch.properties : {};
     const headers = isRecord(properties.headers) ? properties.headers : {};
     const headerProps = isRecord(headers.properties) ? headers.properties : {};
@@ -65,8 +65,8 @@ async function generateFor(
 
   if (contract.shape === undefined) {
     io.err(
-      `${relative(io.cwd, contractFile)}: no materialised shape — run \`workflow-test contracts add\` or ` +
-        '`workflow-test contracts update` first',
+      `${relative(io.cwd, contractFile)}: no materialised shape — run \`workflow-tester contracts add\` or ` +
+        '`workflow-tester contracts update` first',
     );
     return EXIT.usage;
   }
@@ -119,7 +119,7 @@ async function generateFor(
   }
   const shapeBase = basename(contract.shape.schema).replace(/\.schema\.json$/, '');
   const workflowName = basename(workflowFile, '.json');
-  const outDir = join(io.cwd, '.workflow-test', 'cases', workflowName, shapeBase);
+  const outDir = join(io.cwd, '.workflow-tester', 'cases', workflowName, shapeBase);
 
   const { cases, stats } = generate({
     schema: wrappedSchema,
@@ -161,7 +161,7 @@ async function generateFor(
   if (options.check) {
     if (stale) {
       io.err(
-        `${label}: cases are stale (${added.length} to add, ${retired.length} to retire) — run \`workflow-test gen\``,
+        `${label}: cases are stale (${added.length} to add, ${retired.length} to retire) — run \`workflow-tester gen\``,
       );
       return EXIT.findings;
     }
@@ -238,7 +238,7 @@ export async function genCommand(argv: string[], io: Io): Promise<number> {
       const code = await generateFor(contractFile, io, {
         max,
         // `gen` writes; `--check` is the read-only form for pre-commit and
-        // CI. WORKFLOW_TEST_MODE does not gate this command: a `gen` that refused
+        // CI. WORKFLOW_TESTER_MODE does not gate this command: a `gen` that refused
         // to write told people to run the command they had just run.
         check: flags.check === true,
       });

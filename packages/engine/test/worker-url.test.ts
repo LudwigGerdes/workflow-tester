@@ -14,9 +14,9 @@ describe('where the sandbox worker is loaded from', () => {
 
   it('is its own entry point beside the bundle in the published package', () => {
     const url = workerUrl(
-      'file:///app/node_modules/workflow-test/dist/chunk-ABC.js',
+      'file:///app/node_modules/workflow-tester/dist/chunk-ABC.js',
       (candidate) => candidate.pathname.endsWith('/dist/sandbox-worker.js'),
     );
-    expect(url.pathname).toBe('/app/node_modules/workflow-test/dist/sandbox-worker.js');
+    expect(url.pathname).toBe('/app/node_modules/workflow-tester/dist/sandbox-worker.js');
   });
 });

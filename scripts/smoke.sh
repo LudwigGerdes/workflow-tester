@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install-level acceptance test: does workflow-test work for someone who
+# Install-level acceptance test: does workflow-tester work for someone who
 # clones the repo, and for someone who installs the npm tarball?
 #
 #   scripts/smoke.sh [clone|npm|all]      (default: all)
@@ -8,16 +8,16 @@
 #        quickstart through `node packages/cli/dist/bin.js`, as the README says.
 # npm:   pnpm pack the one publishable package → npm install the tarball into
 #        an empty project outside any workspace → the same quickstart through
-#        node_modules/.bin/workflow-test.
+#        node_modules/.bin/workflow-tester.
 #
 # Everything happens under one mktemp dir with an isolated HOME and
-# WORKFLOW_TEST_CACHE; the working tree and the real home are never touched.
+# WORKFLOW_TESTER_CACHE; the working tree and the real home are never touched.
 # Needs node, pnpm, npm, git. No network beyond the package installs.
 set -euo pipefail
 
 MODE="${1:-all}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TMP="$(mktemp -d "${TMPDIR:-/tmp}/workflow-test-smoke.XXXXXX")"
+TMP="$(mktemp -d "${TMPDIR:-/tmp}/workflow-tester-smoke.XXXXXX")"
 TMP="$(cd "$TMP" && pwd -P)"
 REAL_HOME="$HOME"
 PASSES=0
@@ -34,7 +34,7 @@ export npm_config_update_notifier=false
 export npm_config_fund=false
 export npm_config_audit=false
 export NO_COLOR=1
-unset WORKFLOW_TEST_HOME WORKFLOW_TEST_MODE N8N_API_KEY || true
+unset WORKFLOW_TESTER_HOME WORKFLOW_TESTER_MODE N8N_API_KEY || true
 
 pass() { PASSES=$((PASSES + 1)); printf 'PASS  %s\n' "$1"; }
 fail() {
@@ -47,7 +47,7 @@ OUT=''; RC=0
 run_in() {
   local dir="$1"; shift
   set +e
-  OUT="$(cd "$dir" && HOME="$TMP/home" WORKFLOW_TEST_CACHE="$TMP/home/.workflow-test" "$@" 2>&1 </dev/null)"
+  OUT="$(cd "$dir" && HOME="$TMP/home" WORKFLOW_TESTER_CACHE="$TMP/home/.workflow-tester" "$@" 2>&1 </dev/null)"
   RC=$?
   set -e
 }
@@ -90,28 +90,28 @@ quickstart() {
   mkdir -p "$proj/workflows" "$TMP/home"
 
   run_in "$proj" "${cli[@]}" --version
-  expect "$label: --version prints the package version" 0 '^workflow-test [0-9]+\.[0-9]+\.[0-9]+'
+  expect "$label: --version prints the package version" 0 '^workflow-tester [0-9]+\.[0-9]+\.[0-9]+'
 
   run_in "$proj" "${cli[@]}" --help
-  expect "$label: --help lists the commands" 0 'workflow-test run' 'workflow-test gen' 'workflow-test contracts add'
+  expect "$label: --help lists the commands" 0 'workflow-tester run' 'workflow-tester gen' 'workflow-tester contracts add'
   local c
   for c in "${COMMANDS[@]}"; do
     run_in "$proj" "${cli[@]}" "$c" --help
-    expect "$label: $c --help" 0 "workflow-test $c"
+    expect "$label: $c --help" 0 "workflow-tester $c"
   done
 
   # init: the scaffold templates ship with the package
   run_in "$proj" "${cli[@]}" init
-  expect "$label: init scaffolds .workflow-test" 0 'created \.workflow-test/tests/example\.test\.yaml' 'created \.workflow-test/README\.md'
-  check_file "$label: init wrote the example test" "$proj/.workflow-test/tests/example.test.yaml"
-  check_file "$label: init wrote the README" "$proj/.workflow-test/README.md"
+  expect "$label: init scaffolds .workflow-tester" 0 'created \.workflow-tester/tests/example\.test\.yaml' 'created \.workflow-tester/README\.md'
+  check_file "$label: init wrote the example test" "$proj/.workflow-tester/tests/example.test.yaml"
+  check_file "$label: init wrote the README" "$proj/.workflow-tester/README.md"
 
   run_in "$proj" "${cli[@]}" run
   expect "$label: the fresh scaffold runs clean" 0 '0 passed, 0 failed, 0 warned'
 
   # the demo: run catches the ?? bug
   cp "$ROOT_FOR_DEMO/docs/demo/signup.json" "$proj/workflows/signup.json"
-  cp "$ROOT_FOR_DEMO/docs/demo/signup.test.yaml" "$proj/.workflow-test/tests/signup.test.yaml"
+  cp "$ROOT_FOR_DEMO/docs/demo/signup.test.yaml" "$proj/.workflow-tester/tests/signup.test.yaml"
   run_in "$proj" "${cli[@]}" run
   expect "$label: run catches the ?? bug (exit 1)" 1 \
     'node\.Normalize\.output\[0\]\.json\.name: expected "Bob", got undefined' \
@@ -137,15 +137,15 @@ quickstart() {
   run_in "$proj" "${cli[@]}" contracts add workflows/signup.json --vendor github --events issues-opened
   expect "$label: contracts add --vendor github" 0 'vendor +github @' 'events +issues-opened'
   check_file "$label: contract written beside the workflow" "$proj/workflows/signup.contract.yaml"
-  check_file "$label: shape schema materialised" "$proj/.workflow-test/contracts/github.issues-opened.schema.json"
-  check_file "$label: shape examples materialised" "$proj/.workflow-test/contracts/github.issues-opened.examples.json"
+  check_file "$label: shape schema materialised" "$proj/.workflow-tester/contracts/github.issues-opened.schema.json"
+  check_file "$label: shape examples materialised" "$proj/.workflow-tester/contracts/github.issues-opened.examples.json"
 
   run_in "$proj" "${cli[@]}" gen --check
   expect "$label: gen --check reports stale cases (exit 1)" 1
 
   run_in "$proj" "${cli[@]}" gen
   expect "$label: gen writes cases" 0 'github\.issues-opened: [0-9]+ case\(s\) — [1-9][0-9]* added'
-  check_file "$label: gen wrote the case index" "$proj/.workflow-test/cases/signup/github.issues-opened/index.json"
+  check_file "$label: gen wrote the case index" "$proj/.workflow-tester/cases/signup/github.issues-opened/index.json"
 
   run_in "$proj" "${cli[@]}" gen --check
   expect "$label: gen --check is clean after gen" 0 'unchanged'
@@ -160,7 +160,7 @@ $OUT"
 
   # schema: the JSON schema ships with the package
   run_in "$proj" "${cli[@]}" schema
-  expect "$label: schema prints the test-file JSON Schema" 0 '"\$schema"' 'workflow-test\.test\.schema\.json'
+  expect "$label: schema prints the test-file JSON Schema" 0 '"\$schema"' 'workflow-tester\.test\.schema\.json'
 
   # node descriptions ship with the package
   run_in "$proj" "${cli[@]}" node-types --list
@@ -181,7 +181,7 @@ $OUT"
 }
 JSON
   run_in "$proj/sandbox" "${cli[@]}" init
-  cat > "$proj/sandbox/.workflow-test/tests/code.test.yaml" <<'YAML'
+  cat > "$proj/sandbox/.workflow-tester/tests/code.test.yaml" <<'YAML'
 workflow: ../../workflows/code.json
 cases:
   - id: doubles
@@ -196,7 +196,7 @@ cases:
 YAML
   run_in "$proj/sandbox" "${cli[@]}" run
   expect "$label: a Code node runs in the sandbox worker" 0 '1 passed, 0 failed'
-  sed -i.bak 's/doubled: 42/doubled: 43/' "$proj/sandbox/.workflow-test/tests/code.test.yaml"
+  sed -i.bak 's/doubled: 42/doubled: 43/' "$proj/sandbox/.workflow-tester/tests/code.test.yaml"
   run_in "$proj/sandbox" "${cli[@]}" run
   expect "$label: …and its real output is what gets compared" 1 'expected 43, got 42'
 
@@ -219,8 +219,8 @@ clone_path() {
   quickstart "clone" "$TMP/clone-project" node "$TMP/clone/packages/cli/dist/bin.js"
 
   # the pre-commit wrapper resolves the same checkout path
-  run_in "$TMP/clone-project" env WORKFLOW_TEST_HOME="$TMP/clone" bash "$TMP/clone/scripts/workflow-test.sh" --version
-  expect "clone: scripts/workflow-test.sh runs the checkout's CLI" 0 '^workflow-test [0-9]'
+  run_in "$TMP/clone-project" env WORKFLOW_TESTER_HOME="$TMP/clone" bash "$TMP/clone/scripts/workflow-tester.sh" --version
+  expect "clone: scripts/workflow-tester.sh runs the checkout's CLI" 0 '^workflow-tester [0-9]'
 }
 
 npm_path() {
@@ -238,7 +238,7 @@ npm_path() {
   ( cd "$src/packages/cli" && pnpm pack --pack-destination "$TMP/pack" >"$TMP/pack.log" 2>&1 ) \
     || { fail "npm: pnpm pack" "$(cat "$TMP/pack.log")"; return; }
   local tarball
-  tarball="$(ls "$TMP/pack"/workflow-test-*.tgz 2>/dev/null | head -1)"
+  tarball="$(ls "$TMP/pack"/workflow-tester-*.tgz 2>/dev/null | head -1)"
   if [ -z "$tarball" ]; then fail "npm: pnpm pack produced a tarball" "$(cat "$TMP/pack.log")"; return; fi
   pass "npm: pnpm pack produced $(basename "$tarball")"
 
@@ -254,7 +254,7 @@ npm_path() {
     if grep -qx "$f" "$listing"; then pass "npm: tarball contains $f"; else fail "npm: tarball contains $f"; fi
   done
   local bad
-  # `.test.<js|ts>` is a test file; data/schema/workflow-test.test.schema.json is
+  # `.test.<js|ts>` is a test file; data/schema/workflow-tester.test.schema.json is
   # the published schema FOR test files and belongs in the package.
   bad="$(grep -E '(^|/)(src|test|tests|fixtures|__tests__)/|\.(test|spec)\.[cm]?[jt]sx?$|\.ts$|\.tsbuildinfo$|(^|/)tsconfig.*\.json$|vitest\.config' "$listing" || true)"
   if [ -z "$bad" ]; then pass "npm: tarball has no src/, tests, fixtures or build config"; else fail "npm: tarball has no src/, tests, fixtures or build config" "$bad"; fi
@@ -274,13 +274,13 @@ npm_path() {
     const m = JSON.parse(require("fs").readFileSync(0, "utf8"));
     const names = ["dependencies", "peerDependencies", "optionalDependencies", "bundledDependencies", "bundleDependencies"]
       .flatMap((f) => (Array.isArray(m[f]) ? m[f] : Object.keys(m[f] ?? {})));
-    console.log(names.filter((n) => n.startsWith("workflow-test")).join(" "));
-    if (m.name !== "workflow-test" || m.private || !m.bin || m.bin["workflow-test"] !== "./dist/bin.js") process.exit(3);
-  ')" || { fail "npm: packed manifest is workflow-test with bin workflow-test"; internal='?'; }
+    console.log(names.filter((n) => n.startsWith("workflow-tester")).join(" "));
+    if (m.name !== "workflow-tester" || m.private || !m.bin || m.bin["workflow-tester"] !== "./dist/bin.js") process.exit(3);
+  ')" || { fail "npm: packed manifest is workflow-tester with bin workflow-tester"; internal='?'; }
   if [ -z "$internal" ]; then pass "npm: packed manifest depends on no internal workspace library"
   else fail "npm: packed manifest depends on no internal workspace library" "$internal"; fi
   for f in dist/sandbox-worker.js data/node-types/2.10.0/nodes.json data/vendors/sources.yaml \
-           data/vendors/data/github/1.1.4/catalog.json data/schema/workflow-test.test.schema.json; do
+           data/vendors/data/github/1.1.4/catalog.json data/schema/workflow-tester.test.schema.json; do
     if grep -qx "$f" "$listing"; then pass "npm: tarball contains $f"; else fail "npm: tarball contains $f"; fi
   done
   if [ -z "$(cd "$src" && git status --porcelain)" ]; then pass "npm: packing left the checkout clean (postpack removed its copies)"
@@ -291,25 +291,25 @@ npm_path() {
     && pass "npm: npm install <tarball> in an empty project" \
     || { fail "npm: npm install <tarball> in an empty project" "$(tail -30 "$TMP/npm-install.log")"; return; }
 
-  run_in "$TMP/app" npx --no-install workflow-test --version
-  expect "npm: npx --no-install workflow-test --version" 0 '^workflow-test [0-9]'
+  run_in "$TMP/app" npx --no-install workflow-tester --version
+  expect "npm: npx --no-install workflow-tester --version" 0 '^workflow-tester [0-9]'
 
   ROOT_FOR_DEMO="$ROOT_FOR_DEMO_NPM"
-  quickstart "npm" "$TMP/app" "$TMP/app/node_modules/.bin/workflow-test"
+  quickstart "npm" "$TMP/app" "$TMP/app/node_modules/.bin/workflow-tester"
 
-  # the owner's override: WORKFLOW_TEST_DATA replaces the shipped data wholesale
+  # the owner's override: WORKFLOW_TESTER_DATA replaces the shipped data wholesale
   mkdir -p "$TMP/empty-data"
-  run_in "$TMP/app" env WORKFLOW_TEST_DATA="$TMP/empty-data" "$TMP/app/node_modules/.bin/workflow-test" vendors list
-  expect_nonzero "npm: WORKFLOW_TEST_DATA pointing at an empty dir is honoured (no silent fallback)"
-  cp -R "$TMP/app/node_modules/workflow-test/data" "$TMP/moved-data"
-  run_in "$TMP/app" env WORKFLOW_TEST_DATA="$TMP/moved-data" "$TMP/app/node_modules/.bin/workflow-test" vendors list
-  expect "npm: WORKFLOW_TEST_DATA pointing at a copy of the data works" 0 '^github +schema'
+  run_in "$TMP/app" env WORKFLOW_TESTER_DATA="$TMP/empty-data" "$TMP/app/node_modules/.bin/workflow-tester" vendors list
+  expect_nonzero "npm: WORKFLOW_TESTER_DATA pointing at an empty dir is honoured (no silent fallback)"
+  cp -R "$TMP/app/node_modules/workflow-tester/data" "$TMP/moved-data"
+  run_in "$TMP/app" env WORKFLOW_TESTER_DATA="$TMP/moved-data" "$TMP/app/node_modules/.bin/workflow-tester" vendors list
+  expect "npm: WORKFLOW_TESTER_DATA pointing at a copy of the data works" 0 '^github +schema'
 
   # the data came from the installed package, not from the repo
   local leaked
-  leaked="$(grep -rlF "$ROOT" "$TMP/app/node_modules/workflow-test" 2>/dev/null | head -5 || true)"
+  leaked="$(grep -rlF "$ROOT" "$TMP/app/node_modules/workflow-tester" 2>/dev/null | head -5 || true)"
   if [ -z "$leaked" ]; then pass "npm: the installed package holds no path back to the repo"; else fail "npm: the installed package holds no path back to the repo" "$leaked"; fi
-  if [ -d "$TMP/app/node_modules/workflow-test" ] && [ ! -L "$TMP/app/node_modules/workflow-test" ]; then
+  if [ -d "$TMP/app/node_modules/workflow-tester" ] && [ ! -L "$TMP/app/node_modules/workflow-tester" ]; then
     pass "npm: installed as a real copy, not a link"
   else fail "npm: installed as a real copy, not a link"; fi
 }
@@ -320,7 +320,7 @@ git clone --quiet "$ROOT" "$TMP/demo-src"
 ROOT_FOR_DEMO="$TMP/demo-src"
 ROOT_FOR_DEMO_NPM="$TMP/demo-src"
 
-echo "workflow-test smoke ($MODE) — node $(node --version), pnpm $(pnpm --version), npm $(npm --version)"
+echo "workflow-tester smoke ($MODE) — node $(node --version), pnpm $(pnpm --version), npm $(npm --version)"
 case "$MODE" in
   clone) clone_path ;;
   npm) npm_path ;;

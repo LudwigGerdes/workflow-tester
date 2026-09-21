@@ -1,7 +1,7 @@
 import type { INodeType, INodeTypeDescription, INodeTypes } from 'n8n-workflow';
 import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { dataDir } from 'workflow-test-paths';
+import { dataDir } from 'workflow-tester-paths';
 import { SUPPORTED_N8N_VERSION } from './version.js';
 import { readStored } from './node-types/stored.js';
 import { resolveSource, type Resolution } from './node-types/resolve.js';
@@ -114,7 +114,7 @@ export async function loadNodeTypes(
       sourceNote:
         `no node descriptions found for n8n ${resolution.version} (nothing bundled in ${floorDir}); ` +
         'pure nodes run on their built-in semantics and required-parameter checks are skipped — ' +
-        "run 'workflow-test node-types --version <v>' to extract a set, or 'pnpm bundle:node-types' in a checkout",
+        "run 'workflow-tester node-types --version <v>' to extract a set, or 'pnpm bundle:node-types' in a checkout",
       ...fromDescriptions([]),
     };
   }

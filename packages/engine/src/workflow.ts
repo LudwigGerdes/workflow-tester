@@ -21,7 +21,7 @@ export interface Edge {
  */
 export function buildWorkflow(json: WorkflowJson, nodeTypes: NodeTypeSource): Workflow {
   return new WorkflowCtor({
-    id: json.id ?? 'workflow-test',
+    id: json.id ?? 'workflow-tester',
     name: json.name ?? '',
     nodes: json.nodes,
     connections: json.connections,

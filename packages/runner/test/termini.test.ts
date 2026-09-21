@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { EngineResult } from 'workflow-test-engine';
-import type { WorkflowJson } from 'workflow-test-generator';
+import type { EngineResult } from 'workflow-tester-engine';
+import type { WorkflowJson } from 'workflow-tester-generator';
 import { terminiOf } from '../src/termini.js';
 
 /** Webhook -> Risky -> {Happy (output 0), Handled (output 1)} */

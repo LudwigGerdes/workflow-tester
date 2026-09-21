@@ -19,4 +19,4 @@ export {
 } from './terminal-shape.js';
 export { caseFromCapture, type DerivedCase } from './capture-case.js';
 export { classifyTerminus, applyClassification, type TerminusKind } from './classify.js';
-export type { OutcomeDeclaration } from 'workflow-test-contracts';
+export type { OutcomeDeclaration } from 'workflow-tester-contracts';
