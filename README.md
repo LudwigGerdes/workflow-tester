@@ -45,6 +45,17 @@ npx workflow-tester --help                 # run it without installing
 npm install --save-dev workflow-tester     # or pin it in the repo that holds your workflows
 ```
 
+Installed from npm, the command is `npx workflow-tester` wherever this README writes `workflow-tester`. To reproduce the hero above in an empty directory:
+
+```bash
+npx workflow-tester init
+curl -L --create-dirs -o workflows/signup.json https://raw.githubusercontent.com/LudwigGerdes/workflow-tester/main/docs/demo/signup.json
+curl -L -o .workflow-tester/tests/signup.test.yaml https://raw.githubusercontent.com/LudwigGerdes/workflow-tester/main/docs/demo/signup.test.yaml
+npx workflow-tester run
+```
+
+`npm install` prints an `install-scripts` warning naming `isolated-vm`, `ssh2` and `cpu-features`. That is fine, for the reason given under the checkout steps below: workflow-tester never loads them.
+
 To work on the tool itself, build from a checkout (pnpm 10):
 
 ```bash
@@ -108,7 +119,7 @@ workflow-tester reads the workflow JSON and walks it from the trigger, resolving
 |---|---|
 | n8n tested against | 2.38.3 (the walkthrough ran against a real instance); expression engine is `n8n-workflow` 2.38.1 |
 | Node-type descriptions bundled | n8n 2.10.0, 42 node types (`packages/engine/bundled/`); `node-types --version <v>` extracts any other release |
-| Node | >= 24 (CI runs 24 and 26). `n8n-workflow` 2.38 depends, through `@n8n/expression-runtime`, on the native module `isolated-vm` 7, which supports Node 24 and newer only (prebuilt binaries for Node 24 and 26; it cannot build on Node 20). workflow-tester never loads that module, but npm has to install it, so Node 24 is the floor. n8n 2.38 itself needs Node 24 when run from npm, so this matches the platform. |
+| Node | >= 24 (CI runs 24 and 26). `n8n-workflow` 2.38 depends, through `@n8n/expression-runtime`, on the native module `isolated-vm` 7, which supports Node 24 and newer only (prebuilt binaries for Node 24 and 26; it cannot build on Node 20 — there, `npx workflow-tester` prints two `EBADENGINE` warnings and exits 1 with no further message, because that build fails). workflow-tester never loads that module, but npm has to install it, so Node 24 is the floor. n8n 2.38 itself needs Node 24 when run from npm, so this matches the platform. |
 | pnpm | 10 (`packageManager` pins 10.22.0) |
 
 When the pinned `n8nVersion` in `.workflow-tester/config.yaml` does not match the descriptions in use, the run says so and downgrades the one finding that depends on them — a missing required parameter — from failure to warning. Expressions, Code nodes and structural checks do not depend on the descriptions.
@@ -167,7 +178,7 @@ When `profile` is missing, reading `.first_name` off it throws, and the whole ex
 
 ### contracts add, gen, run --only generated
 
-A contract sits beside each workflow and names what its trigger receives. The event names are workflow-tester's slugs (`issues-opened`, not GitHub's `issues`); a wrong one is rejected before anything is written, and the error lists what is available:
+A contract sits beside each workflow and names what its trigger receives. The event names are the ones workflow-tester materialised — for GitHub, slugs that include the action (`issues-opened`, not GitHub's `issues`); for Stripe, Stripe's own dotted names (`invoice.paid`); a wrong one is rejected before anything is written, and the error lists what is available:
 
 ![contracts add rejecting an unknown event and succeeding on retry](https://raw.githubusercontent.com/LudwigGerdes/workflow-tester/main/docs/images/workflow-tester-3.png)
 
@@ -190,7 +201,7 @@ workflows/signup.contract.yaml
 ```
 </details>
 
-The contract it writes:
+The transcript adds a GitHub contract to the sign-up sample only because that is the file at hand; for a workflow that really receives GitHub issues, use [`docs/demo/issue-triage.json`](docs/demo/issue-triage.json), which is what the `gen` and `run --only generated` transcripts below ran against. A contract for one event (`--events issues-opened`) looks like this:
 
 ```yaml
 version: 1
@@ -312,6 +323,8 @@ Hand-writing cases for a workflow you built by dragging boxes is a task nobody d
 workflow-tester capture workflows/invoice.json --execution export.json
 workflow-tester capture workflows/invoice.json --instance https://n8n.example   # newest execution, needs N8N_API_KEY
 ```
+
+`export.json` is one execution as n8n's public API returns it: `GET /api/v1/executions/<id>?includeData=true`, saved to a file. `workflows/invoice.json` stands for your own workflow. A capture that finds drift reports it and exits 0; `sync --once`, below, is the form for CI — it exits 1 when a capture is behind.
 
 It records **shape only** — which fields exist and what type each holds. No values reach disk, so a capture is safe to commit, and shape is what survives promotion between dev and production anyway. It lands in `workflows/invoice.contract.yaml`, beside the workflow, so it travels with it. Capturing again reports what moved and never replaces the record without `--update`:
 
