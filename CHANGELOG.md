@@ -8,6 +8,15 @@ All notable changes to workflow-tester are recorded here. The format follows
 
 ### Changed
 
+- README: an npm quickstart that reproduces the hero as pasted, what the `npm install` warning means, what Node 20 users see, and where an execution export for `capture` comes from.
+- `docs/demo/issue-triage.json`: the workflow behind the `gen` and `run --only generated` transcripts.
+
+## 0.1.0 — 2026-09-20
+
+Initial public release.
+
+### Changed
+
 - **Renamed** to workflow-tester before the first release:
   the package, the binary, the `WORKFLOW_TESTER_*` environment variables, the
   `.workflow-tester/` project directory and `~/.workflow-tester` all follow the new name.
@@ -63,8 +72,3 @@ All notable changes to workflow-tester are recorded here. The format follows
   Node 24 and 26, and lints the package with publint and arethetypeswrong.
 - Community files: CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, issue and pull
   request templates.
-- Publish-ready package metadata for `workflow-tester` (nothing is published yet).
-
-## 0.1.0 — unreleased
-
-Initial public release.
