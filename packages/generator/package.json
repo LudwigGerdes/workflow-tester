@@ -1,8 +1,8 @@
 {
-  "name": "workflow-test-generator",
+  "name": "workflow-tester-generator",
   "version": "0.1.0",
   "private": true,
-  "description": "Turns a materialised workflow-test contract into the payload variants worth running",
+  "description": "Turns a materialised workflow-tester contract into the payload variants worth running",
   "keywords": [
     "n8n",
     "n8n-workflow",
@@ -14,11 +14,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/LudwigGerdes/workflow-test.git",
+    "url": "https://github.com/LudwigGerdes/workflow-tester.git",
     "directory": "packages/generator"
   },
-  "homepage": "https://github.com/LudwigGerdes/workflow-test#readme",
-  "bugs": "https://github.com/LudwigGerdes/workflow-test/issues",
+  "homepage": "https://github.com/LudwigGerdes/workflow-tester#readme",
+  "bugs": "https://github.com/LudwigGerdes/workflow-tester/issues",
   "engines": {
     "node": ">=24"
   },
@@ -41,8 +41,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "workflow-test-contracts": "workspace:*",
-    "workflow-test-structure": "workspace:*",
+    "workflow-tester-contracts": "workspace:*",
+    "workflow-tester-structure": "workspace:*",
     "ajv": "^8.17.1",
     "n8n-workflow": "2.38.1"
   }

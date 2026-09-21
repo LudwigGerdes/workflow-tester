@@ -1,5 +1,5 @@
 {
-  "name": "workflow-test-engine",
+  "name": "workflow-tester-engine",
   "version": "0.1.0",
   "private": true,
   "description": "Offline n8n workflow walker: expression evaluation with n8n-workflow, pure-node semantics, boundaries, a node:vm sandbox for Code nodes",
@@ -14,11 +14,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/LudwigGerdes/workflow-test.git",
+    "url": "https://github.com/LudwigGerdes/workflow-tester.git",
     "directory": "packages/engine"
   },
-  "homepage": "https://github.com/LudwigGerdes/workflow-test#readme",
-  "bugs": "https://github.com/LudwigGerdes/workflow-test/issues",
+  "homepage": "https://github.com/LudwigGerdes/workflow-tester#readme",
+  "bugs": "https://github.com/LudwigGerdes/workflow-tester/issues",
   "engines": {
     "node": ">=24"
   },
@@ -42,7 +42,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "workflow-test-paths": "workspace:*",
+    "workflow-tester-paths": "workspace:*",
     "n8n-workflow": "2.38.1"
   }
 }

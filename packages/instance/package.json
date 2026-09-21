@@ -1,8 +1,8 @@
 {
-  "name": "workflow-test-instance",
+  "name": "workflow-tester-instance",
   "version": "0.1.0",
   "private": true,
-  "description": "Everything in workflow-test that talks to an n8n instance or the npm registry",
+  "description": "Everything in workflow-tester that talks to an n8n instance or the npm registry",
   "keywords": [
     "n8n",
     "n8n-workflow",
@@ -12,11 +12,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/LudwigGerdes/workflow-test.git",
+    "url": "https://github.com/LudwigGerdes/workflow-tester.git",
     "directory": "packages/instance"
   },
-  "homepage": "https://github.com/LudwigGerdes/workflow-test#readme",
-  "bugs": "https://github.com/LudwigGerdes/workflow-test/issues",
+  "homepage": "https://github.com/LudwigGerdes/workflow-tester#readme",
+  "bugs": "https://github.com/LudwigGerdes/workflow-tester/issues",
   "engines": {
     "node": ">=24"
   },

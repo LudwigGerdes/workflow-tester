@@ -1,8 +1,8 @@
 {
-  "name": "workflow-test-contracts",
+  "name": "workflow-tester-contracts",
   "version": "0.1.0",
   "private": true,
-  "description": "The workflow-test contract model: what a workflow trigger can receive, materialised from vendor catalogs, plus execution captures and drift",
+  "description": "The workflow-tester contract model: what a workflow trigger can receive, materialised from vendor catalogs, plus execution captures and drift",
   "keywords": [
     "n8n",
     "n8n-workflow",
@@ -14,11 +14,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/LudwigGerdes/workflow-test.git",
+    "url": "https://github.com/LudwigGerdes/workflow-tester.git",
     "directory": "packages/contracts"
   },
-  "homepage": "https://github.com/LudwigGerdes/workflow-test#readme",
-  "bugs": "https://github.com/LudwigGerdes/workflow-test/issues",
+  "homepage": "https://github.com/LudwigGerdes/workflow-tester#readme",
+  "bugs": "https://github.com/LudwigGerdes/workflow-tester/issues",
   "engines": {
     "node": ">=24"
   },
@@ -41,7 +41,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "workflow-test-vendors": "workspace:*",
+    "workflow-tester-vendors": "workspace:*",
     "n8n-workflow": "2.38.1",
     "yaml": "^2.5.0"
   }

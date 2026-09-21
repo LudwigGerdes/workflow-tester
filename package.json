@@ -1,5 +1,5 @@
 {
-  "name": "workflow-test-monorepo",
+  "name": "workflow-tester-monorepo",
   "private": true,
   "type": "module",
   "license": "MIT",

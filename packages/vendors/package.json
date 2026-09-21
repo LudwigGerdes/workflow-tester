@@ -1,8 +1,8 @@
 {
-  "name": "workflow-test-vendors",
+  "name": "workflow-tester-vendors",
   "version": "0.1.0",
   "private": true,
-  "description": "Vendor webhook catalogs (GitHub, Stripe) for workflow-test, with their coverage audit",
+  "description": "Vendor webhook catalogs (GitHub, Stripe) for workflow-tester, with their coverage audit",
   "keywords": [
     "n8n",
     "n8n-workflow",
@@ -14,11 +14,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/LudwigGerdes/workflow-test.git",
+    "url": "https://github.com/LudwigGerdes/workflow-tester.git",
     "directory": "packages/vendors"
   },
-  "homepage": "https://github.com/LudwigGerdes/workflow-test#readme",
-  "bugs": "https://github.com/LudwigGerdes/workflow-test/issues",
+  "homepage": "https://github.com/LudwigGerdes/workflow-tester#readme",
+  "bugs": "https://github.com/LudwigGerdes/workflow-tester/issues",
   "engines": {
     "node": ">=24"
   },
@@ -49,7 +49,7 @@
     "ingest": "tsx scripts/ingest.ts"
   },
   "dependencies": {
-    "workflow-test-paths": "workspace:*",
+    "workflow-tester-paths": "workspace:*",
     "ajv": "^8.17.1",
     "yaml": "^2.5.0"
   },

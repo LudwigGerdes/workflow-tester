@@ -1,5 +1,5 @@
 {
-  "name": "workflow-test",
+  "name": "workflow-tester",
   "version": "0.1.0",
   "description": "Contract-driven tests for n8n workflows: generate the payload variants a trigger can receive and check every expression against them, offline",
   "keywords": [
@@ -14,11 +14,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/LudwigGerdes/workflow-test.git",
+    "url": "git+https://github.com/LudwigGerdes/workflow-tester.git",
     "directory": "packages/cli"
   },
-  "homepage": "https://github.com/LudwigGerdes/workflow-test#readme",
-  "bugs": "https://github.com/LudwigGerdes/workflow-test/issues",
+  "homepage": "https://github.com/LudwigGerdes/workflow-tester#readme",
+  "bugs": "https://github.com/LudwigGerdes/workflow-tester/issues",
   "publishConfig": {
     "access": "public"
   },
@@ -27,7 +27,7 @@
   },
   "type": "module",
   "bin": {
-    "workflow-test": "./dist/bin.js"
+    "workflow-tester": "./dist/bin.js"
   },
   "exports": {
     "./package.json": "./package.json"
@@ -51,13 +51,13 @@
   },
   "devDependencies": {
     "esbuild": "^0.25.12",
-    "workflow-test-contracts": "workspace:*",
-    "workflow-test-engine": "workspace:*",
-    "workflow-test-generator": "workspace:*",
-    "workflow-test-instance": "workspace:*",
-    "workflow-test-paths": "workspace:*",
-    "workflow-test-runner": "workspace:*",
-    "workflow-test-structure": "workspace:*",
-    "workflow-test-vendors": "workspace:*"
+    "workflow-tester-contracts": "workspace:*",
+    "workflow-tester-engine": "workspace:*",
+    "workflow-tester-generator": "workspace:*",
+    "workflow-tester-instance": "workspace:*",
+    "workflow-tester-paths": "workspace:*",
+    "workflow-tester-runner": "workspace:*",
+    "workflow-tester-structure": "workspace:*",
+    "workflow-tester-vendors": "workspace:*"
   }
 }
