@@ -6,6 +6,8 @@ All notable changes to workflow-tester are recorded here. The format follows
 
 ## [Unreleased]
 
+## 0.2.0 — 2026-09-21
+
 ### Added
 
 - `vendors events <vendor>` lists the event names `contracts add --events` accepts, one per line.

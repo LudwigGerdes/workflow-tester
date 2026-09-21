@@ -1,6 +1,6 @@
 {
   "name": "workflow-tester-runner",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Loads workflow-tester test files, runs cases through the engine in a worker pool, evaluates expectations and renders reports",
   "keywords": [

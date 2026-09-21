@@ -1,6 +1,6 @@
 {
   "name": "workflow-tester-paths",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Where workflow-tester's shipped data lives: one resolver for the checkout, the installed package and an override",
   "license": "MIT",

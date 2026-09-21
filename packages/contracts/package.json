@@ -1,6 +1,6 @@
 {
   "name": "workflow-tester-contracts",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "The workflow-tester contract model: what a workflow trigger can receive, materialised from vendor catalogs, plus execution captures and drift",
   "keywords": [
