@@ -68,6 +68,9 @@ const USAGE: Record<string, string> = {
   vendors: `  workflow-tester vendors list
       Vendors, coverage, pinned spec version and event counts.
 
+  workflow-tester vendors events <vendor>
+      The event names \`contracts add --events\` accepts for that vendor, one per line.
+
   workflow-tester vendors audit
       Print the per-vendor coverage audit.`,
 

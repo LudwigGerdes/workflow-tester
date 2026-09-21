@@ -83,7 +83,7 @@ check_file() { if [ -s "$2" ]; then pass "$1"; else fail "$1" "missing or empty:
 COMMANDS=(contracts gen run explain schema init promote capture sync vendors node-types)
 
 # quickstart <label> <project dir> <cli argv...>
-# The README quickstart plus docs/walkthrough.md, in an empty project.
+# The README quickstart plus docs/generated-tests.md, in an empty project.
 quickstart() {
   local label="$1" proj="$2"; shift 2
   local cli=("$@")

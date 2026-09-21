@@ -6,8 +6,18 @@ All notable changes to workflow-tester are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `vendors events <vendor>` lists the event names `contracts add --events` accepts, one per line.
+
+### Fixed
+
+- A generated case whose change is at the payload root no longer has a double space in its title (`oneOf-branch (branch 0)`).
+- The test-file JSON Schema's description of `given.pinData` no longer refers to an internal design document.
+
 ### Changed
 
+- README cut down to description, installation, getting started and core usage; the reference moved to `docs/` (`cli.md`, `writing-tests.md`, `generated-tests.md`, `capture.md`, `ci.md`, `faq.md`). `walkthrough.md` is folded into `generated-tests.md`.
 - README: an npm quickstart that reproduces the hero as pasted, what the `npm install` warning means, what Node 20 users see, and where an execution export for `capture` comes from.
 - `docs/demo/issue-triage.json`: the workflow behind the `gen` and `run --only generated` transcripts.
 

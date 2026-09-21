@@ -25,6 +25,25 @@ export function vendorsCommand(argv: string[], io: Io): number {
     return EXIT.ok;
   }
 
-  io.err(`workflow-tester vendors: unknown subcommand "${String(verb)}" (expected list or audit)`);
+  if (verb === 'events') {
+    const vendor = argv[1];
+    if (vendor === undefined) {
+      io.err('workflow-tester vendors events: name a vendor, e.g. `workflow-tester vendors events github`');
+      return EXIT.usage;
+    }
+    if (!listVendors().includes(vendor)) {
+      io.err(`workflow-tester vendors events: no vendor "${vendor}" (known: ${listVendors().join(', ')})`);
+      return EXIT.usage;
+    }
+    if (catalogVersions(vendor).length === 0) {
+      io.out(`${vendor} publishes no event catalogue; write tests for it by hand`);
+      return EXIT.ok;
+    }
+    // One name per line and nothing else, so the output pipes into grep or a shell loop.
+    for (const event of Object.keys(loadCatalog(vendor).events).sort()) io.out(event);
+    return EXIT.ok;
+  }
+
+  io.err(`workflow-tester vendors: unknown subcommand "${String(verb)}" (expected list, events or audit)`);
   return EXIT.usage;
 }

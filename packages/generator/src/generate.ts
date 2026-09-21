@@ -34,8 +34,12 @@ const record = (mutation: Mutation): MutationRecord => ({
   ...(mutation.synthesized === true ? { synthesized: true } : {}),
 });
 
-const titleOf = (mutations: Mutation[]): string =>
-  mutations.map((m) => `${m.kind} ${m.path}${m.detail === '' ? '' : ` (${m.detail})`}`).join(' + ');
+/** Exported for its test; a case's title is what a reader sees in the report. */
+export const titleOf = (mutations: Pick<Mutation, 'kind' | 'path' | 'detail'>[]): string =>
+  mutations
+    // A change at the payload's root has an empty path; leave no gap where it would be.
+    .map((m) => [m.kind, m.path, m.detail === '' ? '' : `(${m.detail})`].filter((part) => part !== '').join(' '))
+    .join(' + ');
 
 /**
  * Turn a contract's shape and examples into the cases worth running.

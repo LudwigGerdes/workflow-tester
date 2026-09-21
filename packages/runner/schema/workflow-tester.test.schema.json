@@ -90,7 +90,7 @@
           }
         },
         "pinData": {
-          "description": "Seam S8: INodeExecutionData[] pinned per node, so a case can start from recorded boundary items.",
+          "description": "Items pinned per node (n8n's INodeExecutionData[]), so a case can start from recorded boundary items.",
           "type": "object",
           "additionalProperties": {
             "type": "array",
