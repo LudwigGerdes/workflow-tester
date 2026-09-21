@@ -1,8 +1,8 @@
 /**
  * The assertion path and matcher language.
  *
- * payload-contract's own matcher language, deliberately self-contained:
- * hand-written tests must work with payload-contract alone, so nothing here may reach for
+ * workflow-test's own matcher language, deliberately self-contained:
+ * hand-written tests must work with workflow-test alone, so nothing here may reach for
  * absence must never remove the ability to evaluate an expectation. The two are
  * kept aligned by a shared conformance table both sides run — see
  * `test/matchers.test.ts`.

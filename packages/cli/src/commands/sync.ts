@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { basename, dirname, join, relative } from 'node:path';
-import { readCapture, sidecarsUnder } from 'payload-contract-contracts';
-import type { InstanceClient } from 'payload-contract-instance';
+import { readCapture, sidecarsUnder } from 'workflow-test-contracts';
+import type { InstanceClient } from 'workflow-test-instance';
 // `writeCapture` lives beside the capture command rather than in contracts,
 // which is asymmetric with `readCapture` but not this task's to change.
 import { nodesFromExecution, writeCapture } from './capture.js';
-import { createClient } from 'payload-contract-instance';
+import { createClient } from 'workflow-test-instance';
 import { modeOf } from '../mode.js';
 import { instanceConfig } from '../instance-config.js';
 import { EXIT, parseArgs, type Io } from '../io.js';
@@ -49,7 +49,7 @@ export async function syncOnce(io: Io, client: InstanceClient): Promise<SyncResu
       // worth checking, and a sync that stopped at the first 404 would be
       // useless on a repo whose workflows span two instances.
       io.err(
-        `payload-contract: ${relative(io.cwd, workflowFile)}: ${
+        `workflow-test: ${relative(io.cwd, workflowFile)}: ${
           error instanceof Error ? error.message : String(error)
         }`,
       );
@@ -95,7 +95,7 @@ export function parseInterval(text: string): number | undefined {
   return match[2] === 'm' ? amount * 60_000 : amount * 1_000;
 }
 
-const HELP = `payload-contract sync [--instance <url>] [--interval 30s] [--once]
+const HELP = `workflow-test sync [--instance <url>] [--interval 30s] [--once]
 
 Watches an instance and keeps the captures in this repo in step with it.
 
@@ -126,7 +126,7 @@ export async function syncCommand(
         ? parseInterval(intervalFlag)
         : undefined;
   if (interval === undefined) {
-    io.err('payload-contract: --interval takes a value like 30s or 2m');
+    io.err('workflow-test: --interval takes a value like 30s or 2m');
     return EXIT.usage;
   }
 
@@ -147,7 +147,7 @@ export async function syncCommand(
   // The loop is deliberately the thinnest thing here: everything worth testing
   // lives in one pass, and a test that had to wait on a timer would be a test
   // about timers.
-  io.out(`payload-contract: watching ${config.url} every ${interval / 1000}s — ctrl-c to stop`);
+  io.out(`workflow-test: watching ${config.url} every ${interval / 1000}s — ctrl-c to stop`);
   for (;;) {
     await pass();
     await new Promise((resolve) => setTimeout(resolve, interval));

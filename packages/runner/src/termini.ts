@@ -1,5 +1,5 @@
-import type { EngineResult } from 'payload-contract-engine';
-import type { WorkflowJson } from 'payload-contract-generator';
+import type { EngineResult } from 'workflow-test-engine';
+import type { WorkflowJson } from 'workflow-test-generator';
 
 /** A node the walk ended at, and the edge that carried items into it. */
 export interface Terminus {

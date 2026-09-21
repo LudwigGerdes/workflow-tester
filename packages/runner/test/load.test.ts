@@ -6,13 +6,13 @@ import { SuiteError, loadSuites, testSchema } from '../src/load.js';
 
 let dir: string;
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'payload-contract-load-'));
-  mkdirSync(join(dir, '.payload-contract/tests'), { recursive: true });
-  mkdirSync(join(dir, '.payload-contract/generated'), { recursive: true });
+  dir = mkdtempSync(join(tmpdir(), 'workflow-test-load-'));
+  mkdirSync(join(dir, '.workflow-test/tests'), { recursive: true });
+  mkdirSync(join(dir, '.workflow-test/generated'), { recursive: true });
 });
 
 const writeTest = (name: string, body: string): void => {
-  writeFileSync(join(dir, '.payload-contract/tests', name), body);
+  writeFileSync(join(dir, '.workflow-test/tests', name), body);
 };
 
 const VALID = `workflow: ../../workflows/invoice.json
@@ -100,7 +100,7 @@ cases:
   });
 
   it('wraps generated cases into a synthetic suite', async () => {
-    const caseDir = join(dir, '.payload-contract/cases/invoice/stripe.invoice');
+    const caseDir = join(dir, '.workflow-test/cases/invoice/stripe.invoice');
     mkdirSync(caseDir, { recursive: true });
     for (const [id, title] of [['aaa1', 'example #0'], ['bbb2', 'optional-absent body.email']]) {
       writeFileSync(
@@ -127,7 +127,7 @@ cases:
 
   it('publishes the schema it validates against', () => {
     // $id. That identity is the point: it is their format, not a lookalike.
-    expect(testSchema().$id).toContain('payload-contract.test.schema.json');
+    expect(testSchema().$id).toContain('workflow-test.test.schema.json');
     expect(Array.isArray((testSchema() as { oneOf?: unknown[] }).oneOf)).toBe(true);
   });
 });

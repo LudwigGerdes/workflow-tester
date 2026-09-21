@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 export default function setup(): void {
   const packageDir = join(dirname(fileURLToPath(import.meta.url)), '..');
   const tsc = createRequire(import.meta.url).resolve('typescript/bin/tsc');
-  // `payload-contract-paths` first: the built worker imports it from its `dist`.
+  // `workflow-test-paths` first: the built worker imports it from its `dist`.
   for (const dir of [join(packageDir, '..', 'paths'), packageDir]) {
     execFileSync(process.execPath, [tsc, '-p', join(dir, 'tsconfig.json')], { stdio: 'inherit' });
   }

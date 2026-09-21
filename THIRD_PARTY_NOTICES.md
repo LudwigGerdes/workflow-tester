@@ -1,6 +1,6 @@
 # Third-party notices
 
-payload-contract is released under the MIT License (see `LICENSE`). The material below
+workflow-test is released under the MIT License (see `LICENSE`). The material below
 is distributed with it under its own terms and is **not** covered by that
 licence.
 
@@ -10,8 +10,8 @@ licence.
   (`INodeTypeDescription` objects) extracted verbatim from the
   `n8n-nodes-base@2.10.0` npm package by `scripts/bundle-node-types.ts`.
   See `packages/engine/bundled/README.md`.
-- **`n8n-workflow@2.38.1`** — a runtime dependency of `payload-contract-engine`,
-  `payload-contract-contracts` and other workspace packages. It is loaded unmodified
+- **`n8n-workflow@2.38.1`** — a runtime dependency of `workflow-test-engine`,
+  `workflow-test-contracts` and other workspace packages. It is loaded unmodified
   from `node_modules` and never copied into this repository; it provides the
   expression evaluator and data proxy the engine runs workflows through.
 
@@ -19,10 +19,10 @@ Both are the work of n8n GmbH, licensed under the
 [n8n Sustainable Use License](https://github.com/n8n-io/n8n/blob/master/LICENSE.md)
 (with `LICENSE_EE.md` for enterprise-edition files, none of which are used
 here). Vendor names and logos referenced in the node descriptions are
-trademarks of their respective owners. payload-contract is not affiliated with or
+trademarks of their respective owners. workflow-test is not affiliated with or
 endorsed by n8n GmbH.
 
-payload-contract runs without the bundled descriptions: when
+workflow-test runs without the bundled descriptions: when
 `packages/engine/bundled/` is absent or empty the engine loads an empty
 description set, prints a note, and skips the one check that depends on them
 (required-parameter verification).

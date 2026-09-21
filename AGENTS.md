@@ -1,6 +1,6 @@
-# Working on payload-contract
+# Working on workflow-test
 
-payload-contract generates and runs contract-driven tests for n8n workflows: from what a
+workflow-test generates and runs contract-driven tests for n8n workflows: from what a
 workflow's trigger can receive it derives the payload variants that matter and
 checks every expression against each one, offline, using n8n's own expression
 engine. A case that reaches an HTTP call, a credentialed node, or a Code node
@@ -12,15 +12,15 @@ pnpm monorepo, one package per concern under `packages/`:
 
 | Package | Role |
 |---|---|
-| `payload-contract-paths` | `dataDir(kind)`: the one function that knows where shipped data lives (checkout, installed package, `PAYLOAD_CONTRACT_DATA`). |
-| `payload-contract-engine` | The reusable core: workflow + expression wiring, pure-node semantics, boundaries, the `node:vm` sandbox worker, node-description loading. Owns `bundled/` (n8n node descriptions). |
-| `payload-contract-contracts` | The contract model (`<workflow>.contract.yaml`), materialisation, capture/drift. |
-| `payload-contract-vendors` | Vendor webhook catalogs under `data/`, the ingest script, the coverage audit. |
-| `payload-contract-generator` | Turns a materialised contract into cases (examples, single mutations, pairs, budget). |
-| `payload-contract-structure` | Static reads of the workflow: which paths expressions touch, guard detection, lineage through Set and Code nodes. |
-| `payload-contract-runner` | Loads test files, runs cases through the engine in a worker pool, evaluates expectations, reporters (stylish, json, junit, sarif, github-actions). Owns `schema/payload-contract.test.schema.json`. |
-| `payload-contract-instance` | Everything that talks to an n8n instance or the npm registry. The only networked package besides vendor ingestion. |
-| `payload-contract` (`packages/cli`) | The command-line entry point, and **the only published package**. Thin; commands live in `src/commands/`. Every other package is `private` and bundled into it. |
+| `workflow-test-paths` | `dataDir(kind)`: the one function that knows where shipped data lives (checkout, installed package, `WORKFLOW_TEST_DATA`). |
+| `workflow-test-engine` | The reusable core: workflow + expression wiring, pure-node semantics, boundaries, the `node:vm` sandbox worker, node-description loading. Owns `bundled/` (n8n node descriptions). |
+| `workflow-test-contracts` | The contract model (`<workflow>.contract.yaml`), materialisation, capture/drift. |
+| `workflow-test-vendors` | Vendor webhook catalogs under `data/`, the ingest script, the coverage audit. |
+| `workflow-test-generator` | Turns a materialised contract into cases (examples, single mutations, pairs, budget). |
+| `workflow-test-structure` | Static reads of the workflow: which paths expressions touch, guard detection, lineage through Set and Code nodes. |
+| `workflow-test-runner` | Loads test files, runs cases through the engine in a worker pool, evaluates expectations, reporters (stylish, json, junit, sarif, github-actions). Owns `schema/workflow-test.test.schema.json`. |
+| `workflow-test-instance` | Everything that talks to an n8n instance or the npm registry. The only networked package besides vendor ingestion. |
+| `workflow-test` (`packages/cli`) | The command-line entry point, and **the only published package**. Thin; commands live in `src/commands/`. Every other package is `private` and bundled into it. |
 
 Dependency direction: `engine` ← `structure`, `contracts`, `generator` ←
 `runner` ← `cli`; `vendors` and `instance` are leaves the cli pulls in; `paths`
@@ -28,7 +28,7 @@ sits under `engine`, `vendors` and `runner`.
 
 ## Prerequisites
 
-- Node >= 24 (`engines` in `package.json`; CI runs 24 and 26). `n8n-workflow` 2.38 depends, through `@n8n/expression-runtime`, on the native module `isolated-vm` 7, which supports Node 24 and newer only (prebuilt binaries for Node 24 and 26; it cannot build on Node 20). payload-contract never loads that module, but npm has to install it, so Node 24 is the floor. n8n 2.38 itself needs Node 24 when run from npm, so this matches the platform.
+- Node >= 24 (`engines` in `package.json`; CI runs 24 and 26). `n8n-workflow` 2.38 depends, through `@n8n/expression-runtime`, on the native module `isolated-vm` 7, which supports Node 24 and newer only (prebuilt binaries for Node 24 and 26; it cannot build on Node 20). workflow-test never loads that module, but npm has to install it, so Node 24 is the floor. n8n 2.38 itself needs Node 24 when run from npm, so this matches the platform.
 - pnpm 10 (`pnpm-lock.yaml` is lockfile v9; CI's `pnpm/action-setup@v4` reads the version from `packageManager`)
 
 `pnpm install` warns that build scripts for `cpu-features`, `esbuild`,
@@ -46,7 +46,7 @@ pnpm test           # vitest across the workspace (vitest.workspace.ts)
 pnpm verify         # build, then typecheck, then test — what CI runs
 pnpm smoke          # install-level acceptance test (see "Packaging" below)
 
-pnpm --filter payload-contract-engine test          # one package
+pnpm --filter workflow-test-engine test          # one package
 cd packages/engine && pnpm vitest run test/walk.test.ts   # one file
 ```
 
@@ -59,11 +59,11 @@ worker and CLI end-to-end tests, whose `globalSetup` compiles the engine.
 
 ## Packaging: one published package
 
-`packages/cli` publishes as `payload-contract` (bin `payload-contract`); nothing
+`packages/cli` publishes as `workflow-test` (bin `workflow-test`); nothing
 else is published. How it holds together:
 
 - **Bundle.** `packages/cli/scripts/build.mjs` (run by the cli's `build`, after
-  `tsc --noEmit`) bundles every `payload-contract-*` library from its
+  `tsc --noEmit`) bundles every `workflow-test-*` library from its
   TypeScript source into `packages/cli/dist` with esbuild (esm, node20,
   sourcemaps, `splitting` so shared code exists once). Third-party imports stay
   external and must be declared in `packages/cli/package.json` `dependencies`
@@ -78,8 +78,8 @@ else is published. How it holds together:
   the engine's tsc output, the bundle). Never resolve such a file through a
   workspace package name.
 - **Data.** `dataDir('node-types' | 'vendors' | 'schema')` from
-  `payload-contract-paths` is the only place that knows where data lives:
-  `PAYLOAD_CONTRACT_DATA/<kind>` if set; else, in a checkout (recognised by
+  `workflow-test-paths` is the only place that knows where data lives:
+  `WORKFLOW_TEST_DATA/<kind>` if set; else, in a checkout (recognised by
   `packages/vendors/sources.yaml` + `packages/engine/bundled` two levels up),
   the committed files where they are; else `<package>/data/<kind>`. The cli's
   `prepack` (`scripts/pack-files.mjs pre`) copies the data, LICENSE, README and
@@ -90,8 +90,8 @@ else is published. How it holds together:
   the *committed* state, builds it and runs the README quickstart through
   `node packages/cli/dist/bin.js`; then `pnpm pack`s the cli, `npm install`s the
   tarball into an empty project outside the workspace and runs the same
-  quickstart through `node_modules/.bin/payload-contract`, plus tarball-content
-  and data-override checks. Isolated `HOME` and `PAYLOAD_CONTRACT_CACHE`, temp
+  quickstart through `node_modules/.bin/workflow-test`, plus tarball-content
+  and data-override checks. Isolated `HOME` and `WORKFLOW_TEST_CACHE`, temp
   dirs only. Commit before running it. Never make it pass by asserting less.
 
 ## Running the CLI from a checkout
@@ -100,12 +100,12 @@ After `pnpm build`:
 
 ```bash
 node packages/cli/dist/bin.js --help
-alias payload-contract="node $PWD/packages/cli/dist/bin.js"     # for a shell session
+alias workflow-test="node $PWD/packages/cli/dist/bin.js"     # for a shell session
 ```
 
-`pnpm exec payload-contract` does not work: pnpm does not link a workspace package's own
-bin. `scripts/payload-contract.sh` is the same invocation wrapped for a pre-commit hook
-(it resolves `PAYLOAD_CONTRACT_HOME` and exits 0 when the checkout is absent).
+`pnpm exec workflow-test` does not work: pnpm does not link a workspace package's own
+bin. `scripts/workflow-test.sh` is the same invocation wrapped for a pre-commit hook
+(it resolves `WORKFLOW_TEST_HOME` and exits 0 when the checkout is absent).
 
 ## Fixtures and generated data
 
@@ -115,8 +115,8 @@ bin. `scripts/payload-contract.sh` is the same invocation wrapped for a pre-comm
 | Execution fixtures — real n8n execution exports the pure-node semantics are proven against | `packages/engine/test/fixtures/executions/` | Capture from a throwaway Docker n8n: `docs/maintainers/capturing-fixtures.md`. Never hand-write one. |
 | Workflow fixtures for unit tests | `packages/*/test/fixtures/` | hand-written, small |
 | Vendor catalogs | `packages/vendors/data/<vendor>/<specVersion>/catalog.json` | `pnpm ingest` in `packages/vendors` (network) after editing `sources.yaml` |
-| Test-file JSON Schema | `packages/runner/schema/payload-contract.test.schema.json` | hand-maintained; `payload-contract schema` prints it |
-| A consuming repo's `.payload-contract/` | `contracts/`, `cases/`, `tests/` committed; `reports/` ignored | `payload-contract gen`; `gen --check` guards staleness |
+| Test-file JSON Schema | `packages/runner/schema/workflow-test.test.schema.json` | hand-maintained; `workflow-test schema` prints it |
+| A consuming repo's `.workflow-test/` | `contracts/`, `cases/`, `tests/` committed; `reports/` ignored | `workflow-test gen`; `gen --check` guards staleness |
 
 Both data folders carry a README stating provenance and licence. The bundled
 descriptions are n8n's work under the Sustainable Use License; the engine runs
@@ -127,7 +127,7 @@ without them (`packages/engine/test/without-bundle.test.ts`).
 - **Offline-first, no network in tests.** Exactly these commands may reach the
   network, each behind a flag: `contracts update --fetch`, `capture --instance`,
   `sync`, `node-types --version` / `--instance`. `gen`, `run` and `explain`
-  never do. Networked code lives only in `payload-contract-instance` and
+  never do. Networked code lives only in `workflow-test-instance` and
   `packages/vendors/src/ingest.ts`; keep it there.
 - **Reuse n8n, do not reimplement it.** Expressions are evaluated by
   `n8n-workflow` (`Expression`, `WorkflowDataProxy`), loaded through the single
@@ -149,7 +149,7 @@ without them (`packages/engine/test/without-bundle.test.ts`).
 - **Tests first** (vitest). Behaviour changes come with a test in the package
   that owns them. Error messages are part of the contract: many tests assert
   on them.
-- **`PAYLOAD_CONTRACT_MODE`** decides whether `capture` and `sync` accept drift (`dev`)
+- **`WORKFLOW_TEST_MODE`** decides whether `capture` and `sync` accept drift (`dev`)
   or only report it (unset/`test`); it never changes what counts as a pass.
   `gen` writes in every mode; `gen --check` is its read-only form.
 - Keep `README.md`'s "What it does not do" and "Known issues" sections honest
@@ -166,7 +166,7 @@ without them (`packages/engine/test/without-bundle.test.ts`).
   vendor actually publishes.
 - **A CLI command:** `packages/cli/src/commands/<name>.ts`, wired in
   `src/index.ts`, with its usage block added to `USAGE` there (that is what
-  `payload-contract <command> --help` prints; `--help` is routed before the command
+  `workflow-test <command> --help` prints; `--help` is routed before the command
   runs). Exit codes: 0 clean, 1 findings, 2 usage or configuration error.
 - **A reporter:** `packages/runner/src/reporters/index.ts`.
 
@@ -176,8 +176,8 @@ without them (`packages/engine/test/without-bundle.test.ts`).
   `packages/engine/test/fixtures/executions/README.md` describes (hostnames,
   tokens, proxy headers, instance ids).
 - Hand-write or "reconstruct" an execution fixture.
-- Commit `.payload-contract/reports/` or anything under `~/.payload-contract/`.
+- Commit `.workflow-test/reports/` or anything under `~/.workflow-test/`.
 - Read shipped data by a path built from `import.meta.url`; ask `dataDir`.
-- Add a network call outside `payload-contract-instance` or the vendor ingest script.
+- Add a network call outside `workflow-test-instance` or the vendor ingest script.
 - Change `packages/engine/bundled/` by hand; regenerate it.
 - Accept an API key as a CLI argument. `N8N_API_KEY` is environment-only.

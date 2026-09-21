@@ -18,16 +18,16 @@ export function instanceConfig(
   flags: Record<string, string | true>,
 ): InstanceConfig | { error: string } {
   const flagged = flags['instance'];
-  if (flagged === true) return { error: 'payload-contract: --instance needs a url' };
+  if (flagged === true) return { error: 'workflow-test: --instance needs a url' };
 
   const url = flagged ?? io.env?.['N8N_API_URL'];
   if (url === undefined || url === '') {
-    return { error: 'payload-contract: no instance url — pass --instance <url> or set N8N_API_URL' };
+    return { error: 'workflow-test: no instance url — pass --instance <url> or set N8N_API_URL' };
   }
 
   const key = io.env?.['N8N_API_KEY'];
   if (key === undefined || key === '') {
-    return { error: 'payload-contract: no api key — set N8N_API_KEY' };
+    return { error: 'workflow-test: no api key — set N8N_API_KEY' };
   }
 
   return { url, key };

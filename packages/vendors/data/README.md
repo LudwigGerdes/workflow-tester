@@ -1,13 +1,13 @@
 # Vendor catalogs
 
-`<vendor>/<specVersion>/catalog.json` is what payload-contract knows about a vendor's
+`<vendor>/<specVersion>/catalog.json` is what workflow-test knows about a vendor's
 webhooks: the list of event names it publishes, and — for the curated events
 in `../sources.yaml` — the dereferenced JSON Schema and example payloads.
 Everything a run touches is here; nothing is fetched at run time.
 
 **Regenerate** with `pnpm ingest` inside `packages/vendors`
-(`scripts/ingest.ts`), or `payload-contract contracts update --fetch`. Both download
-the upstream spec into `~/.payload-contract/vendor-specs/` and rewrite the catalog.
+(`scripts/ingest.ts`), or `workflow-test contracts update --fetch`. Both download
+the upstream spec into `~/.workflow-test/vendor-specs/` and rewrite the catalog.
 Adding a vendor or event means editing `../sources.yaml` first.
 
 **Provenance and licences.** The catalogs are derived from MIT-licensed

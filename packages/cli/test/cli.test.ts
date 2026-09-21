@@ -35,7 +35,7 @@ const writeWorkflow = (file: string, nodes: unknown[]): string => {
 };
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'payload-contract-cli-'));
+  dir = mkdtempSync(join(tmpdir(), 'workflow-test-cli-'));
   out = [];
   err = [];
 });
@@ -67,8 +67,8 @@ describe('contracts add', () => {
     const contractFile = join(dir, 'workflows/invoice.contract.yaml');
     expect(existsSync(contractFile)).toBe(true);
     expect(readFileSync(contractFile, 'utf8')).toContain('vendor: stripe');
-    expect(existsSync(join(dir, '.payload-contract/contracts/stripe.invoice.schema.json'))).toBe(true);
-    expect(existsSync(join(dir, '.payload-contract/contracts/stripe.invoice.examples.json'))).toBe(true);
+    expect(existsSync(join(dir, '.workflow-test/contracts/stripe.invoice.schema.json'))).toBe(true);
+    expect(existsSync(join(dir, '.workflow-test/contracts/stripe.invoice.examples.json'))).toBe(true);
     expect(stdout()).toMatch(/invoice\.paid/);
   });
 
@@ -104,11 +104,11 @@ describe('contracts add', () => {
     await run(args, io());
     const before = {
       contract: readFileSync(join(dir, 'workflows/idem.contract.yaml'), 'utf8'),
-      schema: readFileSync(join(dir, '.payload-contract/contracts/stripe.invoice.paid.schema.json'), 'utf8'),
+      schema: readFileSync(join(dir, '.workflow-test/contracts/stripe.invoice.paid.schema.json'), 'utf8'),
     };
     expect(await run(args, io())).toBe(0);
     expect(readFileSync(join(dir, 'workflows/idem.contract.yaml'), 'utf8')).toBe(before.contract);
-    expect(readFileSync(join(dir, '.payload-contract/contracts/stripe.invoice.paid.schema.json'), 'utf8')).toBe(
+    expect(readFileSync(join(dir, '.workflow-test/contracts/stripe.invoice.paid.schema.json'), 'utf8')).toBe(
       before.schema,
     );
   });
@@ -118,11 +118,11 @@ describe('contracts update', () => {
   it('re-materialises without changing a byte', async () => {
     const wf = writeWorkflow('workflows/upd.json', [webhook('Webhook')]);
     await run(['contracts', 'add', wf, '--vendor', 'stripe', '--events', 'invoice.paid'], io());
-    const before = readFileSync(join(dir, '.payload-contract/contracts/stripe.invoice.paid.schema.json'), 'utf8');
+    const before = readFileSync(join(dir, '.workflow-test/contracts/stripe.invoice.paid.schema.json'), 'utf8');
 
     out = [];
     expect(await run(['contracts', 'update', '--all'], io())).toBe(0);
-    expect(readFileSync(join(dir, '.payload-contract/contracts/stripe.invoice.paid.schema.json'), 'utf8')).toBe(before);
+    expect(readFileSync(join(dir, '.workflow-test/contracts/stripe.invoice.paid.schema.json'), 'utf8')).toBe(before);
   });
 
   it('reports when there is nothing to update', async () => {
@@ -158,34 +158,34 @@ describe('usage', () => {
 
   it.each(COMMANDS)('%s --help prints that command\'s usage and exits 0', async (command) => {
     expect(await run([command, '--help'], io())).toBe(0);
-    expect(stdout()).toMatch(new RegExp(`payload-contract ${command}`));
+    expect(stdout()).toMatch(new RegExp(`workflow-test ${command}`));
     expect(stderr()).toBe('');
     // Usage only: nothing scaffolded, run, or written.
-    expect(existsSync(join(dir, '.payload-contract'))).toBe(false);
+    expect(existsSync(join(dir, '.workflow-test'))).toBe(false);
   });
 
   it.each(COMMANDS)('%s -h is the same as --help', async (command) => {
     expect(await run([command, '-h'], io())).toBe(0);
-    expect(stdout()).toMatch(new RegExp(`payload-contract ${command}`));
+    expect(stdout()).toMatch(new RegExp(`workflow-test ${command}`));
   });
 
   it('help <command> prints that command\'s usage', async () => {
     expect(await run(['help', 'run'], io())).toBe(0);
-    expect(stdout()).toMatch(/payload-contract run/);
-    expect(stdout()).not.toMatch(/payload-contract capture/);
+    expect(stdout()).toMatch(/workflow-test run/);
+    expect(stdout()).not.toMatch(/workflow-test capture/);
   });
 
   it('a subcommand honours --help too', async () => {
     expect(await run(['contracts', 'add', '--help'], io())).toBe(0);
-    expect(stdout()).toMatch(/payload-contract contracts add/);
+    expect(stdout()).toMatch(/workflow-test contracts add/);
   });
 
   it('prints the version for --version and -v', async () => {
     expect(await run(['--version'], io())).toBe(0);
-    expect(stdout()).toMatch(/^payload-contract \d+\.\d+\.\d+/);
+    expect(stdout()).toMatch(/^workflow-test \d+\.\d+\.\d+/);
     out = [];
     expect(await run(['-v'], io())).toBe(0);
-    expect(stdout()).toMatch(/^payload-contract \d+\.\d+\.\d+/);
+    expect(stdout()).toMatch(/^workflow-test \d+\.\d+\.\d+/);
   });
 });
 
@@ -219,7 +219,7 @@ describe('contracts add validates before it writes', () => {
     expect(await run(['contracts', 'add', wf, '--vendor', 'github', '--events', 'issues'], io())).toBe(2);
     expect(stderr()).toMatch(/no materialised event "issues"/);
     expect(existsSync(contract())).toBe(false);
-    expect(existsSync(join(dir, '.payload-contract/contracts'))).toBe(false);
+    expect(existsSync(join(dir, '.workflow-test/contracts'))).toBe(false);
     expect(readdirSync(join(dir, 'workflows'))).toEqual(['invoice.json']);
   });
 

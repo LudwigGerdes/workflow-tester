@@ -1,13 +1,13 @@
-import { shapeOfItems, type Shape } from 'payload-contract-contracts';
-import type { EngineResult } from 'payload-contract-engine';
-import { chainsIn, type NodeChain, type WorkflowJson } from 'payload-contract-generator';
+import { shapeOfItems, type Shape } from 'workflow-test-contracts';
+import type { EngineResult } from 'workflow-test-engine';
+import { chainsIn, type NodeChain, type WorkflowJson } from 'workflow-test-generator';
 import {
   checkChain,
   guardsPrefix,
   inConditionalBranch,
   renderChain,
   type Finding,
-} from 'payload-contract-structure';
+} from 'workflow-test-structure';
 import type { Outcome } from './oracle.js';
 
 export interface StructureFinding extends Finding {

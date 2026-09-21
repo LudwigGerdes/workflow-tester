@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { EngineResult } from 'payload-contract-engine';
-import type { WorkflowJson } from 'payload-contract-generator';
+import type { EngineResult } from 'workflow-test-engine';
+import type { WorkflowJson } from 'workflow-test-generator';
 import { applyClassification, classifyTerminus } from '../src/classify.js';
 import type { Outcome } from '../src/oracle.js';
 

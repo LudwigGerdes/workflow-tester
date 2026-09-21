@@ -8,9 +8,9 @@ import {
   type CaptureRecord,
   type CapturedNode,
   type ShapeChange,
-} from 'payload-contract-contracts';
+} from 'workflow-test-contracts';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
-import { createClient, type InstanceClient } from 'payload-contract-instance';
+import { createClient, type InstanceClient } from 'workflow-test-instance';
 import { EXIT, parseArgs, type Io } from '../io.js';
 import { instanceConfig } from '../instance-config.js';
 import { modeOf } from '../mode.js';
@@ -24,7 +24,7 @@ import { modeOf } from '../mode.js';
  * has to fall out of work that already happened: you ran the workflow, and the
  * run is the test.
  *
- * Only shape is written. See `payload-contract-contracts`'s shape module for why.
+ * Only shape is written. See `workflow-test-contracts`'s shape module for why.
  */
 
 
@@ -116,8 +116,8 @@ function findByRenamedId(
   return Object.values(after).find((node) => node.id === id);
 }
 
-const HELP = `payload-contract capture <workflow.json> --execution <file.json>
-       payload-contract capture <workflow.json> --awaiting
+const HELP = `workflow-test capture <workflow.json> --execution <file.json>
+       workflow-test capture <workflow.json> --awaiting
 
 Record what each node produced, as shape only, into the workflow's sidecar.
 
@@ -141,7 +141,7 @@ export async function captureCommand(
 
   const workflowFile = resolve(io.cwd, target);
   if (!existsSync(workflowFile)) {
-    io.err(`payload-contract: no such workflow ${target}`);
+    io.err(`workflow-test: no such workflow ${target}`);
     return EXIT.usage;
   }
   const sidecar = sidecarFor(workflowFile);
@@ -161,7 +161,7 @@ export async function captureCommand(
 
   const wanted = flags['instance'];
   if (wanted !== undefined && flags['execution'] !== undefined) {
-    io.err('payload-contract: pass --instance or --execution, not both');
+    io.err('workflow-test: pass --instance or --execution, not both');
     return EXIT.usage;
   }
 
@@ -179,7 +179,7 @@ export async function captureCommand(
     const flagged = flags['workflow'];
     const workflowId = typeof flagged === 'string' ? flagged : local.id;
     if (typeof workflowId !== 'string') {
-      io.err('payload-contract: no workflow id in the file — pass --workflow <id>');
+      io.err('workflow-test: no workflow id in the file — pass --workflow <id>');
       return EXIT.usage;
     }
 
@@ -195,26 +195,26 @@ export async function captureCommand(
       execution = await client.getExecution(newest.id);
       sourceLabel = `execution ${newest.id}`;
     } catch (error) {
-      io.err(`payload-contract: ${error instanceof Error ? error.message : String(error)}`);
+      io.err(`workflow-test: ${error instanceof Error ? error.message : String(error)}`);
       return EXIT.usage;
     }
   } else {
     const source = flags['execution'];
     if (typeof source !== 'string') {
-      io.err('payload-contract: capture needs --execution <file.json>, --instance <url>, or --awaiting');
+      io.err('workflow-test: capture needs --execution <file.json>, --instance <url>, or --awaiting');
       return EXIT.usage;
     }
 
     const file = resolve(io.cwd, source);
     if (!existsSync(file)) {
-      io.err(`payload-contract: no such execution ${source}`);
+      io.err(`workflow-test: no such execution ${source}`);
       return EXIT.usage;
     }
 
     try {
       execution = JSON.parse(readFileSync(file, 'utf8'));
     } catch (error) {
-      io.err(`payload-contract: ${source} is not valid JSON: ${(error as Error).message}`);
+      io.err(`workflow-test: ${source} is not valid JSON: ${(error as Error).message}`);
       return EXIT.usage;
     }
     sourceLabel = source;
@@ -222,7 +222,7 @@ export async function captureCommand(
 
   const nodes = nodesFromExecution(execution);
   if (Object.keys(nodes).length === 0) {
-    io.err(`payload-contract: ${sourceLabel} records no node output`);
+    io.err(`workflow-test: ${sourceLabel} records no node output`);
     return EXIT.usage;
   }
 

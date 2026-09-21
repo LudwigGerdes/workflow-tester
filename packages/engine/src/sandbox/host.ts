@@ -120,8 +120,8 @@ export async function runInSandbox(
     );
 
     worker.on('message', (message: EngineResult | WorkerError) => {
-      if ('__payloadContractError' in message) {
-        finish({ status: 'crashed', message: message.__payloadContractError });
+      if ('__workflowTestError' in message) {
+        finish({ status: 'crashed', message: message.__workflowTestError });
         return;
       }
       finish(message);

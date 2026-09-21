@@ -85,7 +85,7 @@ describe('resolveParameters', () => {
    * undefined, an unknown identifier, `JSON.parse` of junk, even an explicit
    * `throw` inside the expression. That is *why* the oracle in spec §4 is built
    * on undefined-detection rather than on caught exceptions — silent undefined
-   * is the bug class payload-contract exists to catch.
+   * is the bug class workflow-test exists to catch.
    */
   it.each([
     '={{ $json.body.missing.deep }}',

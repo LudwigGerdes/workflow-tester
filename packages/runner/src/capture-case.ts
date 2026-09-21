@@ -1,4 +1,4 @@
-import { synthesize, type CaptureRecord } from 'payload-contract-contracts';
+import { synthesize, type CaptureRecord } from 'workflow-test-contracts';
 
 export interface DerivedCase {
   id: string;

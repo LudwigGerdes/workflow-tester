@@ -1,6 +1,6 @@
-import type { OutcomeDeclaration } from 'payload-contract-contracts';
-import type { EngineResult } from 'payload-contract-engine';
-import type { WorkflowJson } from 'payload-contract-generator';
+import type { OutcomeDeclaration } from 'workflow-test-contracts';
+import type { EngineResult } from 'workflow-test-engine';
+import type { WorkflowJson } from 'workflow-test-generator';
 import type { Terminus } from './termini.js';
 import type { TerminalShapeReport } from './terminal-shape.js';
 import type { Outcome } from './oracle.js';
@@ -13,7 +13,7 @@ const STOP_AND_ERROR = 'n8n-nodes-base.stopAndError';
  * Which ending is this?
  *
  * Inferred first, declared second. Inference has to exist for any of this to
- * work on a workflow that has never heard of payload-contract, and the premise of
+ * work on a workflow that has never heard of workflow-test, and the premise of
  * `capture` is that whatever needs a human to write it does not get written. A
  * declaration corrects a wrong guess; it is not the mechanism.
  *

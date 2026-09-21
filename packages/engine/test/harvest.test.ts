@@ -21,7 +21,7 @@ const entry = (name: string, extra: Record<string, unknown> = {}): Record<string
 });
 
 describe('harvest', () => {
-  it('keeps the types payload-contract reads and drops the rest', () => {
+  it('keeps the types workflow-test reads and drops the rest', () => {
     const out = harvest([entry('set'), entry('slack'), entry('if'), entry('googleSheets')]);
     expect(out.map((n) => n.name).sort()).toEqual(['n8n-nodes-base.if', 'n8n-nodes-base.set']);
   });

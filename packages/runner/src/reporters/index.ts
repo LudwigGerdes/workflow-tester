@@ -91,7 +91,7 @@ function stylish(report: RunReport): string {
     lines.push(
       `note: ${report.nodeTypes.note ?? `node descriptions are for n8n ${report.nodeTypes.version}`}`,
     );
-    lines.push('      `payload-contract node-types --version <yours>` to match your instance');
+    lines.push('      `workflow-test node-types --version <yours>` to match your instance');
   }
   return lines.join('\n');
 }
@@ -100,7 +100,7 @@ function junit(report: RunReport): string {
   const cases = report.outcomes
     .map((outcome) => {
       const name = escapeXml(outcome.title ?? outcome.caseId);
-      const classname = escapeXml(outcome.workflow ?? 'payload-contract');
+      const classname = escapeXml(outcome.workflow ?? 'workflow-test');
       const open = `    <testcase name="${name}" classname="${classname}">`;
       if (outcome.status === 'pass') return `${open.slice(0, -1)}/>`;
       if (outcome.status === 'needs-execution') {
@@ -115,7 +115,7 @@ function junit(report: RunReport): string {
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<testsuites>',
-    `  <testsuite name="payload-contract" tests="${pass + fail + warn + needsExecution}" failures="${fail}" skipped="${needsExecution}">`,
+    `  <testsuite name="workflow-test" tests="${pass + fail + warn + needsExecution}" failures="${fail}" skipped="${needsExecution}">`,
     cases,
     '  </testsuite>',
     '</testsuites>',
@@ -134,14 +134,14 @@ async function sarif(report: RunReport, options: RenderOptions): Promise<string>
       // both would make line mapping fail silently and look like it worked.
       const readable = isAbsolute(uri) ? uri : resolve(root, uri);
       return {
-        ruleId: `payload-contract/${outcome.status === 'fail' ? 'case-failed' : 'case-warned'}`,
+        ruleId: `workflow-test/${outcome.status === 'fail' ? 'case-failed' : 'case-warned'}`,
         level: outcome.status === 'fail' ? 'error' : 'warning',
         message: { text: `${outcome.title ?? outcome.caseId}: ${outcome.message}` },
         locations: [
           {
             physicalLocation: {
               artifactLocation: { uri },
-              // File-level: payload-contract does not read the workflow file itself,
+              // File-level: workflow-test does not read the workflow file itself,
               // so it has no line to point at.
             },
           },
@@ -153,7 +153,7 @@ async function sarif(report: RunReport, options: RenderOptions): Promise<string>
     {
       $schema: 'https://json.schemastore.org/sarif-2.1.0.json',
       version: '2.1.0',
-      runs: [{ tool: { driver: { name: 'payload-contract', informationUri: 'https://github.com/LudwigGerdes/payload-contract' } }, results }],
+      runs: [{ tool: { driver: { name: 'workflow-test', informationUri: 'https://github.com/LudwigGerdes/workflow-test' } }, results }],
     },
     null,
     2,

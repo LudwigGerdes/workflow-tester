@@ -35,7 +35,7 @@ jobs:
 
       # Generated cases are committed. If regenerating would change them, the
       # workflow and its cases have drifted apart.
-      # pnpm does not link a workspace package's own bin, so `exec payload-contract`
+      # pnpm does not link a workspace package's own bin, so `exec workflow-test`
       # fails with "Command not found". It is run from its build output
       # directly, as the pre-commit hook does.
       - name: Check generated cases are current
@@ -44,7 +44,7 @@ jobs:
 
       - name: Run tier 1
         working-directory: packages/cli
-        run: node dist/bin.js run --format sarif > "$GITHUB_WORKSPACE/payload-contract.sarif"
+        run: node dist/bin.js run --format sarif > "$GITHUB_WORKSPACE/workflow-test.sarif"
 
       # Kept as a build artifact rather than sent to code scanning: uploading
       # SARIF needs code scanning enabled, which on a private repository means
@@ -54,8 +54,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: payload-contract-sarif-node${{ matrix.node }}
-          path: payload-contract.sarif
+          name: workflow-test-sarif-node${{ matrix.node }}
+          path: workflow-test.sarif
           if-no-files-found: warn
 
   # The install-level acceptance test: a fresh clone builds and runs, and the

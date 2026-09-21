@@ -67,9 +67,9 @@ describe('the published package declares what its bundle imports', () => {
   });
 
   it('has no internal workspace library left to resolve', () => {
-    const internal = [...bareImports(join(CLI, 'dist'))].filter((name) => name.startsWith('payload-contract'));
+    const internal = [...bareImports(join(CLI, 'dist'))].filter((name) => name.startsWith('workflow-test'));
     expect(internal).toEqual([]);
-    expect(dependenciesOf(CLI).filter((name) => name.startsWith('payload-contract'))).toEqual([]);
+    expect(dependenciesOf(CLI).filter((name) => name.startsWith('workflow-test'))).toEqual([]);
   });
 
   it('declares nothing it does not import', () => {

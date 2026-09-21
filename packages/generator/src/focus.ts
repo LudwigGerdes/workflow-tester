@@ -1,4 +1,4 @@
-import { readChain, toFocusSegments, type Chain } from 'payload-contract-structure';
+import { readChain, toFocusSegments, type Chain } from 'workflow-test-structure';
 import { ExpressionParser } from './n8n.js';
 import type { FocusPath } from './types.js';
 

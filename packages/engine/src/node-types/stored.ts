@@ -20,12 +20,12 @@ export interface StoredPack {
 /**
  * Where extracted descriptions live.
  *
- * `PAYLOAD_CONTRACT_CACHE`, deliberately not `PAYLOAD_CONTRACT_HOME` — that one already names the
- * payload-contract checkout for `scripts/payload-contract.sh`, and pointing a cache at a source
+ * `WORKFLOW_TEST_CACHE`, deliberately not `WORKFLOW_TEST_HOME` — that one already names the
+ * workflow-test checkout for `scripts/workflow-test.sh`, and pointing a cache at a source
  * tree would be a silent, confusing failure.
  */
 export function cacheRoot(env: Record<string, string | undefined> = process.env): string {
-  return env['PAYLOAD_CONTRACT_CACHE'] ?? join(homedir(), '.payload-contract');
+  return env['WORKFLOW_TEST_CACHE'] ?? join(homedir(), '.workflow-test');
 }
 
 /**

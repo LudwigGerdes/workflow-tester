@@ -1,8 +1,8 @@
 import { readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { basename, dirname, extname, join, relative } from 'node:path';
-import { materialize, readContract, ContractError } from 'payload-contract-contracts';
-import { loadCatalog, UnknownVendorError } from 'payload-contract-vendors';
+import { materialize, readContract, ContractError } from 'workflow-test-contracts';
+import { loadCatalog, UnknownVendorError } from 'workflow-test-vendors';
 import { parseDocument } from 'yaml';
 import { EXIT, parseArgs, type Io } from '../io.js';
 
@@ -17,7 +17,7 @@ interface WorkflowFile {
 }
 
 /** Where materialised shapes live for a repo. */
-const contractsDir = (repo: string): string => join(repo, '.payload-contract', 'contracts');
+const contractsDir = (repo: string): string => join(repo, '.workflow-test', 'contracts');
 
 /** The contract that belongs beside a workflow file. */
 export const contractPathFor = (workflow: string): string =>
@@ -44,7 +44,7 @@ async function addContract(argv: string[], io: Io): Promise<number> {
   const { positional, flags } = parseArgs(argv);
   const workflowArg = positional[0];
   if (workflowArg === undefined) {
-    io.err('usage: payload-contract contracts add <workflow.json> --vendor <v> --events <a,b> [--trigger <name>]');
+    io.err('usage: workflow-test contracts add <workflow.json> --vendor <v> --events <a,b> [--trigger <name>]');
     return EXIT.usage;
   }
 
@@ -187,7 +187,7 @@ async function updateContracts(argv: string[], io: Io): Promise<number> {
 
   if (flags.fetch === true) {
     // The one networked path, and only ever on an explicit flag.
-    const { ingestAll } = await import('payload-contract-vendors/ingest');
+    const { ingestAll } = await import('workflow-test-vendors/ingest');
     io.out('fetching vendor specs…');
     await ingestAll(typeof flags.vendor === 'string' ? flags.vendor : undefined, { refetch: true });
   }
@@ -215,6 +215,6 @@ export async function contractsCommand(argv: string[], io: Io): Promise<number> 
   const [verb, ...rest] = argv;
   if (verb === 'add') return await addContract(rest, io);
   if (verb === 'update') return await updateContracts(rest, io);
-  io.err(`payload-contract contracts: unknown subcommand "${String(verb)}" (expected add or update)`);
+  io.err(`workflow-test contracts: unknown subcommand "${String(verb)}" (expected add or update)`);
   return EXIT.usage;
 }

@@ -15,7 +15,7 @@ const proxy = {
   $json: { a: 1 },
   $node: { name: 'Code' },
   $prevNode: { name: 'Webhook' },
-  $execution: { id: 'payload-contract' },
+  $execution: { id: 'workflow-test' },
   $vars: {},
 } as unknown as IWorkflowDataProxyData;
 
@@ -27,7 +27,7 @@ describe('buildCodeContext', () => {
     expect((context['$input'] as { all(): unknown[] }).all()).toEqual(items);
     expect(context['$json']).toEqual({ a: 1 });
     expect(context['$prevNode']).toEqual({ name: 'Webhook' });
-    expect(context['$execution']).toEqual({ id: 'payload-contract' });
+    expect(context['$execution']).toEqual({ id: 'workflow-test' });
   });
 
   it('throws ImpureCallError from $getWorkflowStaticData', () => {

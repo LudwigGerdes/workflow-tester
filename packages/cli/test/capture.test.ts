@@ -25,7 +25,7 @@ const execution = (items: unknown[]) => ({
 });
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'payload-contract-capture-'));
+  dir = mkdtempSync(join(tmpdir(), 'workflow-test-capture-'));
   out = [];
   err = [];
   mkdirSync(join(dir, 'workflows'), { recursive: true });
@@ -73,7 +73,7 @@ describe('nodesFromExecution', () => {
   });
 });
 
-describe('payload-contract capture', () => {
+describe('workflow-test capture', () => {
   it('writes a capture into the workflow sidecar', async () => {
     writeFileSync(join(dir, 'exec.json'), JSON.stringify(execution([{ id: 1 }])));
     expect(await run(['capture', 'workflows/invoice.json', '--execution', 'exec.json'], io())).toBe(0);

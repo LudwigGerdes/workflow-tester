@@ -85,7 +85,7 @@
                           "id": "B-1"
                         }
                       },
-                      "webhookUrl": "https://n8n.example/webhook/payload-contract-stop",
+                      "webhookUrl": "https://n8n.example/webhook/workflow-test-stop",
                       "executionMode": "production"
                     },
                     "pairedItem": {
@@ -139,7 +139,7 @@
                           "id": "B-1"
                         }
                       },
-                      "webhookUrl": "https://n8n.example/webhook/payload-contract-stop",
+                      "webhookUrl": "https://n8n.example/webhook/workflow-test-stop",
                       "executionMode": "production"
                     },
                     "pairedItem": {
@@ -243,7 +243,7 @@
                         "id": "B-1"
                       }
                     },
-                    "webhookUrl": "https://n8n.example/webhook/payload-contract-stop",
+                    "webhookUrl": "https://n8n.example/webhook/workflow-test-stop",
                     "executionMode": "production"
                   },
                   "pairedItem": {
@@ -286,7 +286,7 @@
   },
   "workflowData": {
     "id": "wf-fixture-0002",
-    "name": "payload-contract fixture \u2014 stop and error / unhandled",
+    "name": "workflow-test fixture \u2014 stop and error / unhandled",
     "nodes": [
       {
         "id": "wh1",
@@ -301,7 +301,7 @@
         "parameters": {
           "multipleMethods": false,
           "httpMethod": "POST",
-          "path": "payload-contract-stop",
+          "path": "workflow-test-stop",
           "authentication": "none",
           "responseMode": "lastNode",
           "responseData": "firstEntryJson",

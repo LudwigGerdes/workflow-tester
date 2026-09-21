@@ -13,7 +13,7 @@ const io = () => ({
   cwd: dir,
   out: (s: string) => out.push(s),
   err: (s: string) => err.push(s),
-  env: { PAYLOAD_CONTRACT_MODE: 'dev' },
+  env: { WORKFLOW_TEST_MODE: 'dev' },
 });
 const stdout = () => out.join('\n');
 
@@ -49,26 +49,26 @@ const EXAMPLES = [{ event: 'invoice.paid', payload: { record: { name: 'Ada' }, e
 
 const setup = (expression = '={{ $json.body.record.name }}'): void => {
   mkdirSync(join(dir, 'workflows'), { recursive: true });
-  mkdirSync(join(dir, '.payload-contract/contracts'), { recursive: true });
+  mkdirSync(join(dir, '.workflow-test/contracts'), { recursive: true });
   writeFileSync(join(dir, 'workflows/invoice.json'), JSON.stringify(workflow(expression), null, 2));
   writeFileSync(
     join(dir, 'workflows/invoice.contract.yaml'),
     [
       'version: 1', 'trigger: Webhook', 'source:', '  kind: vendor', '  vendor: stripe',
       '  events:', '    - invoice.paid',
-      'shape:', '  schema: ../.payload-contract/contracts/test.record.schema.json',
-      '  examples: ../.payload-contract/contracts/test.record.examples.json', '',
+      'shape:', '  schema: ../.workflow-test/contracts/test.record.schema.json',
+      '  examples: ../.workflow-test/contracts/test.record.examples.json', '',
     ].join('\n'),
   );
-  writeFileSync(join(dir, '.payload-contract/contracts/test.record.schema.json'), JSON.stringify(SCHEMA, null, 2));
-  writeFileSync(join(dir, '.payload-contract/contracts/test.record.examples.json'), JSON.stringify(EXAMPLES, null, 2));
+  writeFileSync(join(dir, '.workflow-test/contracts/test.record.schema.json'), JSON.stringify(SCHEMA, null, 2));
+  writeFileSync(join(dir, '.workflow-test/contracts/test.record.examples.json'), JSON.stringify(EXAMPLES, null, 2));
 };
 
-const caseDir = () => join(dir, '.payload-contract/cases/invoice/test.record');
+const caseDir = () => join(dir, '.workflow-test/cases/invoice/test.record');
 const caseFiles = (): string[] => readdirSync(caseDir()).filter((f) => f !== 'index.json').sort();
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'payload-contract-gen-'));
+  dir = mkdtempSync(join(tmpdir(), 'workflow-test-gen-'));
   out = [];
   err = [];
 });

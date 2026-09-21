@@ -14,7 +14,7 @@ const EXISTENCE_OPERATIONS = new Set(['exists', 'notExists', 'empty', 'notEmpty'
  * n8n does *not* raise on this: `executeFilter` treats an undefined operand as
  * simply not matching and returns false, even under strict type validation. That
  * silently routes the item down the false branch, which is precisely the bug
- * class payload-contract exists to catch, so the engine detects it here instead — per spec
+ * class workflow-test exists to catch, so the engine detects it here instead — per spec
  * §4, undefined feeding an IF/Switch condition is a failure, not a warning.
  */
 function undefinedOperand(

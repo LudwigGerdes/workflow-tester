@@ -13,7 +13,7 @@ const io = (mode?: string): Io => ({
   cwd: dir,
   out: (s: string) => out.push(s),
   err: (s: string) => err.push(s),
-  ...(mode === undefined ? {} : { env: { PAYLOAD_CONTRACT_MODE: mode } }),
+  ...(mode === undefined ? {} : { env: { WORKFLOW_TEST_MODE: mode } }),
 });
 const stdout = () => out.join('\n');
 
@@ -59,11 +59,11 @@ const SCHEMA = {
 const EXAMPLES = [{ body: { name: 'Ada' } }];
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'payload-contract-mode-'));
+  dir = mkdtempSync(join(tmpdir(), 'workflow-test-mode-'));
   out = [];
   err = [];
   mkdirSync(join(dir, 'workflows'), { recursive: true });
-  mkdirSync(join(dir, '.payload-contract/contracts'), { recursive: true });
+  mkdirSync(join(dir, '.workflow-test/contracts'), { recursive: true });
   writeFileSync(join(dir, 'workflows/invoice.json'), JSON.stringify(WORKFLOW, null, 2));
   writeFileSync(
     join(dir, 'workflows/invoice.contract.yaml'),
@@ -76,13 +76,13 @@ beforeEach(() => {
       '  events:',
       '    - demo.event',
       'shape:',
-      '  schema: ../.payload-contract/contracts/demo.schema.json',
-      '  examples: ../.payload-contract/contracts/demo.examples.json',
+      '  schema: ../.workflow-test/contracts/demo.schema.json',
+      '  examples: ../.workflow-test/contracts/demo.examples.json',
       '',
     ].join('\n'),
   );
-  writeFileSync(join(dir, '.payload-contract/contracts/demo.schema.json'), JSON.stringify(SCHEMA));
-  writeFileSync(join(dir, '.payload-contract/contracts/demo.examples.json'), JSON.stringify(EXAMPLES));
+  writeFileSync(join(dir, '.workflow-test/contracts/demo.schema.json'), JSON.stringify(SCHEMA));
+  writeFileSync(join(dir, '.workflow-test/contracts/demo.examples.json'), JSON.stringify(EXAMPLES));
 });
 
 describe('gen and the mode', () => {
@@ -91,7 +91,7 @@ describe('gen and the mode', () => {
    * to unless an environment variable said so told users to run the command
    * they had just run. `--check` is the read-only form, in every mode.
    */
-  const indexFile = () => join(dir, '.payload-contract/cases/invoice/demo/index.json');
+  const indexFile = () => join(dir, '.workflow-test/cases/invoice/demo/index.json');
 
   it('writes cases in dev', async () => {
     expect(await run(['gen'], io('dev'))).toBe(0);

@@ -65,7 +65,7 @@ function minimalInstance(schema: unknown, depth = 0): unknown {
   if (types.includes('number') || types.includes('integer')) return 1;
   if (types.includes('boolean')) return true;
   if (types.includes('null')) return null;
-  return schema.format === 'date-time' ? '2026-01-01T00:00:00Z' : 'payload-contract';
+  return schema.format === 'date-time' ? '2026-01-01T00:00:00Z' : 'workflow-test';
 }
 
 /** Edge values worth trying for a leaf, by declared type and format. */

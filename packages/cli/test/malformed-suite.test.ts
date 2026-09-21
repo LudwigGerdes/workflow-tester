@@ -10,11 +10,11 @@ let err: string[];
 const io = () => ({ cwd: dir, out: (s: string) => out.push(s), err: (s: string) => err.push(s) });
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'payload-contract-bad-'));
+  dir = mkdtempSync(join(tmpdir(), 'workflow-test-bad-'));
   out = [];
   err = [];
   mkdirSync(join(dir, 'workflows'), { recursive: true });
-  mkdirSync(join(dir, '.payload-contract/tests'), { recursive: true });
+  mkdirSync(join(dir, '.workflow-test/tests'), { recursive: true });
   writeFileSync(join(dir, 'workflows/w.json'), JSON.stringify({ id: 'w', nodes: [], connections: {} }));
 });
 
@@ -27,7 +27,7 @@ beforeEach(() => {
 describe('a malformed test file', () => {
   it('exits 2 rather than throwing', async () => {
     writeFileSync(
-      join(dir, '.payload-contract/tests/bad.test.yaml'),
+      join(dir, '.workflow-test/tests/bad.test.yaml'),
       'workflow: ../../workflows/w.json\ncases:\n  - id: x\n    when:\n      trigger: Not A Kind\n',
     );
     await expect(run(['run'], io())).resolves.toBe(2);
@@ -35,7 +35,7 @@ describe('a malformed test file', () => {
 
   it('names the file, the path and the line', async () => {
     writeFileSync(
-      join(dir, '.payload-contract/tests/bad.test.yaml'),
+      join(dir, '.workflow-test/tests/bad.test.yaml'),
       'workflow: ../../workflows/w.json\ncases:\n  - id: x\n    when:\n      trigger: Not A Kind\n',
     );
     await run(['run'], io());
@@ -47,7 +47,7 @@ describe('a malformed test file', () => {
 
   it('does the same for gen', async () => {
     writeFileSync(
-      join(dir, '.payload-contract/tests/bad.test.yaml'),
+      join(dir, '.workflow-test/tests/bad.test.yaml'),
       'workflow: ../../workflows/w.json\ncases:\n  - id: x\n    when:\n      trigger: Not A Kind\n',
     );
     await expect(run(['gen'], io())).resolves.not.toThrow();

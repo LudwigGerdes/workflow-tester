@@ -50,7 +50,7 @@ export function substitutesFor(workflowFile: string): Record<string, INodeExecut
   return substitutes;
 }
 
-/** A hand-written correction to what payload-contract inferred about an ending. */
+/** A hand-written correction to what workflow-test inferred about an ending. */
 export interface OutcomeDeclaration {
   node: string;
   expect: 'success' | 'failure';
@@ -84,7 +84,7 @@ export function outcomesFor(workflowFile: string): OutcomeDeclaration[] {
   return declared;
 }
 
-const SKIP_DIRS = new Set(['.payload-contract', 'node_modules', '.git', 'dist']);
+const SKIP_DIRS = new Set(['.workflow-test', 'node_modules', '.git', 'dist']);
 
 /**
  * Every `*.contract.yaml` under `dir`, a few levels deep.

@@ -1,4 +1,4 @@
-import type { EngineResult } from 'payload-contract-engine';
+import type { EngineResult } from 'workflow-test-engine';
 import { evaluatePath, matches, readExpectation } from './assert.js';
 import type { SuiteCase } from './types.js';
 
@@ -61,7 +61,7 @@ const isPure = (result: EngineResult, node: string): boolean =>
 /**
  * Judge a case that carries no expectations, per spec §4.
  *
- * This is the oracle the generated cases run under: payload-contract generates inputs, not
+ * This is the oracle the generated cases run under: workflow-test generates inputs, not
  * expected outputs, so what makes a case a failure is the engine's own verdict —
  * an expression that could not resolve where the result depends on it.
  */
@@ -155,7 +155,7 @@ export function evaluateThen(
         message:
           boundary === undefined
             ? 'the run stopped at a boundary, so its final status needs a real execution'
-            : `the run stopped at ${boundary.node} (a boundary: a node payload-contract cannot run offline), ` +
+            : `the run stopped at ${boundary.node} (a boundary: a node workflow-test cannot run offline), ` +
               'so its final status needs a real execution',
       });
       return;

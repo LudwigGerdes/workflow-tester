@@ -1,5 +1,5 @@
 /**
- * `payload-contract-engine` — the tier-1 interpreter.
+ * `workflow-test-engine` — the tier-1 interpreter.
  *
  * Walks a workflow from its trigger, evaluating every parameter expression with
  * n8n's own engine and applying our semantics for the expression-pure node

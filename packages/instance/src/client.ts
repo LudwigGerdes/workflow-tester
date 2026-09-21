@@ -1,5 +1,5 @@
 /**
- * The one place payload-contract reaches the network.
+ * The one place workflow-test reaches the network.
  *
  * `fetch` is an argument rather than a global so every test runs against a stub
  * and the suite never makes a request. The key travels in a header and appears

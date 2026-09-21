@@ -43,7 +43,7 @@ export interface Shape {
  * answer from the part of the tool whose whole job is right answers.
  *
  * `defineProperty` creates an own data property instead, so the key survives as
- * data and the object keeps its prototype. payload-contract reads untrusted webhook
+ * data and the object keeps its prototype. workflow-test reads untrusted webhook
  * payloads, so this path is reachable by design rather than by accident.
  */
 export const setOwn = <T>(target: Record<string, T>, key: string, value: T): void => {

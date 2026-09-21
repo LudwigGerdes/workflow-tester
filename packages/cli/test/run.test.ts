@@ -29,10 +29,10 @@ const workflow = {
 
 const setup = (): void => {
   mkdirSync(join(dir, 'workflows'), { recursive: true });
-  mkdirSync(join(dir, '.payload-contract/tests'), { recursive: true });
+  mkdirSync(join(dir, '.workflow-test/tests'), { recursive: true });
   writeFileSync(join(dir, 'workflows/invoice.json'), JSON.stringify(workflow, null, 2));
   writeFileSync(
-    join(dir, '.payload-contract/tests/invoice.test.yaml'),
+    join(dir, '.workflow-test/tests/invoice.test.yaml'),
     `workflow: ../../workflows/invoice.json
 cases:
   - id: good
@@ -48,7 +48,7 @@ cases:
 };
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'payload-contract-cli-run-'));
+  dir = mkdtempSync(join(tmpdir(), 'workflow-test-cli-run-'));
   out = [];
   err = [];
 });
@@ -58,7 +58,7 @@ describe('run', () => {
     // The expectations `init` scaffolds, on the shape almost every webhook
     // workflow has. Neither could hold while Respond to Webhook was a boundary.
     mkdirSync(join(dir, 'workflows'), { recursive: true });
-    mkdirSync(join(dir, '.payload-contract/tests'), { recursive: true });
+    mkdirSync(join(dir, '.workflow-test/tests'), { recursive: true });
     writeFileSync(
       join(dir, 'workflows/signup.json'),
       JSON.stringify({
@@ -75,7 +75,7 @@ describe('run', () => {
       }, null, 2),
     );
     writeFileSync(
-      join(dir, '.payload-contract/tests/signup.test.yaml'),
+      join(dir, '.workflow-test/tests/signup.test.yaml'),
       `workflow: ../../workflows/signup.json
 cases:
   - id: happy-path
@@ -105,7 +105,7 @@ cases:
   it('exits 1 when a case fails', async () => {
     setup();
     writeFileSync(
-      join(dir, '.payload-contract/tests/invoice.test.yaml'),
+      join(dir, '.workflow-test/tests/invoice.test.yaml'),
       `workflow: ../../workflows/invoice.json
 cases:
   - id: expects-too-much
@@ -126,7 +126,7 @@ cases:
   it('writes the last report where explain can find it', async () => {
     setup();
     await run(['run'], io());
-    const report = join(dir, '.payload-contract/reports/last.json');
+    const report = join(dir, '.workflow-test/reports/last.json');
     expect(existsSync(report)).toBe(true);
     expect(JSON.parse(readFileSync(report, 'utf8'))).toMatchObject({ summary: { pass: 1 } });
   });
@@ -146,7 +146,7 @@ cases:
     setup();
     // an assignment that resolves to nothing warns but does not fail
     writeFileSync(
-      join(dir, '.payload-contract/tests/invoice.test.yaml'),
+      join(dir, '.workflow-test/tests/invoice.test.yaml'),
       `workflow: ../../workflows/invoice.json
 cases:
   - id: missing-name
@@ -173,17 +173,17 @@ describe('schema', () => {
   it('prints the test-file schema', async () => {
     expect(await run(['schema'], io())).toBe(0);
     const printed = JSON.parse(stdout()) as { $id: string };
-    expect(printed.$id).toContain('payload-contract.test.schema.json');
+    expect(printed.$id).toContain('workflow-test.test.schema.json');
   });
 });
 
 describe('init', () => {
   it('scaffolds a runnable example', async () => {
     expect(await run(['init'], io())).toBe(0);
-    const example = join(dir, '.payload-contract/tests/example.test.yaml');
+    const example = join(dir, '.workflow-test/tests/example.test.yaml');
     expect(existsSync(example)).toBe(true);
     expect(readFileSync(example, 'utf8')).toMatch(/cases:/);
-    expect(existsSync(join(dir, '.payload-contract/README.md'))).toBe(true);
+    expect(existsSync(join(dir, '.workflow-test/README.md'))).toBe(true);
   });
 
   it('refuses to overwrite what is already there', async () => {
@@ -215,6 +215,6 @@ describe('explain', () => {
   it('asks for a run first when there is no report', async () => {
     setup();
     expect(await run(['explain', 'good'], io())).toBe(2);
-    expect(stderr()).toMatch(/payload-contract run/);
+    expect(stderr()).toMatch(/workflow-test run/);
   });
 });

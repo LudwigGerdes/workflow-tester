@@ -7,7 +7,7 @@
 //   data/schema/       ← packages/runner/schema
 //
 // The copies are gitignored. The layout under data/ is the one
-// `payload-contract-paths` resolves when the code is not running in a checkout.
+// `workflow-test-paths` resolves when the code is not running in a checkout.
 // Usage, from packages/cli: node ../../scripts/pack-files.mjs pre|post
 import { cpSync, existsSync, rmSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';

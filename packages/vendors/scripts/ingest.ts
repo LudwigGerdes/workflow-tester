@@ -2,7 +2,7 @@
  * `pnpm ingest [--vendor <name>] [--refetch] [--offline]`
  *
  * Thin wrapper over `src/ingest.ts`, which holds the actual logic so that
- * `payload-contract contracts update --fetch` can reach it too.
+ * `workflow-test contracts update --fetch` can reach it too.
  */
 import { ingestAll } from '../src/ingest.js';
 

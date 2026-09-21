@@ -1,4 +1,4 @@
-# Running payload-contract without remembering to
+# Running workflow-test without remembering to
 
 A test suite you have to remember to run is a suite that stops being run. Two
 surfaces, one engine, and neither asks a question — a hook that stops to prompt
@@ -6,18 +6,18 @@ blocks the commit and gets uninstalled.
 
 ## Pre-commit
 
-Copy `scripts/payload-contract.sh` into the repository holding your workflows, point
-`PAYLOAD_CONTRACT_HOME` at this checkout, and install the hook:
+Copy `scripts/workflow-test.sh` into the repository holding your workflows, point
+`WORKFLOW_TEST_HOME` at this checkout, and install the hook:
 
 ```bash
-export PAYLOAD_CONTRACT_HOME=/path/to/payload-contract        # required once the script is copied out
+export WORKFLOW_TEST_HOME=/path/to/workflow-test        # required once the script is copied out
 npx lefthook install
 ```
 
 `lefthook.yml` here is the reference. It runs two things on commit:
 
 - **`gen --check`** writes nothing and fails when the committed cases no longer
-  match their contracts. Regenerating (`payload-contract gen`) is a deliberate act rather
+  match their contracts. Regenerating (`workflow-test gen`) is a deliberate act rather
   than something a hook does behind your back.
 - **`run`** is the gate. It fails only on a broken expression — the
   workflow succeeding while its data is wrong, which is the bug this exists to
@@ -32,7 +32,7 @@ Nobody hand-writes cases for a workflow they built by dragging boxes, so the
 suite goes stale. Capture turns a run that already happened into the test:
 
 ```bash
-payload-contract capture workflows/invoice.json --execution export.json
+workflow-test capture workflows/invoice.json --execution export.json
 ```
 
 Only **shape** is recorded — which fields exist and what type each holds. No
@@ -41,7 +41,7 @@ that survives promotion anyway: dev and production hold different records with
 the same structure.
 
 The capture lands in `workflows/invoice.contract.yaml`, beside the workflow, so
-promotion moves both. Nothing needs to know payload-contract exists.
+promotion moves both. Nothing needs to know workflow-test exists.
 
 ### When to capture
 
@@ -54,7 +54,7 @@ An activated workflow has none at the moment it is activated — the first arriv
 shortly after — so with nothing to read yet, record that and try again later:
 
 ```bash
-payload-contract capture workflows/invoice.json --awaiting
+workflow-test capture workflows/invoice.json --awaiting
 ```
 
 That is deliberately not an empty capture, which would read as "ran, produced
@@ -99,6 +99,6 @@ that quietly rested on stand-ins would claim more than it checked.
 
 ## Catching a repo that has drifted from its instance
 
-`payload-contract sync --once` exits 1 when the instance has run a workflow more recently
+`workflow-test sync --once` exits 1 when the instance has run a workflow more recently
 than its committed capture records. On a schedule, that is how you find out that
 a workflow changed under you before a test does.

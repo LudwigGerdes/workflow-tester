@@ -154,7 +154,7 @@ describe('semantic execution fixtures from real n8n executions', () => {
           divergences.push(
             `${node.name} (${node.type})\n` +
               `      n8n: ${JSON.stringify(expectedTrimmed)}\n` +
-              `      payload-contract: ${JSON.stringify(actual.slice(0, expectedTrimmed.length))}`,
+              `      workflow-test: ${JSON.stringify(actual.slice(0, expectedTrimmed.length))}`,
           );
         }
       }

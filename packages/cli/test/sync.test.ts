@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { parse as parseYaml } from 'yaml';
-import type { InstanceClient } from 'payload-contract-instance';
+import type { InstanceClient } from 'workflow-test-instance';
 import { parseInterval, syncCommand, syncOnce } from '../src/commands/sync.js';
 import type { Io } from '../src/io.js';
 
@@ -17,7 +17,7 @@ const io = (mode?: string): Io => ({
   env: {
     N8N_API_URL: 'https://n8n.example',
     N8N_API_KEY: 'k',
-    ...(mode === undefined ? {} : { PAYLOAD_CONTRACT_MODE: mode }),
+    ...(mode === undefined ? {} : { WORKFLOW_TEST_MODE: mode }),
   },
 });
 const stdout = () => out.join('\n');
@@ -87,7 +87,7 @@ const recorded = () =>
   } | null;
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'payload-contract-sync-'));
+  dir = mkdtempSync(join(tmpdir(), 'workflow-test-sync-'));
   out = [];
   err = [];
   mkdirSync(join(dir, 'workflows'), { recursive: true });

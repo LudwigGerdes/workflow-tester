@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { parse as parseYaml } from 'yaml';
-import type { InstanceClient } from 'payload-contract-instance';
+import type { InstanceClient } from 'workflow-test-instance';
 import { captureCommand } from '../src/commands/capture.js';
 import type { Io } from '../src/io.js';
 
@@ -64,7 +64,7 @@ const sidecar = () =>
   } | null;
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'payload-contract-inst-'));
+  dir = mkdtempSync(join(tmpdir(), 'workflow-test-inst-'));
   out = [];
   err = [];
   mkdirSync(join(dir, 'workflows'), { recursive: true });

@@ -33,7 +33,7 @@ const externals = {
     b.onResolve({ filter: /^[^./]/ }, (args) => {
       if (args.path.startsWith('node:') || builtins.has(args.path)) return { path: args.path, external: true };
       const name = packageName(args.path);
-      if (name.startsWith('payload-contract-')) return undefined;
+      if (name.startsWith('workflow-test-')) return undefined;
       if (declared.includes(name)) return { path: args.path, external: true };
       return {
         errors: [{ text: `"${args.path}" is imported by ${args.importer} but "${name}" is not in packages/cli dependencies` }],

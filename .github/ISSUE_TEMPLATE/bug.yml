@@ -1,11 +1,11 @@
 name: Bug report
-description: Something payload-contract did wrong, or failed to do
+description: Something workflow-test did wrong, or failed to do
 labels: [bug]
 body:
   - type: input
     id: tool-version
     attributes:
-      label: payload-contract version
+      label: workflow-test version
       description: Output of `node packages/cli/dist/bin.js --version`
       placeholder: 0.1.0
     validations:
@@ -14,7 +14,7 @@ body:
     id: n8n-version
     attributes:
       label: n8n version
-      description: The `n8nVersion` in `.payload-contract/config.yaml` if set, and the version your instance runs
+      description: The `n8nVersion` in `.workflow-test/config.yaml` if set, and the version your instance runs
       placeholder: 2.38.3
     validations:
       required: true
@@ -38,7 +38,7 @@ body:
     id: expected
     attributes:
       label: Expected
-      description: What you expected payload-contract to report or do
+      description: What you expected workflow-test to report or do
     validations:
       required: true
   - type: textarea

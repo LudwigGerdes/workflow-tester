@@ -18,19 +18,19 @@ Set TypingSpeed 35ms
 Set Theme "Catppuccin Mocha"
 
 Hide
-  Type 'alias payload-contract="node $PWD/packages/cli/dist/bin.js"' Enter
-  Type "rm -rf /tmp/payload-contract-demo && mkdir -p /tmp/payload-contract-demo/workflows && cp docs/demo/signup.json /tmp/payload-contract-demo/workflows/ && cd /tmp/payload-contract-demo && clear" Enter
+  Type 'alias workflow-test="node $PWD/packages/cli/dist/bin.js"' Enter
+  Type "rm -rf /tmp/workflow-test-demo && mkdir -p /tmp/workflow-test-demo/workflows && cp docs/demo/signup.json /tmp/workflow-test-demo/workflows/ && cd /tmp/workflow-test-demo && clear" Enter
 Show
 
-Type "payload-contract init < /dev/null" Enter
+Type "workflow-test init < /dev/null" Enter
 Sleep 2s
 
 Type "clear" Enter
-Type "cp $OLDPWD/docs/demo/signup.test.yaml .payload-contract/tests/ && payload-contract run" Enter
+Type "cp $OLDPWD/docs/demo/signup.test.yaml .workflow-test/tests/ && workflow-test run" Enter
 Sleep 4s
 
 Type "clear" Enter
 Type "sed -i '' 's/profile.first_name ??/profile?.first_name ??/' workflows/signup.json   # the fix: optional chaining" Enter
 Sleep 800ms
-Type "payload-contract run" Enter
+Type "workflow-test run" Enter
 Sleep 4s

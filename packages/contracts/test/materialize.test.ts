@@ -1,7 +1,7 @@
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { loadCatalog } from 'payload-contract-vendors';
+import { loadCatalog } from 'workflow-test-vendors';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { materialize } from '../src/materialize.js';
 import { readContract } from '../src/read.js';
@@ -9,7 +9,7 @@ import type { Contract } from '../src/types.js';
 
 let dir: string;
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'payload-contract-materialize-'));
+  dir = mkdtempSync(join(tmpdir(), 'workflow-test-materialize-'));
 });
 
 const writeContract = (body: string): string => {
@@ -30,14 +30,14 @@ describe('materialize', () => {
     const file = stripeContract(['invoice.paid']);
     const { contract } = await readContract(file);
     const result = await materialize(contract, loadCatalog('stripe'), {
-      outDir: join(dir, '.payload-contract/contracts'),
+      outDir: join(dir, '.workflow-test/contracts'),
       contractDir: dir,
       contractFile: file,
     });
 
     expect(result.events).toEqual(['invoice.paid']);
     expect(result.specVersion).toBe('2026-08-26.dahlia');
-    expect(result.shape?.schema).toMatch(/^\.payload-contract\/contracts\/stripe\./);
+    expect(result.shape?.schema).toMatch(/^\.workflow-test\/contracts\/stripe\./);
 
     const schema = JSON.parse(readFileSync(join(dir, result.shape?.schema ?? ''), 'utf8')) as {
       properties: { type: { const: string } };
@@ -49,20 +49,20 @@ describe('materialize', () => {
     const file = stripeContract(['invoice.paid', 'invoice.payment_failed']);
     const { contract } = await readContract(file);
     const result = await materialize(contract, loadCatalog('stripe'), {
-      outDir: join(dir, '.payload-contract/contracts'),
+      outDir: join(dir, '.workflow-test/contracts'),
       contractDir: dir,
       contractFile: file,
     });
 
     const schema = JSON.parse(readFileSync(join(dir, result.shape?.schema ?? ''), 'utf8')) as {
-      oneOf: Array<{ properties: { type: { const: string } }; 'x-payload-contract-event': string }>;
+      oneOf: Array<{ properties: { type: { const: string } }; 'x-workflow-test-event': string }>;
     };
     expect(schema.oneOf).toHaveLength(2);
     expect(schema.oneOf.map((b) => b.properties.type.const)).toEqual([
       'invoice.paid',
       'invoice.payment_failed',
     ]);
-    expect(schema.oneOf.map((b) => b['x-payload-contract-event'])).toEqual([
+    expect(schema.oneOf.map((b) => b['x-workflow-test-event'])).toEqual([
       'invoice.paid',
       'invoice.payment_failed',
     ]);
@@ -74,7 +74,7 @@ describe('materialize', () => {
     );
     const { contract } = await readContract(file);
     const result = await materialize(contract, loadCatalog('github'), {
-      outDir: join(dir, '.payload-contract/contracts'),
+      outDir: join(dir, '.workflow-test/contracts'),
       contractDir: dir,
       contractFile: file,
     });
@@ -98,7 +98,7 @@ describe('materialize', () => {
     const { contract } = await readContract(file);
     await expect(
       materialize(contract, loadCatalog('stripe'), {
-        outDir: join(dir, '.payload-contract/contracts'),
+        outDir: join(dir, '.workflow-test/contracts'),
         contractDir: dir,
         contractFile: file,
       }),
@@ -111,7 +111,7 @@ describe('materialize', () => {
     );
     const { contract } = await readContract(file);
     const result = await materialize(contract, loadCatalog('stripe'), {
-      outDir: join(dir, '.payload-contract/contracts'),
+      outDir: join(dir, '.workflow-test/contracts'),
       contractDir: dir,
       contractFile: file,
     });
@@ -122,7 +122,7 @@ describe('materialize', () => {
     const file = stripeContract(['invoice.paid']);
     const { contract } = await readContract(file);
     await materialize(contract, loadCatalog('stripe'), {
-      outDir: join(dir, '.payload-contract/contracts'),
+      outDir: join(dir, '.workflow-test/contracts'),
       contractDir: dir,
       contractFile: file,
     });
@@ -135,7 +135,7 @@ describe('materialize', () => {
 
   it('is byte-for-byte idempotent', async () => {
     const file = stripeContract(['invoice.paid', 'invoice.payment_failed']);
-    const options = { outDir: join(dir, '.payload-contract/contracts'), contractDir: dir, contractFile: file };
+    const options = { outDir: join(dir, '.workflow-test/contracts'), contractDir: dir, contractFile: file };
 
     const first = await materialize((await readContract(file)).contract, loadCatalog('stripe'), options);
     const snapshot = {

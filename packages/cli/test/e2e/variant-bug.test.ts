@@ -12,7 +12,7 @@ import { run } from '../../src/index.js';
  * that workflow is syntactically wrong, and n8n will not complain: the
  * expression quietly resolves to undefined and the item takes the wrong branch.
  *
- * payload-contract should generate the variant that exposes it, and name the case, the
+ * workflow-test should generate the variant that exposes it, and name the case, the
  * node, the expression and the path that resolved to nothing.
  */
 
@@ -25,7 +25,7 @@ const io = () => ({
   cwd: dir,
   out: (s: string) => out.push(s),
   err: (s: string) => err.push(s),
-  env: { PAYLOAD_CONTRACT_MODE: 'dev' },
+  env: { WORKFLOW_TEST_MODE: 'dev' },
 });
 const stdout = () => out.join('\n');
 
@@ -92,26 +92,26 @@ const HANDLES_BOTH = '={{ $json.body.record.name ?? $json.body.record.details.na
 const write = (expression: string): void =>
   writeFileSync(join(dir, 'workflows/invoice-sync.json'), JSON.stringify(workflow(expression), null, 2));
 
-const caseDir = () => join(dir, '.payload-contract/cases/invoice-sync/demo.record');
+const caseDir = () => join(dir, '.workflow-test/cases/invoice-sync/demo.record');
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'payload-contract-e2e-'));
+  dir = mkdtempSync(join(tmpdir(), 'workflow-test-e2e-'));
   out = [];
   err = [];
   mkdirSync(join(dir, 'workflows'), { recursive: true });
-  mkdirSync(join(dir, '.payload-contract/contracts'), { recursive: true });
+  mkdirSync(join(dir, '.workflow-test/contracts'), { recursive: true });
   write(ONLY_FLAT);
   writeFileSync(
     join(dir, 'workflows/invoice-sync.contract.yaml'),
     [
       'version: 1', 'trigger: Webhook', 'source:', '  kind: vendor', '  vendor: stripe',
       '  events:', '    - record.created', '    - record.imported',
-      'shape:', '  schema: ../.payload-contract/contracts/demo.record.schema.json',
-      '  examples: ../.payload-contract/contracts/demo.record.examples.json', '',
+      'shape:', '  schema: ../.workflow-test/contracts/demo.record.schema.json',
+      '  examples: ../.workflow-test/contracts/demo.record.examples.json', '',
     ].join('\n'),
   );
-  writeFileSync(join(dir, '.payload-contract/contracts/demo.record.schema.json'), JSON.stringify(SHAPE, null, 2));
-  writeFileSync(join(dir, '.payload-contract/contracts/demo.record.examples.json'), JSON.stringify(EXAMPLES, null, 2));
+  writeFileSync(join(dir, '.workflow-test/contracts/demo.record.schema.json'), JSON.stringify(SHAPE, null, 2));
+  writeFileSync(join(dir, '.workflow-test/contracts/demo.record.examples.json'), JSON.stringify(EXAMPLES, null, 2));
 });
 
 describe('the record.name vs record.details.name bug', () => {
@@ -168,7 +168,7 @@ describe('the record.name vs record.details.name bug', () => {
     await run(['run'], io());
 
     const failing = JSON.parse(
-      readFileSync(join(dir, '.payload-contract/reports/last.json'), 'utf8'),
+      readFileSync(join(dir, '.workflow-test/reports/last.json'), 'utf8'),
     ) as { outcomes: Array<{ caseId: string; status: string }> };
     const id = failing.outcomes.find((o) => o.status === 'fail')?.caseId;
     expect(id).toBeDefined();

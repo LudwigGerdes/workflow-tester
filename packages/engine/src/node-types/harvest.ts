@@ -32,7 +32,7 @@ const ALSO_KEPT = [
   'stickyNote',
 ];
 
-/** Every node type payload-contract extracts a description for. */
+/** Every node type workflow-test extracts a description for. */
 export const NEEDED_TYPES: string[] = [...new Set([...pureTypeNames(), ...TRIGGERS, ...ALSO_KEPT])];
 
 /**
@@ -66,7 +66,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
 
 /**
- * Reduce n8n's published description dump to what payload-contract reads.
+ * Reduce n8n's published description dump to what workflow-test reads.
  *
  * Pure and total: a malformed entry is skipped rather than thrown over, because
  * the input is 500 entries of someone else's published data and one bad one

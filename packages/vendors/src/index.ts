@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { parse } from 'yaml';
-import { dataDir } from 'payload-contract-paths';
+import { dataDir } from 'workflow-test-paths';
 import type { Catalog, Sources, VendorSource } from './types.js';
 
 export * from './types.js';

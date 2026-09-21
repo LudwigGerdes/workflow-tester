@@ -4,8 +4,8 @@ import { createRequire } from 'node:module';
 import { basename, dirname, join, relative } from 'node:path';
 import Ajv2020Module from 'ajv/dist/2020.js';
 import { LineCounter, parseDocument, type Document } from 'yaml';
-import { sidecarsUnder } from 'payload-contract-contracts';
-import { dataDir } from 'payload-contract-paths';
+import { sidecarsUnder } from 'workflow-test-contracts';
+import { dataDir } from 'workflow-test-paths';
 import { SuiteError, type Suite, type SuiteCase, type SuiteIssue } from './types.js';
 
 export * from './types.js';
@@ -30,14 +30,14 @@ let cachedSchema: Record<string, unknown> | undefined;
 /**
  * The published test-file schema.
  *
- * payload-contract owns this format. The schema lives at
+ * workflow-test owns this format. The schema lives at
  * this file becomes a vendored copy with a conformance test asserting the two
  * agree. Until then it is authored here — marked pending-owner-sync in
  * CONFORMANCE.md — so that an LLM writing a test has something exact to follow.
  */
 export function testSchema(): Record<string, unknown> & { $id?: string; required?: string[] } {
   cachedSchema ??= JSON.parse(
-    readFileSync(join(dataDir('schema'), 'payload-contract.test.schema.json'), 'utf8'),
+    readFileSync(join(dataDir('schema'), 'workflow-test.test.schema.json'), 'utf8'),
   ) as Record<string, unknown>;
   return cachedSchema;
 }
@@ -81,7 +81,7 @@ function locate(doc: Document, lines: LineCounter, path: Array<string | number>)
 }
 
 /**
- * Read one written suite, validating it against the schema payload-contract publishes and
+ * Read one written suite, validating it against the schema workflow-test publishes and
  * normalising it the way the owner's `suite.cases.expected.json` says a loader
  * must: the single-case form becomes one case called `default`, and file-level
  * `given` defaults merge into every case with the case's own keys winning.
@@ -183,11 +183,11 @@ async function suiteFiles(dir: string): Promise<string[]> {
  * Wrap a directory of generated cases as a suite.
  *
  * Phase 4 writes real `.test.yaml` files for tier 2; until then the runner reads
- * `.payload-contract/cases` directly, so generated and hand-written cases go through one
+ * `.workflow-test/cases` directly, so generated and hand-written cases go through one
  * code path from the start.
  */
 async function syntheticSuites(root: string): Promise<Suite[]> {
-  const casesRoot = join(root, '.payload-contract', 'cases');
+  const casesRoot = join(root, '.workflow-test', 'cases');
   if (!existsSync(casesRoot)) return [];
   const suites: Suite[] = [];
 
@@ -223,7 +223,7 @@ async function syntheticSuites(root: string): Promise<Suite[]> {
         // directory itself: the runner resolves a suite's workflow against
         // `dirname(file)`, and a directory would lose a level.
         file: join(contractDir, 'index.json'),
-        // Cases live at .payload-contract/cases/<workflow>/<contract>; the workflow is the
+        // Cases live at .workflow-test/cases/<workflow>/<contract>; the workflow is the
         // sibling of the repo root's `workflows` directory.
         workflow: relative(contractDir, join(root, 'workflows', `${workflowEntry.name}.json`)),
         cases,
@@ -239,7 +239,7 @@ async function syntheticSuites(root: string): Promise<Suite[]> {
  * Suites for workflows that carry a capture but no cases.
  *
  * A workflow someone captured and never wrote tests for used to be invisible to
- * `run`: suites came only from `.payload-contract`, so a repo without that directory had
+ * `run`: suites came only from `.workflow-test`, so a repo without that directory had
  * nothing to run and reported a clean bill of health over a workflow nothing had
  * looked at. These carry no cases — the runner derives one from the capture —
  * but they are what makes the workflow visible at all.
@@ -261,8 +261,8 @@ async function capturedSuites(root: string): Promise<Suite[]> {
 export async function loadSuites(
   root: string,
 ): Promise<{ generated: Suite[]; tests: Suite[]; captured: Suite[] }> {
-  const written = await suiteFiles(join(root, '.payload-contract', 'generated'));
-  const hand = await suiteFiles(join(root, '.payload-contract', 'tests'));
+  const written = await suiteFiles(join(root, '.workflow-test', 'generated'));
+  const hand = await suiteFiles(join(root, '.workflow-test', 'tests'));
 
   return {
     generated: [

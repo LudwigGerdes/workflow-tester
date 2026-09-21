@@ -8,7 +8,7 @@ import type { Io } from '../src/io.js';
 const sink = () => {
   const lines: string[] = [];
   const io: Io = {
-    cwd: mkdtempSync(join(tmpdir(), 'payload-contract-init-')),
+    cwd: mkdtempSync(join(tmpdir(), 'workflow-test-init-')),
     env: {},
     out: (l) => lines.push(l),
     err: (l) => lines.push(l),
@@ -20,7 +20,7 @@ describe('init and the n8n version', () => {
   it('writes a config when given a version', async () => {
     const { io } = sink();
     expect(await initCommand(io, ['--n8n-version', '2.38.3'])).toBe(0);
-    expect(readFileSync(join(io.cwd, '.payload-contract', 'config.yaml'), 'utf8')).toMatch(
+    expect(readFileSync(join(io.cwd, '.workflow-test', 'config.yaml'), 'utf8')).toMatch(
       /n8nVersion: 2\.38\.3/,
     );
   });
@@ -29,7 +29,7 @@ describe('init and the n8n version', () => {
     // Skip is a real answer: the bundled descriptions work.
     const { io } = sink();
     expect(await initCommand(io, ['--no-ask'])).toBe(0);
-    expect(existsSync(join(io.cwd, '.payload-contract', 'config.yaml'))).toBe(false);
+    expect(existsSync(join(io.cwd, '.workflow-test', 'config.yaml'))).toBe(false);
   });
 
   it('never blocks when stdin is not a terminal', async () => {
@@ -42,7 +42,7 @@ describe('init and the n8n version', () => {
   it('still scaffolds the example test', async () => {
     const { io } = sink();
     await initCommand(io, ['--no-ask']);
-    expect(existsSync(join(io.cwd, '.payload-contract', 'tests', 'example.test.yaml'))).toBe(true);
+    expect(existsSync(join(io.cwd, '.workflow-test', 'tests', 'example.test.yaml'))).toBe(true);
   });
 
   it('rejects a version that is not one', async () => {

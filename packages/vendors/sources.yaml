@@ -1,9 +1,9 @@
 # Where each vendor's webhook definitions come from.
 #
-# Fetching these is the ONLY networked code in payload-contract, and it runs at dev time
-# (`pnpm ingest`) or behind `payload-contract contracts update --fetch` — never during a
+# Fetching these is the ONLY networked code in workflow-test, and it runs at dev time
+# (`pnpm ingest`) or behind `workflow-test contracts update --fetch` — never during a
 # normal run. Raw spec bytes land in the cache
-# (~/.payload-contract/vendor-specs/<vendor>/<specVersion>/spec.json); the
+# (~/.workflow-test/vendor-specs/<vendor>/<specVersion>/spec.json); the
 # derived catalogs under data/ are what gets committed.
 #
 # `events` is a curated allowlist. Deref'd webhook schemas run 20-75 KB each, so

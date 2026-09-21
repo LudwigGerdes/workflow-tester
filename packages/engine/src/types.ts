@@ -18,7 +18,7 @@ export interface EngineInput {
   workflow: WorkflowJson;
   /** Name of the trigger node the payload enters at. */
   trigger: string;
-  /** Already envelope-wrapped item json (see `payload-contract-contracts` `wrapWebhook`). */
+  /** Already envelope-wrapped item json (see `workflow-test-contracts` `wrapWebhook`). */
   payload: unknown;
   n8nVersion?: string;
   /**

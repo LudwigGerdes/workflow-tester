@@ -1,4 +1,4 @@
-import type { Shape } from 'payload-contract-contracts';
+import type { Shape } from 'workflow-test-contracts';
 import { renderChain, type Chain } from './chain.js';
 
 export type FindingKind = 'container-mismatch' | 'index-out-of-range' | 'absent-field';

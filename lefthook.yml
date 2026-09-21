@@ -6,7 +6,7 @@
 # blocks the commit and gets uninstalled.
 #
 # `gen --check` writes nothing and fails when the committed cases no longer
-# match the contracts; regenerating (`payload-contract gen`) is a deliberate act rather
+# match the contracts; regenerating (`workflow-test gen`) is a deliberate act rather
 # than something a hook does behind your back. `run` is the actual gate.
 # Shape drift is reported by `capture` instead, and warns rather than failing,
 # because a suite that fails on every legitimate edit gets regenerated unread.
@@ -15,8 +15,8 @@ pre-commit:
   commands:
     cases-are-current:
       glob: '*.json'
-      run: ./scripts/payload-contract.sh gen --check
+      run: ./scripts/workflow-test.sh gen --check
 
     tests-pass:
       glob: '*.json'
-      run: ./scripts/payload-contract.sh run
+      run: ./scripts/workflow-test.sh run

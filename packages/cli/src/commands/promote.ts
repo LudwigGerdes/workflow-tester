@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve } from 'node:path';
-import { loadSuites } from 'payload-contract-runner';
+import { loadSuites } from 'workflow-test-runner';
 import { stringify } from 'yaml';
 import { EXIT, parseArgs, type Io } from '../io.js';
 
@@ -19,7 +19,7 @@ export async function promoteCommand(argv: string[], io: Io): Promise<number> {
   const { positional, flags } = parseArgs(argv);
   const caseId = positional[0];
   if (caseId === undefined) {
-    io.err('usage: payload-contract promote <caseId> [--name <file>]');
+    io.err('usage: workflow-test promote <caseId> [--name <file>]');
     return EXIT.usage;
   }
 
@@ -29,12 +29,12 @@ export async function promoteCommand(argv: string[], io: Io): Promise<number> {
     .find(({ entry }) => entry.id === caseId);
 
   if (found === undefined) {
-    io.err(`no generated case "${caseId}" in .payload-contract/cases — run \`payload-contract gen\` first, or check the id`);
+    io.err(`no generated case "${caseId}" in .workflow-test/cases — run \`workflow-test gen\` first, or check the id`);
     return EXIT.usage;
   }
 
   const name = typeof flags.name === 'string' && flags.name.length > 0 ? flags.name : `promoted-${caseId}`;
-  const testsDir = join(io.cwd, '.payload-contract', 'tests');
+  const testsDir = join(io.cwd, '.workflow-test', 'tests');
   const outFile = join(testsDir, `${name}.test.yaml`);
 
   if (existsSync(outFile)) {
@@ -59,7 +59,7 @@ export async function promoteCommand(argv: string[], io: Io): Promise<number> {
   }, { lineWidth: 0 });
 
   const file = [
-    `# Promoted from a generated case by \`payload-contract promote ${caseId}\`.`,
+    `# Promoted from a generated case by \`workflow-test promote ${caseId}\`.`,
     '#',
     '# The payload is the generated one, verbatim. Say what should happen to it:',
     '# expectations are flat, dotted keys.',
@@ -69,7 +69,7 @@ export async function promoteCommand(argv: string[], io: Io): Promise<number> {
     '#       node.<Name>.items: 1',
     '#       node.<Name>.output[0].json.<path>: <value>',
     '#',
-    '# `payload-contract schema` prints the full format.',
+    '# `workflow-test schema` prints the full format.',
     '',
     body,
   ].join('\n');
@@ -87,6 +87,6 @@ export async function promoteCommand(argv: string[], io: Io): Promise<number> {
   io.out(`created ${relative(io.cwd, outFile)}`);
   io.out(`kept ${caseId} in ${relative(io.cwd, keepFile)}`);
   io.out('');
-  io.out('Add a `then:` block saying what should happen, then run `payload-contract run`.');
+  io.out('Add a `then:` block saying what should happen, then run `workflow-test run`.');
   return EXIT.ok;
 }

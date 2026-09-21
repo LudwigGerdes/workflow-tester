@@ -5,7 +5,7 @@ import { walk } from '../walk.js';
 
 /** Posted instead of a result when the walk itself could not complete. */
 export interface WorkerError {
-  __payloadContractError: string;
+  __workflowTestError: string;
 }
 
 async function main(): Promise<void> {
@@ -18,7 +18,7 @@ async function main(): Promise<void> {
 
 main().catch((error: unknown) => {
   const message: WorkerError = {
-    __payloadContractError: error instanceof Error ? error.message : String(error),
+    __workflowTestError: error instanceof Error ? error.message : String(error),
   };
   parentPort?.postMessage(message);
 });

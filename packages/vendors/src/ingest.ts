@@ -1,14 +1,14 @@
 /**
- * Vendor ingestion — the only networked code in payload-contract.
+ * Vendor ingestion — the only networked code in workflow-test.
  *
- * Lives in `src` rather than `scripts` so `payload-contract contracts update --fetch` can
+ * Lives in `src` rather than `scripts` so `workflow-test contracts update --fetch` can
  * call it directly; `scripts/ingest.ts` is a thin wrapper over the same
  * functions. Nothing here runs unless a user explicitly asks to fetch.
  *
- * Fetches each vendor's published spec into the cache (~/.payload-contract/vendor-specs),
+ * Fetches each vendor's published spec into the cache (~/.workflow-test/vendor-specs),
  * normalises its webhook definitions into a committed per-vendor catalog, and
  * regenerates AUDIT.md.
- * Nothing at runtime calls this; `payload-contract contracts update --fetch` does.
+ * Nothing at runtime calls this; `workflow-test contracts update --fetch` does.
  *
  *   pnpm ingest [--vendor <name>] [--refetch] [--offline]
  */
@@ -18,7 +18,7 @@ import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import AjvModule from 'ajv';
 import { parse } from 'yaml';
-import { dataDir } from 'payload-contract-paths';
+import { dataDir } from 'workflow-test-paths';
 import type { Catalog, CatalogEvent, Sources, VendorSource } from './types.js';
 
 /** `packages/vendors` in a checkout, `data/vendors` inside the installed package. */
@@ -29,11 +29,11 @@ const DATA_DIR = join(PACKAGE_DIR, 'data');
  * Where fetched vendor specs are cached, so the same spec bytes are not
  * fetched twice.
  *
- * `PAYLOAD_CONTRACT_CACHE`, not `PAYLOAD_CONTRACT_HOME` — the latter already names the payload-contract
- * checkout for `scripts/payload-contract.sh`.
+ * `WORKFLOW_TEST_CACHE`, not `WORKFLOW_TEST_HOME` — the latter already names the workflow-test
+ * checkout for `scripts/workflow-test.sh`.
  */
 export function cacheRootFor(env: Record<string, string | undefined> = process.env): string {
-  return join(env['PAYLOAD_CONTRACT_CACHE'] ?? join(homedir(), '.payload-contract'), 'vendor-specs');
+  return join(env['WORKFLOW_TEST_CACHE'] ?? join(homedir(), '.workflow-test'), 'vendor-specs');
 }
 
 const CACHE_ROOT = cacheRootFor();
