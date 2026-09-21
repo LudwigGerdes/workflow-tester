@@ -1,8 +1,8 @@
 {
-  "name": "payload-contract-instance",
+  "name": "workflow-test-instance",
   "version": "0.1.0",
   "private": true,
-  "description": "Everything in payload-contract that talks to an n8n instance or the npm registry",
+  "description": "Everything in workflow-test that talks to an n8n instance or the npm registry",
   "keywords": [
     "n8n",
     "n8n-workflow",
@@ -12,11 +12,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/LudwigGerdes/payload-contract.git",
+    "url": "https://github.com/LudwigGerdes/workflow-test.git",
     "directory": "packages/instance"
   },
-  "homepage": "https://github.com/LudwigGerdes/payload-contract#readme",
-  "bugs": "https://github.com/LudwigGerdes/payload-contract/issues",
+  "homepage": "https://github.com/LudwigGerdes/workflow-test#readme",
+  "bugs": "https://github.com/LudwigGerdes/workflow-test/issues",
   "engines": {
     "node": ">=24"
   },

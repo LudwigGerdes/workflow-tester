@@ -1,8 +1,8 @@
 {
-  "name": "payload-contract-structure",
+  "name": "workflow-test-structure",
   "version": "0.1.0",
   "private": true,
-  "description": "Static reads of an n8n workflow for payload-contract: which paths expressions touch, guards, lineage through Set and Code nodes",
+  "description": "Static reads of an n8n workflow for workflow-test: which paths expressions touch, guards, lineage through Set and Code nodes",
   "keywords": [
     "n8n",
     "n8n-workflow",
@@ -13,11 +13,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/LudwigGerdes/payload-contract.git",
+    "url": "https://github.com/LudwigGerdes/workflow-test.git",
     "directory": "packages/structure"
   },
-  "homepage": "https://github.com/LudwigGerdes/payload-contract#readme",
-  "bugs": "https://github.com/LudwigGerdes/payload-contract/issues",
+  "homepage": "https://github.com/LudwigGerdes/workflow-test#readme",
+  "bugs": "https://github.com/LudwigGerdes/workflow-test/issues",
   "engines": {
     "node": ">=24"
   },
@@ -40,6 +40,6 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "payload-contract-contracts": "workspace:*"
+    "workflow-test-contracts": "workspace:*"
   }
 }
