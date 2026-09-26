@@ -1,6 +1,11 @@
 # Writing tests
 
-Tests live in `.workflow-tester/tests/*.test.yaml`.
+Tests are `*.test.yaml` files under `.workflow-tester/tests/`, at any depth. To keep them elsewhere, for example beside the workflows, list the directories in `.workflow-tester/config.yaml`:
+
+```yaml
+testsDirs:
+  - workflows
+```
 
 ```yaml
 workflow: ../../workflows/signup.json

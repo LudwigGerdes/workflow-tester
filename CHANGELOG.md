@@ -8,6 +8,7 @@ All notable changes to workflow-tester are recorded here. The format follows
 
 ### Added
 
+- Tests are found at any depth under `.workflow-tester/tests/` (dot directories and `node_modules` skipped), and `testsDirs` in `.workflow-tester/config.yaml` names other directories to read them from, such as `workflows` for tests kept beside their workflow.
 - Reports carry timings and identity. JUnit: one `<testsuite>` per workflow with counts and `time`, `time` per case, and properties naming the workflow-tester version and the node descriptions used. SARIF: the real tool version, a rule entry per result kind with a help link, node-level locations (logical location and the line the workflow names the node on), `partialFingerprints` per case, an invocation with start and end times. The JSON report and `last.json` carry `startedAt` and per-outcome `durationMs`.
 - Captures record their provenance: tool version, source (export file, or the instance's base URL — never the key), execution id and status, and the workflow's id, name and `versionId`. Older captures without these fields still read.
 - `given.pinData` is honoured: items pinned per node stand in for a node the engine cannot run (an HTTP Request, a credentialed node, a Code node that calls out), so the walk carries on past it. A file-level `given` applies to every case; a case's own pins win. A pin naming a node the workflow does not have fails the case.

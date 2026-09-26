@@ -132,6 +132,31 @@ cases:
   });
 });
 
+describe('discovery', () => {
+  it('finds tests in subdirectories, skipping dot directories and node_modules', async () => {
+    mkdirSync(join(dir, '.workflow-tester/tests/billing/eu'), { recursive: true });
+    mkdirSync(join(dir, '.workflow-tester/tests/.scratch'), { recursive: true });
+    mkdirSync(join(dir, '.workflow-tester/tests/node_modules/x'), { recursive: true });
+    writeTest('top.test.yaml', VALID);
+    writeTest('billing/eu/vat.test.yaml', VALID);
+    writeTest('.scratch/no.test.yaml', VALID);
+    writeTest('node_modules/x/no.test.yaml', VALID);
+    const { tests } = await loadSuites(dir);
+    expect(tests.map((t) => t.file.slice(dir.length + 1)).sort()).toEqual([
+      '.workflow-tester/tests/billing/eu/vat.test.yaml',
+      '.workflow-tester/tests/top.test.yaml',
+    ]);
+  });
+
+  it('reads the configured directories instead, once each', async () => {
+    mkdirSync(join(dir, 'workflows/orders'), { recursive: true });
+    writeFileSync(join(dir, 'workflows/orders/sync.test.yaml'), VALID);
+    writeTest('ignored.test.yaml', VALID);
+    const { tests } = await loadSuites(dir, { testsDirs: ['workflows', 'workflows/orders'] });
+    expect(tests.map((t) => t.file.slice(dir.length + 1))).toEqual(['workflows/orders/sync.test.yaml']);
+  });
+});
+
 describe('given keys that need a mock', () => {
   it('are refused at load, naming the key, rather than silently ignored', async () => {
     writeTest(

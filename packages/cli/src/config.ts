@@ -14,6 +14,12 @@ import type { Io } from './io.js';
  */
 export interface Config {
   n8nVersion?: string;
+  /**
+   * Where hand-written tests live, relative to the repository root, searched
+   * recursively. Default `.workflow-tester/tests`. A team that keeps tests
+   * beside their workflows lists `workflows` here.
+   */
+  testsDirs?: string[];
 }
 
 export function configPath(cwd: string): string {
@@ -31,10 +37,15 @@ export function readConfig(io: Io): Config {
   const file = configPath(io.cwd);
   if (!existsSync(file)) return {};
   try {
-    const parsed = parse(readFileSync(file, 'utf8')) as { n8nVersion?: unknown } | null;
+    const parsed = parse(readFileSync(file, 'utf8')) as { n8nVersion?: unknown; testsDirs?: unknown } | null;
+    const config: Config = {};
     const version = parsed?.n8nVersion;
-    if (typeof version !== 'string' || !/^\d+\.\d+/.test(version.trim())) return {};
-    return { n8nVersion: version.trim() };
+    if (typeof version === 'string' && /^\d+\.\d+/.test(version.trim())) config.n8nVersion = version.trim();
+    const dirs = parsed?.testsDirs;
+    if (Array.isArray(dirs) && dirs.length > 0 && dirs.every((d) => typeof d === 'string' && d.length > 0)) {
+      config.testsDirs = dirs as string[];
+    }
+    return config;
   } catch {
     return {};
   }

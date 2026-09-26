@@ -64,7 +64,7 @@ workflows/
 ├── config.yaml                     your n8n version
 ├── contracts/                      payload schemas and examples
 ├── cases/                          generated tests
-├── tests/                          tests you wrote
+├── tests/                          tests you wrote, in any subdirectory
 └── reports/                        the last run
 ```
 
@@ -86,6 +86,8 @@ Then put the version in `.workflow-tester/config.yaml`:
 ```yaml
 n8nVersion: 2.38.3
 ```
+
+The same file takes `testsDirs`, a list of directories (relative to the repository root, searched recursively) to read hand-written tests from instead of `.workflow-tester/tests`.
 
 - Downloaded descriptions are stored in `~/.workflow-tester/node-types/`. Set `WORKFLOW_TESTER_CACHE` to move that folder.
 - When the pinned version and the descriptions in use differ, the run says so, and a missing required parameter becomes a warning instead of a failure. Expressions and Code nodes do not depend on the descriptions.

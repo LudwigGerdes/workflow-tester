@@ -17,6 +17,8 @@ import type { Suite, SuiteCase } from './types.js';
 
 export interface RunOptions {
   dir: string;
+  /** Where hand-written tests live, relative to `dir`. Default `.workflow-tester/tests`. */
+  testsDirs?: string[];
   /** Narrow to generated cases or hand-written tests. */
   only?: 'generated' | 'tests';
   /** Only suites whose workflow file name matches. */
@@ -127,7 +129,9 @@ function pinDataOf(given: Record<string, unknown> | undefined): Record<string, I
 export async function runTier1(options: RunOptions): Promise<RunReport> {
   const started = performance.now();
   const startedAt = new Date().toISOString();
-  const { generated, tests, captured } = await loadSuites(options.dir);
+  const { generated, tests, captured } = await loadSuites(options.dir, {
+    ...(options.testsDirs === undefined ? {} : { testsDirs: options.testsDirs }),
+  });
 
   // A workflow already covered by real cases does not also need one derived
   // from its capture — the cases are the stronger evidence.

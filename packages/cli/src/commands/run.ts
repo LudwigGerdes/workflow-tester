@@ -63,10 +63,11 @@ export async function runCommand(argv: string[], io: Io): Promise<number> {
 
   // The repository says which n8n release its workflows run on; absent, the
   // bundled descriptions are used and the report says so.
-  const { n8nVersion } = readConfig(io);
+  const { n8nVersion, testsDirs } = readConfig(io);
 
   const report = await runTier1({
     dir: io.cwd,
+    ...(testsDirs === undefined ? {} : { testsDirs }),
     ...(only === undefined ? {} : { only }),
     ...(positional[0] === undefined ? {} : { workflow: positional[0] }),
     ...(concurrency === undefined ? {} : { concurrency }),
@@ -226,7 +227,8 @@ export async function explainCommand(argv: string[], io: Io): Promise<number> {
   }
   const report = JSON.parse(await readFile(reportFile, 'utf8')) as RunReport;
 
-  const { generated, tests } = await loadSuites(io.cwd);
+  const { testsDirs: dirs } = readConfig(io);
+  const { generated, tests } = await loadSuites(io.cwd, { ...(dirs === undefined ? {} : { testsDirs: dirs }) });
   const found = [...generated, ...tests]
     .flatMap((suite) => suite.cases.map((entry) => ({ suite, entry })))
     .find(({ entry }) => entry.id === caseId);

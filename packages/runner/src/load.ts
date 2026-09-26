@@ -195,14 +195,31 @@ async function readSuite(file: string): Promise<Suite | undefined> {
 
 const isSuite = (suite: Suite | undefined): suite is Suite => suite !== undefined;
 
-/** Files ending `.test.yaml` in a directory, sorted. */
+/**
+ * Files ending `.test.yaml` under a directory, any depth, sorted. Dot
+ * directories and `node_modules` are skipped, so a `tests/` that holds a
+ * checkout or an editor's scratch space does not become a suite.
+ */
 async function suiteFiles(dir: string): Promise<string[]> {
   if (!existsSync(dir)) return [];
-  const entries = await readdir(dir, { withFileTypes: true });
-  return entries
-    .filter((entry) => entry.isFile() && entry.name.endsWith('.test.yaml'))
-    .map((entry) => join(dir, entry.name))
-    .sort();
+  const found: string[] = [];
+  const walk = async (current: string): Promise<void> => {
+    for (const entry of await readdir(current, { withFileTypes: true })) {
+      const full = join(current, entry.name);
+      if (entry.isDirectory()) {
+        if (!entry.name.startsWith('.') && entry.name !== 'node_modules') await walk(full);
+      } else if (entry.isFile() && entry.name.endsWith('.test.yaml')) {
+        found.push(full);
+      }
+    }
+  };
+  await walk(dir);
+  return found.sort();
+}
+
+export interface LoadOptions {
+  /** Where hand-written tests live, relative to the root. Default `.workflow-tester/tests`. */
+  testsDirs?: string[];
 }
 
 /**
@@ -286,9 +303,12 @@ async function capturedSuites(root: string): Promise<Suite[]> {
 
 export async function loadSuites(
   root: string,
+  options: LoadOptions = {},
 ): Promise<{ generated: Suite[]; tests: Suite[]; captured: Suite[] }> {
   const written = await suiteFiles(join(root, '.workflow-tester', 'generated'));
-  const hand = await suiteFiles(join(root, '.workflow-tester', 'tests'));
+  const testsDirs = options.testsDirs ?? ['.workflow-tester/tests'];
+  // A file reachable from two configured directories is still one suite.
+  const hand = [...new Set((await Promise.all(testsDirs.map((d) => suiteFiles(join(root, d))))).flat())].sort();
 
   return {
     generated: [

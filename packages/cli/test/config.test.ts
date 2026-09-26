@@ -19,6 +19,12 @@ describe('readConfig', () => {
     expect(readConfig(repo('n8nVersion: 2.38.3\n')).n8nVersion).toBe('2.38.3');
   });
 
+  it('reads testsDirs, and ignores a malformed one', () => {
+    expect(readConfig(repo('testsDirs: [workflows, tests/flows]\n')).testsDirs).toEqual(['workflows', 'tests/flows']);
+    expect(readConfig(repo('testsDirs: workflows\n')).testsDirs).toBeUndefined();
+    expect(readConfig(repo('testsDirs: []\n')).testsDirs).toBeUndefined();
+  });
+
   it('is empty when there is no config at all', () => {
     expect(readConfig(repo()).n8nVersion).toBeUndefined();
   });
