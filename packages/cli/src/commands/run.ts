@@ -13,6 +13,7 @@ import {
 import { stringify } from 'yaml';
 import { EXIT, parseArgs, type Io } from '../io.js';
 import { configPath, readConfig } from '../config.js';
+import { VERSION } from '../version.js';
 
 const REPORT_PATH = join('.workflow-tester', 'reports', 'last.json');
 
@@ -74,7 +75,7 @@ export async function runCommand(argv: string[], io: Io): Promise<number> {
 
   // `root` is the repo the run was invoked against, which is what the workflow
   // paths in the report are relative to — not necessarily process.cwd().
-  io.out(await renderReport(report, format, { root: io.cwd }));
+  io.out(await renderReport(report, format, { root: io.cwd, version: VERSION }));
 
   // `explain` reads this; it is gitignored, being a record of one run.
   await mkdir(join(io.cwd, '.workflow-tester', 'reports'), { recursive: true });

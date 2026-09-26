@@ -1,6 +1,6 @@
 # Capturing real runs
 
-`capture` turns a run you already made in n8n into a test. It records the shape of what each node produced: which fields exist and what type each one has.
+`capture` turns a run you already made in n8n into a test. It records the shape of what each node produced: which fields exist and what type each one has. Beside the shapes it records where the capture came from: the workflow-tester version, whether it was an export file or an instance (the instance's base URL, never its key), the execution id and status, and the workflow's id, name and `versionId`.
 
 > [!NOTE]
 > No values are written to disk, only field names and types. A capture is safe to commit.

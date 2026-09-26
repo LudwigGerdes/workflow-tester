@@ -1,34 +1,51 @@
 import { describe, expect, it } from 'vitest';
 import { renderReport } from '../src/reporters/index.js';
-import type { SourceMapAdapter } from '../src/reporters/source-map.js';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { createHash } from 'node:crypto';
 import type { RunReport } from '../src/run.js';
 
 /** Places `Check` and nothing else, so the fallback path is exercised too. */
 const report: RunReport = {
   suites: 1,
+  startedAt: '2026-09-25T10:00:00.000Z',
   summary: { pass: 0, fail: 1, warn: 1, needsExecution: 0, durationMs: 5 },
+  nodeTypes: { version: '2.10.0', exact: true },
   outcomes: [
     {
       caseId: 'fails', title: 'a failing case', workflow: 'workflows/invoice.json',
       status: 'fail', tier: 1, node: 'Check', parameter: 'conditions',
-      message: 'condition undecidable', assertions: [],
+      message: 'condition undecidable', assertions: [], durationMs: 3,
     },
     {
       caseId: 'warns', title: 'a warning case', workflow: 'workflows/invoice.json',
       status: 'warn', tier: 1, node: 'Somewhere Else',
-      message: 'an assignment went missing', assertions: [],
+      message: 'an assignment went missing', assertions: [], durationMs: 2,
     },
   ],
 };
 
 interface Sarif {
   runs: Array<{
+    tool: {
+      driver: {
+        name: string;
+        version?: string;
+        rules?: Array<{ id: string; shortDescription: { text: string }; helpUri?: string }>;
+      };
+    };
+    invocations?: Array<{ startTimeUtc: string; endTimeUtc: string; executionSuccessful: boolean }>;
+    properties?: { nodeTypes?: { version: string; exact: boolean } };
     results: Array<{
+      ruleId: string;
+      partialFingerprints?: Record<string, string>;
       locations: Array<{
         physicalLocation: {
           artifactLocation: { uri: string };
-          region?: { startLine: number; startColumn: number };
+          region?: { startLine: number; startColumn?: number };
         };
+        logicalLocations?: Array<{ name: string; kind: string }>;
       }>;
     }>;
   }>;
@@ -41,9 +58,22 @@ const regionOf = (doc: Sarif, index: number) =>
   doc.runs[0]?.results[index]?.locations[0]?.physicalLocation.region;
 
 describe('SARIF regions', () => {
-  it('emits a file-level region, because workflow-tester does not read the workflow file', async () => {
-    expect(regionOf(await sarif(), 0)).toBeUndefined();
-    expect(regionOf(await sarif(), 1)).toBeUndefined();
+  it('emits a file-level region when the workflow file is not readable', async () => {
+    expect(regionOf(await sarif({ root: '/nowhere' }), 0)).toBeUndefined();
+    expect(regionOf(await sarif({ root: '/nowhere' }), 1)).toBeUndefined();
+  });
+
+  it('points at the line that names the node when the workflow file is readable', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'workflow-tester-sarif-'));
+    mkdirSync(join(root, 'workflows'), { recursive: true });
+    writeFileSync(
+      join(root, 'workflows/invoice.json'),
+      ['{', '  "nodes": [', '    {', '      "name": "Check",', '      "type": "n8n-nodes-base.if"', '    }', '  ]', '}'].join('\n'),
+    );
+    const doc = await sarif({ root });
+    expect(regionOf(doc, 0)).toEqual({ startLine: 4 });
+    // "Somewhere Else" is not in the file: file-level, not a guess.
+    expect(regionOf(doc, 1)).toBeUndefined();
   });
 
   it('keeps the artifact URI repo-relative', async () => {
@@ -53,6 +83,93 @@ describe('SARIF regions', () => {
         'workflows/invoice.json',
       );
     }
+  });
+});
+
+describe('SARIF provenance', () => {
+  it('carries the real tool version, the rules, and the node as a logical location', async () => {
+    const doc = await sarif({ root: '/nowhere', version: '0.2.0' });
+    const driver = doc.runs[0]?.tool.driver;
+    expect(driver?.version).toBe('0.2.0');
+    expect(driver?.rules?.map((rule) => rule.id)).toEqual([
+      'workflow-tester/case-failed',
+      'workflow-tester/case-warned',
+    ]);
+    for (const rule of driver?.rules ?? []) {
+      expect(rule.shortDescription.text).not.toBe('');
+      expect(rule.helpUri).toBe('https://workflowtools.dev/workflow-tester/writing-tests');
+    }
+    expect(doc.runs[0]?.results[0]?.locations[0]?.logicalLocations).toEqual([
+      { name: 'Check', kind: 'node' },
+    ]);
+  });
+
+  it('fingerprints each result by workflow, case and node so re-runs match up', async () => {
+    const doc = await sarif({ root: '/nowhere' });
+    const expected = createHash('sha256')
+      .update('workflows/invoice.json\0fails\0Check')
+      .digest('hex');
+    expect(doc.runs[0]?.results[0]?.partialFingerprints).toEqual({ 'workflow-tester/v1': expected });
+  });
+
+  it('records when the run started and ended, and which node descriptions it used', async () => {
+    const doc = await sarif({ root: '/nowhere' });
+    expect(doc.runs[0]?.invocations).toEqual([
+      {
+        startTimeUtc: '2026-09-25T10:00:00.000Z',
+        endTimeUtc: '2026-09-25T10:00:00.005Z',
+        executionSuccessful: false,
+      },
+    ]);
+    expect(doc.runs[0]?.properties?.nodeTypes).toEqual({ version: '2.10.0', exact: true });
+  });
+});
+
+describe('JUnit', () => {
+  const twoWorkflows: RunReport = {
+    ...report,
+    summary: { pass: 1, fail: 1, warn: 1, needsExecution: 1, durationMs: 10 },
+    outcomes: [
+      ...report.outcomes,
+      {
+        caseId: 'passes', title: 'a passing case', workflow: 'workflows/signup.json',
+        status: 'pass', tier: 1, message: 'ok', assertions: [], durationMs: 4,
+      },
+      {
+        caseId: 'waits', title: 'a deferred case', workflow: 'workflows/signup.json',
+        status: 'needs-execution', tier: 1, message: 'verified up to Call API', assertions: [], durationMs: 1,
+      },
+    ],
+  };
+
+  it('writes one testsuite per workflow with its own counts and time', async () => {
+    const xml = await renderReport(twoWorkflows, 'junit', { version: '0.2.0' });
+    expect(xml).toContain('<testsuites name="workflow-tester" tests="4" failures="1" skipped="1" time="0.010"');
+    expect(xml).toContain('<testsuite name="workflows/invoice.json" tests="2" failures="1" skipped="0" time="0.005">');
+    expect(xml).toContain('<testsuite name="workflows/signup.json" tests="2" failures="0" skipped="1" time="0.005">');
+    expect(xml).toContain('<testcase name="a failing case" classname="workflows/invoice.json" time="0.003">');
+    expect(xml).toContain('<testcase name="a passing case" classname="workflows/signup.json" time="0.004"/>');
+    expect(xml).toContain('<skipped message="verified up to Call API"/>');
+  });
+
+  it('names the tool version and node descriptions in properties', async () => {
+    const xml = await renderReport(twoWorkflows, 'junit', { version: '0.2.0' });
+    expect(xml).toContain('<property name="workflow-tester.version" value="0.2.0"/>');
+    expect(xml).toContain('<property name="n8nVersion" value="2.10.0"/>');
+    expect(xml).toContain('<property name="nodeTypes.version" value="2.10.0"/>');
+    expect(xml).toContain('<property name="exact" value="true"/>');
+    expect(xml).toContain('timestamp="2026-09-25T10:00:00.000Z"');
+  });
+
+  it('tolerates a report without timings, as an older last.json has none', async () => {
+    const bare: RunReport = {
+      suites: 1,
+      summary: { pass: 1, fail: 0, warn: 0, needsExecution: 0, durationMs: 0 },
+      outcomes: [{ caseId: 'x', workflow: 'w.json', status: 'pass', tier: 1, message: 'ok', assertions: [] }],
+    };
+    const xml = await renderReport(bare, 'junit');
+    expect(xml).toContain('<testcase name="x" classname="w.json" time="0.000"/>');
+    expect(xml).not.toContain('workflow-tester.version');
   });
 });
 

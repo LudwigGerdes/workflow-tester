@@ -260,7 +260,8 @@ describe('reporters', () => {
 
   it('renders junit with needs-tier2 as skipped', async () => {
     const xml = await renderReport(report, 'junit');
-    expect(xml).toContain('<testsuites>');
+    expect(xml).toContain('<testsuites name="workflow-tester"');
+    expect(xml).toContain('<testsuite name="workflows/invoice.json"');
     expect(xml).toContain('failures="1"');
     expect(xml).toContain('skipped="1"');
     expect(xml).toContain('<skipped message="verified up to Call API"/>');

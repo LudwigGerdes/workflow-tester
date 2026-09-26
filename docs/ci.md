@@ -52,13 +52,15 @@ jobs:
           sarif_file: workflow-tester.sarif
 ```
 
-SARIF results point at the workflow file, not at a line in it.
+Each SARIF result names the workflow file and, when the case failed at a node, that node (a logical location and the line on which the workflow JSON names it). Results carry a `partialFingerprints` entry so GitHub keeps one alert per case across runs; the run records the workflow-tester version, an invocation with start and end times, and the node descriptions it ran against.
 
 ## Other CI systems
 
 ```bash
 npx workflow-tester run --format junit > results.xml
 ```
+
+The JUnit file has one `<testsuite>` per workflow with its own counts and time, `time` on every case, and properties naming the workflow-tester version and the n8n node descriptions the run used.
 
 ## Checking captures on a schedule
 

@@ -13,9 +13,28 @@ export interface CapturedNode {
   items: number;
 }
 
+/**
+ * Where a capture came from. Every field is optional because captures written
+ * before provenance existed have none of them, and a reader must still accept
+ * those. The instance is its base URL only; a key never reaches a sidecar.
+ */
+export interface CaptureSource {
+  kind: 'execution-file' | 'instance';
+  instance?: string;
+  executionId?: string;
+  status?: string;
+}
+
 export interface CaptureRecord {
   capturedAt: string;
   executionId?: string;
+  /** Which release of workflow-tester wrote the record. */
+  tool?: { name: 'workflow-tester'; version: string };
+  source?: CaptureSource;
+  /** The workflow as the export names it, so a capture can be tied to one saved version. */
+  workflow?: { id?: string; name?: string; versionId?: string };
+  /** The n8n release the execution ran on, when the export says. */
+  n8nVersion?: string;
   /** Set when the workflow is active but has not run yet. */
   awaitingFirstExecution?: true;
   nodes?: Record<string, CapturedNode>;

@@ -6,6 +6,7 @@ import {
   shapeOfItems,
   sidecarFor,
   type CaptureRecord,
+  type CaptureSource,
   type CapturedNode,
   type ShapeChange,
 } from 'workflow-tester-contracts';
@@ -14,6 +15,7 @@ import { createClient, type InstanceClient } from 'workflow-tester-instance';
 import { EXIT, parseArgs, type Io } from '../io.js';
 import { instanceConfig } from '../instance-config.js';
 import { modeOf } from '../mode.js';
+import { VERSION } from '../version.js';
 
 /**
  * Turning a real execution into a test.
@@ -65,6 +67,51 @@ export function nodesFromExecution(execution: unknown): Record<string, CapturedN
   return captured;
 }
 
+
+const asString = (value: unknown): string | undefined =>
+  typeof value === 'string' && value !== '' ? value : typeof value === 'number' ? String(value) : undefined;
+
+/**
+ * What the record says about where it came from, beyond the shapes.
+ *
+ * `instance` is the base URL as given, trailing slash dropped; the API key is
+ * read from the environment by the client and never passes through here, so
+ * it cannot land in a sidecar. The n8n version is taken only when the export
+ * carries one — nothing here guesses.
+ */
+export function provenanceOf(
+  execution: unknown,
+  source: { kind: CaptureSource['kind']; instance?: string },
+): Pick<CaptureRecord, 'tool' | 'source' | 'workflow' | 'n8nVersion'> {
+  const exec = execution as {
+    id?: unknown;
+    status?: unknown;
+    n8nVersion?: unknown;
+    workflowData?: { id?: unknown; name?: unknown; versionId?: unknown; meta?: { n8nVersion?: unknown } };
+  };
+  const executionId = asString(exec.id);
+  const status = asString(exec.status);
+  const workflow = {
+    ...(asString(exec.workflowData?.id) === undefined ? {} : { id: asString(exec.workflowData?.id) }),
+    ...(asString(exec.workflowData?.name) === undefined ? {} : { name: asString(exec.workflowData?.name) }),
+    ...(asString(exec.workflowData?.versionId) === undefined
+      ? {}
+      : { versionId: asString(exec.workflowData?.versionId) }),
+  };
+  const n8nVersion = asString(exec.n8nVersion) ?? asString(exec.workflowData?.meta?.n8nVersion);
+
+  return {
+    tool: { name: 'workflow-tester', version: VERSION },
+    source: {
+      kind: source.kind,
+      ...(source.instance === undefined ? {} : { instance: source.instance.replace(/\/+$/, '') }),
+      ...(executionId === undefined ? {} : { executionId }),
+      ...(status === undefined ? {} : { status }),
+    },
+    ...(Object.keys(workflow).length === 0 ? {} : { workflow }),
+    ...(n8nVersion === undefined ? {} : { n8nVersion }),
+  };
+}
 
 /** Merge a capture into the workflow's sidecar, leaving the rest untouched. */
 export function writeCapture(sidecar: string, record: CaptureRecord): void {
@@ -158,6 +205,8 @@ export async function captureCommand(
   let execution: unknown;
   /** What to call the execution's origin in a message. */
   let sourceLabel: string;
+  /** Where it came from, for the record. */
+  let origin: { kind: CaptureSource['kind']; instance?: string };
 
   const wanted = flags['instance'];
   if (wanted !== undefined && flags['execution'] !== undefined) {
@@ -194,6 +243,7 @@ export async function captureCommand(
       }
       execution = await client.getExecution(newest.id);
       sourceLabel = `execution ${newest.id}`;
+      origin = { kind: 'instance', instance: config.url };
     } catch (error) {
       io.err(`workflow-tester: ${error instanceof Error ? error.message : String(error)}`);
       return EXIT.usage;
@@ -218,6 +268,7 @@ export async function captureCommand(
       return EXIT.usage;
     }
     sourceLabel = source;
+    origin = { kind: 'execution-file' };
   }
 
   const nodes = nodesFromExecution(execution);
@@ -253,6 +304,7 @@ export async function captureCommand(
   writeCapture(sidecar, {
     capturedAt: new Date().toISOString(),
     ...(executionId !== undefined ? { executionId: String(executionId) } : {}),
+    ...provenanceOf(execution, origin),
     nodes,
   });
 

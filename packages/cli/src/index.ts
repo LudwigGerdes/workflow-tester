@@ -1,4 +1,3 @@
-import { createRequire } from 'node:module';
 import { captureCommand } from './commands/capture.js';
 import { contractsCommand } from './commands/contracts.js';
 import { genCommand } from './commands/gen.js';
@@ -12,8 +11,7 @@ import { EXIT, type Io } from './io.js';
 
 export { EXIT, type Io } from './io.js';
 
-/** The version in this package's own manifest, so `--version` cannot drift. */
-const { version: VERSION } = createRequire(import.meta.url)('../package.json') as { version: string };
+import { VERSION } from './version.js';
 
 /**
  * One usage block per command. `workflow-tester --help` prints them all;

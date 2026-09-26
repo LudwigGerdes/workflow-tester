@@ -131,6 +131,87 @@ describe('workflow-tester capture', () => {
   });
 });
 
+describe('capture provenance', () => {
+  const provenance = () =>
+    (parseYaml(readFileSync(join(dir, 'workflows/invoice.contract.yaml'), 'utf8')) as {
+      capture: {
+        tool?: { name: string; version: string };
+        source?: { kind: string; instance?: string; executionId?: string; status?: string };
+        workflow?: { id?: string; name?: string; versionId?: string };
+        n8nVersion?: string;
+      };
+    }).capture;
+
+  const richExecution = () => ({
+    ...execution([{ id: 1 }]),
+    status: 'success',
+    workflowData: {
+      id: 'wf-1',
+      name: 'Invoice',
+      versionId: 'v-9',
+      nodes: [{ name: 'Format Customer', id: 'n2' }],
+    },
+  });
+
+  it('records the tool, the file source and the workflow identity from an export', async () => {
+    writeFileSync(join(dir, 'exec.json'), JSON.stringify(richExecution()));
+    expect(await run(['capture', 'workflows/invoice.json', '--execution', 'exec.json'], io())).toBe(0);
+
+    const capture = provenance();
+    expect(capture.tool?.name).toBe('workflow-tester');
+    expect(capture.tool?.version).toMatch(/^\d+\.\d+\.\d+/);
+    expect(capture.source).toEqual({ kind: 'execution-file', executionId: '4211', status: 'success' });
+    expect(capture.workflow).toEqual({ id: 'wf-1', name: 'Invoice', versionId: 'v-9' });
+    expect(capture.n8nVersion).toBeUndefined();
+  });
+
+  it('records the instance base url and never the key', async () => {
+    const client = {
+      getWorkflow: async () => ({}),
+      listExecutions: async () => [
+        { id: '7', status: 'success', startedAt: '2026-09-25T10:00:00.000Z', finished: true, mode: 'webhook', workflowId: 'w' },
+      ],
+      getExecution: async () => richExecution(),
+    };
+    const { captureCommand } = await import('../src/commands/capture.js');
+    const code = await captureCommand(
+      ['workflows/invoice.json', '--instance', 'https://n8n.example.com/'],
+      { ...io(), env: { N8N_API_KEY: 'n8n_api_secret_key_value' } },
+      { client },
+    );
+    expect(code).toBe(0);
+
+    const capture = provenance();
+    expect(capture.source).toEqual({
+      kind: 'instance',
+      instance: 'https://n8n.example.com',
+      executionId: '4211',
+      status: 'success',
+    });
+    expect(readFileSync(join(dir, 'workflows/invoice.contract.yaml'), 'utf8')).not.toContain('secret_key');
+  });
+
+  it('takes the n8n version from the export when it says', async () => {
+    writeFileSync(
+      join(dir, 'exec.json'),
+      JSON.stringify({ ...richExecution(), workflowData: { ...richExecution().workflowData, meta: { n8nVersion: '2.38.3' } } }),
+    );
+    await run(['capture', 'workflows/invoice.json', '--execution', 'exec.json'], io());
+    expect(provenance().n8nVersion).toBe('2.38.3');
+  });
+
+  it('reads an old record that has none of these fields', async () => {
+    writeFileSync(
+      join(dir, 'workflows/invoice.contract.yaml'),
+      'version: 1\ncapture:\n  capturedAt: 2026-01-01T00:00:00.000Z\n  executionId: "1"\n  nodes:\n    Format Customer:\n      items: 1\n      shape:\n        type: object\n        fields:\n          id:\n            type: number\n',
+    );
+    const capture = readCapture(join(dir, 'workflows/invoice.json'));
+    expect(capture?.executionId).toBe('1');
+    expect(capture?.tool).toBeUndefined();
+    expect(capture?.source).toBeUndefined();
+  });
+});
+
 describe('drift', () => {
   const capture = async (items: unknown[], extra: string[] = []) => {
     writeFileSync(join(dir, 'exec.json'), JSON.stringify(execution(items)));

@@ -36,6 +36,8 @@ export interface Outcome {
   resolvedPath?: string;
   message: string;
   assertions: AssertionOutcome[];
+  /** Wall-clock time the engine spent on this case; absent for a case that never ran. */
+  durationMs?: number;
   /**
    * Structural misuse of the data — a field read off an array, an index past
    * every observed length, a key that is not produced. Reported alongside the

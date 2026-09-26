@@ -47,6 +47,8 @@ export interface RunSummary {
 export interface RunReport {
   outcomes: Outcome[];
   summary: RunSummary;
+  /** When the run began, ISO 8601. Optional so an older `last.json` still reads. */
+  startedAt?: string;
   /** Suites that produced at least one case. */
   suites: number;
   /**
@@ -124,6 +126,7 @@ function pinDataOf(given: Record<string, unknown> | undefined): Record<string, I
 /** Run every case in a repo through the tier-1 engine. */
 export async function runTier1(options: RunOptions): Promise<RunReport> {
   const started = performance.now();
+  const startedAt = new Date().toISOString();
   const { generated, tests, captured } = await loadSuites(options.dir);
 
   // A workflow already covered by real cases does not also need one derived
@@ -294,21 +297,26 @@ export async function runTier1(options: RunOptions): Promise<RunReport> {
     jobs,
     options.concurrency ?? availableParallelism(),
     async (job) => {
+      // Measured around the engine only, so the number is the case's own
+      // cost and not the pool's queueing.
+      const began = performance.now();
       const result = useSandbox
         ? await runInSandbox(job.input, { timeoutMs: options.timeoutMs })
         : walk(job.input, nodeTypes);
-      return { job, result };
+      return { job, result, durationMs: performance.now() - began };
     },
   );
 
-  for (const { job, result } of results) {
+  for (const { job, result, durationMs } of results) {
     if (result.status === 'timeout' || result.status === 'crashed') {
       outcomes.push({
         caseId: job.entry.id,
+        workflow: job.shownAs,
         status: 'fail',
         tier: 1,
         message: `${result.status}: ${(result as { message: string }).message}`,
         assertions: [],
+        durationMs,
       });
       continue;
     }
@@ -326,6 +334,7 @@ export async function runTier1(options: RunOptions): Promise<RunReport> {
           {
             ...evaluateThen(job.entry.then, engine, job.entry.id),
             workflow: job.shownAs,
+            durationMs,
             ...(job.entry.title === undefined ? {} : { title: job.entry.title }),
             ...(boundary === undefined
               ? {}
@@ -355,6 +364,7 @@ export async function runTier1(options: RunOptions): Promise<RunReport> {
   return {
     outcomes,
     summary,
+    startedAt,
     suites: suites.length,
     nodeTypes: {
       version: nodeTypes.n8nVersion,

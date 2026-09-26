@@ -4,7 +4,7 @@ import { readCapture, sidecarsUnder } from 'workflow-tester-contracts';
 import type { InstanceClient } from 'workflow-tester-instance';
 // `writeCapture` lives beside the capture command rather than in contracts,
 // which is asymmetric with `readCapture` but not this task's to change.
-import { nodesFromExecution, writeCapture } from './capture.js';
+import { nodesFromExecution, provenanceOf, writeCapture } from './capture.js';
 import { createClient } from 'workflow-tester-instance';
 import { modeOf } from '../mode.js';
 import { instanceConfig } from '../instance-config.js';
@@ -27,7 +27,12 @@ export interface SyncResult {
  * record one. `CaptureRecord.executionId` is what makes "newer" answerable
  * without inventing any new state.
  */
-export async function syncOnce(io: Io, client: InstanceClient): Promise<SyncResult> {
+export async function syncOnce(
+  io: Io,
+  client: InstanceClient,
+  /** The instance's base URL, recorded in a capture's provenance. Never the key. */
+  instance?: string,
+): Promise<SyncResult> {
   const dev = modeOf(io) === 'dev';
   const result: SyncResult = { checked: 0, captured: [], behind: [] };
 
@@ -73,6 +78,7 @@ export async function syncOnce(io: Io, client: InstanceClient): Promise<SyncResu
     writeCapture(sidecar, {
       capturedAt: new Date().toISOString(),
       executionId: newest.id,
+      ...provenanceOf(execution, { kind: 'instance', ...(instance === undefined ? {} : { instance }) }),
       nodes,
     });
     io.out(`${shown}: captured execution ${newest.id}`);
@@ -138,7 +144,7 @@ export async function syncCommand(
   const client = deps?.client ?? createClient(config);
 
   const pass = async (): Promise<number> => {
-    const result = await syncOnce(io, client);
+    const result = await syncOnce(io, client, config.url);
     return result.behind.length > 0 ? EXIT.findings : EXIT.ok;
   };
 
