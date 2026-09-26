@@ -1,3 +1,6 @@
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { ContractError, readContract } from '../src/index.js';
@@ -57,5 +60,27 @@ describe('readContract', () => {
 
   it('reports a missing file as a contract error, not a raw ENOENT', async () => {
     await expect(readContract(fixture('nope'))).rejects.toBeInstanceOf(ContractError);
+  });
+});
+
+describe('readContract: schema source', () => {
+  it('accepts kind: schema with a schema path and optional examples and name', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'workflow-tester-contract-schema-'));
+    const file = join(dir, 'w.contract.yaml');
+    writeFileSync(
+      file,
+      'version: 1\ntrigger: Webhook\nsource:\n  kind: schema\n  schema: ./s.json\n  examples: ./ex\n  name: order\n',
+    );
+    const { contract } = await readContract(file);
+    expect(contract.source).toEqual({ kind: 'schema', schema: './s.json', examples: './ex', name: 'order' });
+  });
+
+  it('requires schema for kind: schema and rejects vendor keys there', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'workflow-tester-contract-schema-'));
+    const file = join(dir, 'w.contract.yaml');
+    writeFileSync(file, 'version: 1\ntrigger: Webhook\nsource:\n  kind: schema\n  events: [a]\n');
+    await expect(readContract(file)).rejects.toThrow(/source\.schema.*path to a JSON Schema/s);
+    writeFileSync(file, 'version: 1\ntrigger: Webhook\nsource:\n  kind: other\n');
+    await expect(readContract(file)).rejects.toThrow(/unknown source kind "other"; expected vendor or schema/);
   });
 });

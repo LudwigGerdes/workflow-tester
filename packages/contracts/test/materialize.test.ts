@@ -1,9 +1,9 @@
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { loadCatalog } from 'workflow-tester-vendors';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { materialize } from '../src/materialize.js';
+import { materialize, materializeSchema } from '../src/materialize.js';
 import { readContract } from '../src/read.js';
 import type { Contract } from '../src/types.js';
 
@@ -148,5 +148,91 @@ describe('materialize', () => {
     expect(readFileSync(file, 'utf8')).toBe(snapshot.contract);
     expect(readFileSync(join(dir, second.shape?.schema ?? ''), 'utf8')).toBe(snapshot.schema);
     expect(readFileSync(join(dir, second.shape?.examples ?? ''), 'utf8')).toBe(snapshot.examples);
+  });
+});
+
+describe('materialize a schema source', () => {
+  const SCHEMA = {
+    type: 'object',
+    properties: { id: { type: 'string' }, total: { type: 'number' } },
+    required: ['id'],
+  };
+
+  const schemaContract = (extra: string[] = []): string =>
+    writeContract(
+      [
+        'version: 1',
+        'trigger: Webhook',
+        'source:',
+        '  kind: schema',
+        '  schema: ./schemas/order-created.json',
+        ...extra,
+        '',
+      ].join('\n'),
+    );
+
+  const materializeIt = async (file: string) => {
+    const { contract } = await readContract(file);
+    return materializeSchema(contract, {
+      outDir: join(dir, '.workflow-tester/contracts'),
+      contractDir: dir,
+      contractFile: file,
+    });
+  };
+
+  it('copies a local JSON Schema into the shape and names it after the file', async () => {
+    mkdirSync(join(dir, 'schemas'), { recursive: true });
+    writeFileSync(join(dir, 'schemas/order-created.json'), JSON.stringify(SCHEMA));
+    const file = schemaContract();
+    const result = await materializeIt(file);
+
+    expect(result.events).toEqual(['order-created']);
+    expect(result.specVersion).toMatch(/^sha256:[0-9a-f]{12}$/);
+    expect(result.shape).toEqual({
+      schema: '.workflow-tester/contracts/schema.order-created.schema.json',
+      examples: '.workflow-tester/contracts/schema.order-created.examples.json',
+    });
+    const written = JSON.parse(readFileSync(join(dir, result.shape!.schema), 'utf8')) as Record<string, unknown>;
+    expect(written['x-workflow-tester-event']).toBe('order-created');
+    expect(written.properties).toEqual(SCHEMA.properties);
+    expect(JSON.parse(readFileSync(join(dir, result.shape!.examples), 'utf8'))).toEqual([]);
+    expect(result.warnings.join('\n')).toMatch(/no example/);
+    expect(readFileSync(file, 'utf8')).toContain('shape:');
+  });
+
+  it('takes examples from a directory of JSON files or one file holding a list', async () => {
+    mkdirSync(join(dir, 'schemas/order-created.examples'), { recursive: true });
+    writeFileSync(join(dir, 'schemas/order-created.json'), JSON.stringify(SCHEMA));
+    writeFileSync(join(dir, 'schemas/order-created.examples/b.json'), JSON.stringify({ id: 'b', total: 2 }));
+    writeFileSync(join(dir, 'schemas/order-created.examples/a.json'), JSON.stringify({ id: 'a' }));
+    writeFileSync(join(dir, 'schemas/order-created.examples/notes.txt'), 'ignored');
+    const file = schemaContract(['  examples: ./schemas/order-created.examples', '  name: order']);
+    const result = await materializeIt(file);
+    expect(result.events).toEqual(['order']);
+    expect(JSON.parse(readFileSync(join(dir, result.shape!.examples), 'utf8'))).toEqual([
+      { event: 'order', payload: { id: 'a' } },
+      { event: 'order', payload: { id: 'b', total: 2 } },
+    ]);
+    expect(result.warnings).toEqual([]);
+
+    writeFileSync(join(dir, 'schemas/list.json'), JSON.stringify([{ id: 'x' }, { id: 'y' }]));
+    const listed = await materializeIt(schemaContract(['  examples: ./schemas/list.json']));
+    expect(JSON.parse(readFileSync(join(dir, listed.shape!.examples), 'utf8'))).toHaveLength(2);
+  });
+
+  it('rejects an example the schema does not accept, naming the file and the path', async () => {
+    mkdirSync(join(dir, 'schemas'), { recursive: true });
+    writeFileSync(join(dir, 'schemas/order-created.json'), JSON.stringify(SCHEMA));
+    writeFileSync(join(dir, 'schemas/bad.json'), JSON.stringify([{ total: 'three' }]));
+    await expect(materializeIt(schemaContract(['  examples: ./schemas/bad.json']))).rejects.toThrow(
+      /bad\.json\[0\].*id|bad\.json\[0\].*total/s,
+    );
+  });
+
+  it('names a missing or invalid schema file', async () => {
+    await expect(materializeIt(schemaContract())).rejects.toThrow(/order-created\.json/);
+    mkdirSync(join(dir, 'schemas'), { recursive: true });
+    writeFileSync(join(dir, 'schemas/order-created.json'), '{"type": "nonsense"}');
+    await expect(materializeIt(schemaContract())).rejects.toThrow(/order-created\.json.*schema/s);
   });
 });

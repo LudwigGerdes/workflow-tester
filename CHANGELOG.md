@@ -6,6 +6,10 @@ All notable changes to workflow-tester are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `source.kind: schema`: a contract can point at a JSON Schema file of your own (`contracts add --schema <file> [--examples <path>] [--name <n>]`), so `gen` works for any webhook, not only the GitHub and Stripe catalogues. Examples are a directory of `.json` files or one file holding a list, each validated against the schema before it is kept. The schema is copied into the shape and its digest is the contract's version.
+
 ## 0.2.0 — 2026-09-21
 
 ### Added

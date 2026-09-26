@@ -1,6 +1,6 @@
-# Generating tests from GitHub and Stripe payloads
+# Generating tests from a payload schema
 
-GitHub and Stripe publish a schema for every webhook they send. workflow-tester uses those schemas to build the payloads your workflow is likely to meet: a field set to `null`, an optional object left out, an empty string.
+workflow-tester builds the payloads your workflow is likely to meet from a JSON Schema of what its trigger receives: a field set to `null`, an optional object left out, an empty string. The schema comes from a shipped vendor catalogue (GitHub and Stripe publish one for every webhook they send) or from a JSON Schema file of your own.
 
 ## 1. Add a contract
 
@@ -64,6 +64,45 @@ shape:
 ```
 
 `overrides` is the only part you edit by hand.
+
+### Your own schema
+
+For a webhook no catalogue covers, point the contract at a JSON Schema file. Example payloads are optional; each one is checked against the schema before it is kept.
+
+```bash
+workflow-tester contracts add workflows/orders.json --schema schemas/order-created.json --examples schemas/samples
+```
+
+**Expected output:**
+
+```text
+workflows/orders.contract.yaml
+  schema  ../schemas/order-created.json @ sha256:3f1c9a2b7d40
+  events  order-created
+  shape   ../.workflow-tester/contracts/schema.order-created.schema.json
+```
+
+The contract it writes:
+
+```yaml
+version: 1
+trigger: Webhook
+source:
+  kind: schema
+  schema: ../schemas/order-created.json
+  examples: ../schemas/samples
+shape:
+  schema: ../.workflow-tester/contracts/schema.order-created.schema.json
+  examples: ../.workflow-tester/contracts/schema.order-created.examples.json
+```
+
+| Key | Takes |
+|---|---|
+| `schema` | A `.json`, `.yaml` or `.yml` JSON Schema file, relative to the contract |
+| `examples` | A directory of `.json` files, one payload each, or one `.json` file holding a payload or a list of them |
+| `name` | The event name cases are tagged with. Defaults to the schema file's name |
+
+The schema is copied into the shape, so `contracts update` after editing the source file refreshes it, and the version shown is a digest of the schema. Payloads arrive with `content-type: application/json` and no vendor headers.
 
 | Override | Takes | Effect |
 |---|---|---|

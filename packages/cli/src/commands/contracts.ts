@@ -1,7 +1,7 @@
 import { readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { basename, dirname, extname, join, relative } from 'node:path';
-import { materialize, readContract, ContractError } from 'workflow-tester-contracts';
+import { basename, dirname, extname, join, relative, resolve } from 'node:path';
+import { materialize, materializeSchema, readContract, ContractError } from 'workflow-tester-contracts';
 import { loadCatalog, UnknownVendorError } from 'workflow-tester-vendors';
 import { parseDocument } from 'yaml';
 import { EXIT, parseArgs, type Io } from '../io.js';
@@ -44,7 +44,10 @@ async function addContract(argv: string[], io: Io): Promise<number> {
   const { positional, flags } = parseArgs(argv);
   const workflowArg = positional[0];
   if (workflowArg === undefined) {
-    io.err('usage: workflow-tester contracts add <workflow.json> --vendor <v> --events <a,b> [--trigger <name>]');
+    io.err(
+      'usage: workflow-tester contracts add <workflow.json> --vendor <v> --events <a,b> [--trigger <name>]\n' +
+        '       workflow-tester contracts add <workflow.json> --schema <file> [--examples <path>] [--name <n>] [--trigger <name>]',
+    );
     return EXIT.usage;
   }
 
@@ -56,8 +59,13 @@ async function addContract(argv: string[], io: Io): Promise<number> {
 
   const vendor = flags.vendor;
   const events = flags.events;
-  if (typeof vendor !== 'string' || typeof events !== 'string') {
-    io.err('both --vendor and --events are required');
+  const schema = flags.schema;
+  if (typeof schema === 'string' && (vendor !== undefined || events !== undefined)) {
+    io.err('--schema is one source and --vendor/--events the other; pass one of them');
+    return EXIT.usage;
+  }
+  if (typeof schema !== 'string' && (typeof vendor !== 'string' || typeof events !== 'string')) {
+    io.err('either --schema <file>, or both --vendor and --events, is required');
     return EXIT.usage;
   }
 
@@ -68,8 +76,28 @@ async function addContract(argv: string[], io: Io): Promise<number> {
     return EXIT.usage;
   }
 
-  const eventList = events.split(',').map((e) => e.trim()).filter((e) => e.length > 0);
   const contractFile = contractPathFor(workflowFile);
+  const contractDir = dirname(contractFile);
+
+  // Every path in the contract is relative to the contract, so the file reads
+  // the same from any working directory.
+  const relToContract = (p: string): string => {
+    const rel = relative(contractDir, resolve(io.cwd, p));
+    return rel.startsWith('.') ? rel : `./${rel}`;
+  };
+  const source: SourceSpec =
+    typeof schema === 'string'
+      ? {
+          kind: 'schema',
+          schema: relToContract(schema),
+          ...(typeof flags.examples === 'string' ? { examples: relToContract(flags.examples) } : {}),
+          ...(typeof flags.name === 'string' ? { name: flags.name } : {}),
+        }
+      : {
+          kind: 'vendor',
+          vendor: vendor as string,
+          events: (events as string).split(',').map((e) => e.trim()).filter((e) => e.length > 0),
+        };
 
   let text: string;
   let replaced: string | undefined;
@@ -80,10 +108,7 @@ async function addContract(argv: string[], io: Io): Promise<number> {
       'version: 1',
       `trigger: ${inferred.trigger}`,
       'source:',
-      '  kind: vendor',
-      `  vendor: ${vendor}`,
-      '  events:',
-      ...eventList.map((e) => `    - ${e}`),
+      ...sourceLines(source),
       '# The only hand-edited section: paths to keep, prune, or restrict to.',
       '# overrides:',
       '#   required: []',
@@ -97,17 +122,10 @@ async function addContract(argv: string[], io: Io): Promise<number> {
     // not be beaten by the file the typo produced.
     text = await readFile(contractFile, 'utf8');
     const doc = parseDocument(text);
-    const current = doc.toJS() as { source?: { vendor?: unknown; events?: unknown } } | null;
-    const currentVendor = current?.source?.vendor;
-    const currentEvents = Array.isArray(current?.source?.events) ? (current.source.events as unknown[]) : [];
-    const same =
-      currentVendor === vendor &&
-      currentEvents.length === eventList.length &&
-      currentEvents.every((event, index) => event === eventList[index]);
-    if (!same) {
-      doc.setIn(['source', 'vendor'], vendor);
-      doc.setIn(['source', 'events'], eventList);
-      replaced = `${String(currentVendor)}: ${currentEvents.map(String).join(', ')}`;
+    const current = (doc.toJS() as { source?: Record<string, unknown> } | null)?.source ?? {};
+    if (JSON.stringify(current) !== JSON.stringify(source)) {
+      doc.set('source', source);
+      replaced = describeSource(current);
       text = doc.toString();
     }
   }
@@ -128,6 +146,25 @@ async function addContract(argv: string[], io: Io): Promise<number> {
   return code;
 }
 
+type SourceSpec =
+  | { kind: 'vendor'; vendor: string; events: string[] }
+  | { kind: 'schema'; schema: string; examples?: string; name?: string };
+
+const sourceLines = (source: SourceSpec): string[] =>
+  source.kind === 'vendor'
+    ? ['  kind: vendor', `  vendor: ${source.vendor}`, '  events:', ...source.events.map((e) => `    - ${e}`)]
+    : [
+        '  kind: schema',
+        `  schema: ${source.schema}`,
+        ...(source.examples === undefined ? [] : [`  examples: ${source.examples}`]),
+        ...(source.name === undefined ? [] : [`  name: ${source.name}`]),
+      ];
+
+const describeSource = (source: Record<string, unknown>): string =>
+  source.kind === 'schema'
+    ? `schema ${String(source.schema)}`
+    : `${String(source.vendor)}: ${(Array.isArray(source.events) ? source.events : []).map(String).join(', ')}`;
+
 /**
  * Materialise one contract, reporting what it produced. `shownAs` is the path
  * to report when the file being materialised is a staging copy.
@@ -135,18 +172,21 @@ async function addContract(argv: string[], io: Io): Promise<number> {
 async function materializeContract(contractFile: string, io: Io, shownAs = contractFile): Promise<number> {
   try {
     const { contract, dir } = await readContract(contractFile);
-    const catalog = loadCatalog(contract.source.vendor, contract.source.specVersion);
+    const options = { outDir: contractsDir(io.cwd), contractDir: dir, contractFile };
 
-    // `materialize` creates the output directory itself, after validating the
-    // events, so a rejected contract leaves no empty directory behind.
-    const result = await materialize(contract, catalog, {
-      outDir: contractsDir(io.cwd),
-      contractDir: dir,
-      contractFile,
-    });
+    // Both materialisers create the output directory themselves, after
+    // validating the source, so a rejected contract leaves no empty directory.
+    const result =
+      contract.source.kind === 'schema'
+        ? await materializeSchema(contract, options)
+        : await materialize(contract, loadCatalog(contract.source.vendor, contract.source.specVersion), options);
 
     io.out(`${relative(io.cwd, shownAs)}`);
-    io.out(`  vendor  ${contract.source.vendor} @ ${result.specVersion}`);
+    if (contract.source.kind === 'schema') {
+      io.out(`  schema  ${contract.source.schema} @ ${result.specVersion}`);
+    } else {
+      io.out(`  vendor  ${contract.source.vendor} @ ${result.specVersion}`);
+    }
     io.out(`  events  ${result.events.join(', ')}`);
     io.out(`  shape   ${result.shape?.schema ?? ''}`);
     for (const warning of result.warnings) io.out(`  warn    ${warning}`);

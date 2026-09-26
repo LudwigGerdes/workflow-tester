@@ -266,3 +266,51 @@ describe('contracts add validates before it writes', () => {
     expect(readdirSync(join(dir, 'workflows')).sort()).toEqual(['invoice.contract.yaml', 'invoice.json']);
   });
 });
+
+describe('contracts add --schema', () => {
+  const SCHEMA = {
+    type: 'object',
+    properties: { order: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] } },
+    required: ['order'],
+  };
+
+  it('materialises a local JSON Schema and its examples, then gen runs on it', async () => {
+    const wf = writeWorkflow('workflows/orders.json', [webhook('Webhook')]);
+    mkdirSync(join(dir, 'schemas/samples'), { recursive: true });
+    writeFileSync(join(dir, 'schemas/order-created.json'), JSON.stringify(SCHEMA));
+    writeFileSync(join(dir, 'schemas/samples/one.json'), JSON.stringify({ order: { id: 'o_1' } }));
+
+    const code = await run(
+      ['contracts', 'add', wf, '--schema', 'schemas/order-created.json', '--examples', 'schemas/samples'],
+      io(),
+    );
+    expect(code).toBe(0);
+    const contract = readFileSync(join(dir, 'workflows/orders.contract.yaml'), 'utf8');
+    expect(contract).toContain('kind: schema');
+    expect(contract).toContain('schema: ../schemas/order-created.json');
+    expect(contract).toContain('examples: ../schemas/samples');
+    expect(existsSync(join(dir, '.workflow-tester/contracts/schema.order-created.schema.json'))).toBe(true);
+    expect(stdout()).toMatch(/schema {2}\.\.\/schemas\/order-created\.json @ sha256:/);
+    expect(stdout()).toMatch(/events {2}order-created/);
+
+    out = [];
+    expect(await run(['gen'], io())).toBe(0);
+    expect(stdout()).toMatch(/schema\.order-created: \d+ case\(s\)/);
+  });
+
+  it('rejects mixing --schema with --vendor, and an example the schema refuses', async () => {
+    const wf = writeWorkflow('workflows/orders.json', [webhook('Webhook')]);
+    expect(await run(['contracts', 'add', wf, '--schema', 's.json', '--vendor', 'stripe'], io())).toBe(2);
+    expect(stderr()).toMatch(/one of them/);
+
+    mkdirSync(join(dir, 'schemas'), { recursive: true });
+    writeFileSync(join(dir, 'schemas/order-created.json'), JSON.stringify(SCHEMA));
+    writeFileSync(join(dir, 'schemas/bad.json'), JSON.stringify({ order: {} }));
+    err = [];
+    expect(
+      await run(['contracts', 'add', wf, '--schema', 'schemas/order-created.json', '--examples', 'schemas/bad.json'], io()),
+    ).toBe(2);
+    expect(stderr()).toMatch(/bad\.json does not match the schema/);
+    expect(existsSync(join(dir, 'workflows/orders.contract.yaml'))).toBe(false);
+  });
+});

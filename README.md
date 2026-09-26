@@ -126,7 +126,7 @@ Full documentation is at [workflowtools.dev/workflow-tester](https://workflowtoo
 
 - [Command line](https://workflowtools.dev/workflow-tester/cli)
 - [Writing tests](https://workflowtools.dev/workflow-tester/writing-tests)
-- [Generating tests from GitHub and Stripe payloads](https://workflowtools.dev/workflow-tester/generated-tests)
+- [Generating tests from a payload schema](https://workflowtools.dev/workflow-tester/generated-tests)
 - [Capturing real runs](https://workflowtools.dev/workflow-tester/capture)
 - [Pre-commit and CI](https://workflowtools.dev/workflow-tester/ci)
 - [FAQ and compatibility](https://workflowtools.dev/workflow-tester/faq)

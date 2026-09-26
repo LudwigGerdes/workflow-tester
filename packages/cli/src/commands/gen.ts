@@ -96,7 +96,9 @@ async function generateFor(
   // Expressions read `$json.body.…`, so generation happens at envelope level:
   // the schema is lifted and every example wrapped the way the Webhook node
   // delivers it. Focus paths and mutation paths then speak the same language.
-  const vendor = contract.source.vendor;
+  // A schema source has no vendor headers to add; the envelope is the plain
+  // Webhook-node shape.
+  const vendor = contract.source.kind === 'vendor' ? contract.source.vendor : 'schema';
   const wrappedSchema = wrapWebhookSchema(schema, { vendor });
   const wrappedExamples = examples.map((example) => ({
     event: example.event,

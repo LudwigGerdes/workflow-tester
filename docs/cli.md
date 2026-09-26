@@ -5,7 +5,8 @@
 | `workflow-tester init [--n8n-version <v>] [--no-ask]` | Create `.workflow-tester/` with a commented example test |
 | `workflow-tester run [<workflow.json>] [--only generated\|tests] [--format <f>] [--fail-on warn] [--concurrency N]` | Run every test |
 | `workflow-tester contracts add <workflow.json> --vendor <v> --events <a,b> [--trigger <name>]` | Say which vendor events a workflow's trigger receives |
-| `workflow-tester contracts update [<workflow.json>...] [--all] [--fetch] [--vendor <v>]` | Refresh contracts from the vendor catalogues |
+| `workflow-tester contracts add <workflow.json> --schema <file> [--examples <path>] [--name <n>] [--trigger <name>]` | Use a JSON Schema of your own as the trigger's payload |
+| `workflow-tester contracts update [<workflow.json>...] [--all] [--fetch] [--vendor <v>]` | Refresh contracts from the vendor catalogues and schema files |
 | `workflow-tester gen [<workflow.json>...] [--max N] [--check]` | Generate test cases from each contract |
 | `workflow-tester explain <caseId>` | Print a case as a test file, with the result of its last run |
 | `workflow-tester promote <caseId> [--name <file>]` | Copy a generated case into a hand-written test |

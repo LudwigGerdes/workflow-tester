@@ -1,9 +1,15 @@
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { join, relative } from 'node:path';
+import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { basename, extname, join, relative, resolve } from 'node:path';
+import AjvModule, { type ErrorObject, type ValidateFunction } from 'ajv';
 import type { Catalog } from 'workflow-tester-vendors';
-import { parseDocument } from 'yaml';
-import type { Contract } from './types.js';
+import { parseDocument, parse as parseYaml } from 'yaml';
+import type { Contract, SchemaSource, VendorSource } from './types.js';
+
+// ajv's ESM build exports the class as `default`; under some loaders that is
+// itself the module namespace. Same dance as the generator's schema walk.
+type AjvLike = new (options: Record<string, unknown>) => { compile: (schema: object) => ValidateFunction };
+const Ajv = ((AjvModule as unknown as { default?: unknown }).default ?? AjvModule) as AjvLike;
 
 /** Annotation naming the event a oneOf branch belongs to. */
 export const EVENT_KEY = 'x-workflow-tester-event';
@@ -73,11 +79,15 @@ export async function materialize(
   catalog: Catalog,
   options: MaterializeOptions,
 ): Promise<MaterializeResult> {
+  if (contract.source.kind !== 'vendor') {
+    throw new Error(`materialize: a ${contract.source.kind} source takes no catalog; use materializeSchema`);
+  }
+  const source: VendorSource = contract.source;
   const only = contract.overrides?.only;
   const requested =
     only === undefined || only.length === 0
-      ? contract.source.events
-      : contract.source.events.filter((event) => only.includes(event));
+      ? source.events
+      : source.events.filter((event) => only.includes(event));
 
   const warnings: string[] = [];
   const branches: Array<Record<string, unknown>> = [];
@@ -116,15 +126,22 @@ export async function materialize(
     throw new Error(`contract selects no events (source.events ∩ overrides.only is empty)`);
   }
 
-  const slug = slugFor(requested);
-  const base = `${catalog.vendor}.${slug}`;
-  await mkdir(options.outDir, { recursive: true });
-
-  const schemaFile = join(options.outDir, `${base}.schema.json`);
-  const examplesFile = join(options.outDir, `${base}.examples.json`);
-
   // A single event needs no oneOf: the branch is the shape.
   const schema = branches.length === 1 ? (branches[0] as Record<string, unknown>) : { oneOf: branches };
+  const shape = await commitShape(`${catalog.vendor}.${slugFor(requested)}`, schema, examples, options);
+  return { shape, specVersion: catalog.specVersion, events: requested, warnings };
+}
+
+/** Write the shape files and point the contract's `shape` block at them. */
+async function commitShape(
+  base: string,
+  schema: unknown,
+  examples: TaggedExample[],
+  options: MaterializeOptions,
+): Promise<NonNullable<Contract['shape']>> {
+  await mkdir(options.outDir, { recursive: true });
+  const schemaFile = join(options.outDir, `${base}.schema.json`);
+  const examplesFile = join(options.outDir, `${base}.examples.json`);
   await write(schemaFile, schema);
   await write(examplesFile, examples);
 
@@ -140,6 +157,98 @@ export async function materialize(
   doc.set('shape', shape);
   const updated = doc.toString();
   if (updated !== text) await writeFile(options.contractFile, updated);
+  return shape;
+}
 
-  return { shape, specVersion: catalog.specVersion, events: requested, warnings };
+const isRecord = (v: unknown): v is Record<string, unknown> =>
+  v !== null && typeof v === 'object' && !Array.isArray(v);
+
+/** Parse a `.json`, `.yaml` or `.yml` file, naming it in any error. */
+async function readData(file: string, what: string): Promise<unknown> {
+  let text: string;
+  try {
+    text = await readFile(file, 'utf8');
+  } catch {
+    throw new Error(`${what}: no such file ${file}`);
+  }
+  try {
+    return /\.ya?ml$/.test(file) ? (parseYaml(text) as unknown) : (JSON.parse(text) as unknown);
+  } catch (error) {
+    throw new Error(`${what}: ${file} does not parse: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+/** Example payloads from a directory of `.json` files or one file holding one or a list. */
+async function readExamples(path: string): Promise<Array<{ file: string; payload: unknown }>> {
+  let info;
+  try {
+    info = await stat(path);
+  } catch {
+    throw new Error(`source.examples: no such file or directory ${path}`);
+  }
+  if (info.isDirectory()) {
+    const names = (await readdir(path)).filter((n) => n.endsWith('.json')).sort();
+    const out: Array<{ file: string; payload: unknown }> = [];
+    for (const name of names) {
+      const file = join(path, name);
+      out.push({ file, payload: await readData(file, 'source.examples') });
+    }
+    return out;
+  }
+  const data = await readData(path, 'source.examples');
+  return Array.isArray(data)
+    ? data.map((payload, i) => ({ file: `${path}[${i}]`, payload }))
+    : [{ file: path, payload: data }];
+}
+
+/**
+ * Materialise a contract whose shape is a JSON Schema the user owns: the
+ * schema is copied into the shape (so a later edit to the source shows up as
+ * drift, like a vendor spec bump), the examples are validated against it and
+ * kept beside it. `specVersion` is a digest of the schema file, which is the
+ * pin an audit asks for.
+ */
+export async function materializeSchema(
+  contract: Contract,
+  options: MaterializeOptions,
+): Promise<MaterializeResult> {
+  if (contract.source.kind !== 'schema') {
+    throw new Error(`materializeSchema: a ${contract.source.kind} source needs a catalog; use materialize`);
+  }
+  const source: SchemaSource = contract.source;
+  const schemaFile = resolve(options.contractDir, source.schema);
+  const schema = await readData(schemaFile, 'source.schema');
+  if (!isRecord(schema)) throw new Error(`source.schema: ${schemaFile} is not a JSON Schema object`);
+
+  const ajv = new Ajv({ strict: false, allErrors: true, validateFormats: false });
+  let validate;
+  try {
+    validate = ajv.compile(schema);
+  } catch (error) {
+    throw new Error(
+      `source.schema: ${schemaFile} is not a valid JSON Schema: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
+  const name = source.name ?? basename(source.schema, extname(source.schema)).replace(/\.schema$/, '');
+  const warnings: string[] = [];
+  const examples: TaggedExample[] = [];
+  if (source.examples !== undefined) {
+    for (const { file, payload } of await readExamples(resolve(options.contractDir, source.examples))) {
+      if (!validate(payload)) {
+        const why = (validate.errors ?? [])
+          .map((e: ErrorObject) => `${e.instancePath || '/'} ${e.message ?? ''}`.trim())
+          .join('; ');
+        throw new Error(`source.examples: ${file} does not match the schema: ${why}`);
+      }
+      examples.push({ event: name, payload });
+    }
+  }
+  if (examples.length === 0) {
+    warnings.push(`${name}: no example payload given; generated cases will have to synthesise one`);
+  }
+
+  const digest = createHash('sha256').update(JSON.stringify(stable(schema))).digest('hex');
+  const shape = await commitShape(`schema.${name}`, { ...schema, [EVENT_KEY]: name }, examples, options);
+  return { shape, specVersion: `sha256:${digest.slice(0, 12)}`, events: [name], warnings };
 }

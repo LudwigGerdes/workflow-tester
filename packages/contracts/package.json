@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "workflow-tester-vendors": "workspace:*",
+    "ajv": "^8.17.1",
     "n8n-workflow": "2.38.1",
     "yaml": "^2.5.0"
   }

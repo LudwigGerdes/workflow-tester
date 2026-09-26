@@ -9,16 +9,30 @@ export interface Contract {
   overrides?: Overrides;
 }
 
-/**
- * Where the shape comes from. An enum with one member in v1: nothing downstream
- * of `shape` knows or cares which kind produced it.
- */
-export interface ContractSource {
+/** Where the shape comes from. Nothing downstream of `shape` knows which kind produced it. */
+export type ContractSource = VendorSource | SchemaSource;
+
+/** Events from a shipped vendor catalogue (GitHub, Stripe). */
+export interface VendorSource {
   kind: 'vendor';
   vendor: string;
   events: string[];
   /** Pinned for reproducibility; defaults to the catalog's latest. */
   specVersion?: string;
+}
+
+/** A JSON Schema you own, with optional example payloads, for any webhook. */
+export interface SchemaSource {
+  kind: 'schema';
+  /** Path to a JSON Schema file (`.json`, `.yaml` or `.yml`), relative to the contract. */
+  schema: string;
+  /**
+   * Example payloads, relative to the contract: a directory of `.json` files
+   * (one payload each), or one `.json` file holding a payload or a list of them.
+   */
+  examples?: string;
+  /** The event name cases are tagged with. Defaults to the schema file's basename. */
+  name?: string;
 }
 
 export interface Overrides {

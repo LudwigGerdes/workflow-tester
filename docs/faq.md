@@ -56,7 +56,7 @@ No. The warning names `isolated-vm`, `ssh2` and `cpu-features`. They come with `
 
 ## Limitations
 
-- Generated tests need a vendor catalogue, and only GitHub and Stripe have one. For your own webhook, write tests by hand.
+- Vendor catalogues exist for GitHub and Stripe only. Any other webhook needs a JSON Schema of its payload (`contracts add --schema`).
 - Respond to Webhook in `jwt` or `binary` mode cannot run offline. Every other mode can.
 - Pairs of changes are sampled, not exhaustive. A workflow that breaks only when three fields are missing together will not be caught.
 - Guards written as `a !== null ? … : …`, or placed inside an enclosing `if` in a Code node, are not recognised. `a?.x`, `a && a.x` and `a ? a.x : b` are.

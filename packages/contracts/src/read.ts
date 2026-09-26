@@ -71,20 +71,31 @@ export async function readContract(file: string): Promise<{ contract: Contract; 
   if (!isRecord(source)) {
     add('source', ['source'], 'missing source block');
   } else {
-    if (source.kind !== 'vendor') {
-      add('source.kind', ['source', 'kind'], `unknown source kind "${String(source.kind)}"; only "vendor" is supported in v1`);
-    }
-    if (typeof source.vendor !== 'string' || source.vendor.length === 0) {
-      add('source.vendor', ['source', 'vendor'], 'name the vendor');
-    }
-    if (!Array.isArray(source.events) || source.events.length === 0) {
-      add('source.events', ['source', 'events'], 'list at least one event');
+    if (source.kind === 'vendor') {
+      if (typeof source.vendor !== 'string' || source.vendor.length === 0) {
+        add('source.vendor', ['source', 'vendor'], 'name the vendor');
+      }
+      if (!Array.isArray(source.events) || source.events.length === 0) {
+        add('source.events', ['source', 'events'], 'list at least one event');
+      } else {
+        source.events.forEach((event, index) => {
+          if (typeof event !== 'string' || event.length === 0) {
+            add(`source.events[${index}]`, ['source', 'events', index], 'event names must be non-empty strings');
+          }
+        });
+      }
+    } else if (source.kind === 'schema') {
+      if (typeof source.schema !== 'string' || source.schema.length === 0) {
+        add('source.schema', ['source', 'schema'], 'give the path to a JSON Schema file, relative to this contract');
+      }
+      if (source.examples !== undefined && (typeof source.examples !== 'string' || source.examples.length === 0)) {
+        add('source.examples', ['source', 'examples'], 'expected a path to a directory or a .json file');
+      }
+      if (source.name !== undefined && (typeof source.name !== 'string' || !/^[A-Za-z0-9._-]+$/.test(source.name))) {
+        add('source.name', ['source', 'name'], 'expected letters, digits, dots, dashes or underscores');
+      }
     } else {
-      source.events.forEach((event, index) => {
-        if (typeof event !== 'string' || event.length === 0) {
-          add(`source.events[${index}]`, ['source', 'events', index], 'event names must be non-empty strings');
-        }
-      });
+      add('source.kind', ['source', 'kind'], `unknown source kind "${String(source.kind)}"; expected vendor or schema`);
     }
   }
 
