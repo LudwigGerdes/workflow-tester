@@ -131,3 +131,16 @@ cases:
     expect(Array.isArray((testSchema() as { oneOf?: unknown[] }).oneOf)).toBe(true);
   });
 });
+
+describe('given keys that need a mock', () => {
+  it('are refused at load, naming the key, rather than silently ignored', async () => {
+    writeTest(
+      'faults.test.yaml',
+      `${VALID}given:\n  faults:\n    stripe: { status: 503 }\n`,
+    );
+    const error = await loadSuites(dir).catch((e: unknown) => e as SuiteError);
+    expect(error).toBeInstanceOf(SuiteError);
+    expect((error as SuiteError).issues[0]?.message).toMatch(/given\.faults.*not supported/s);
+    expect((error as SuiteError).issues[0]?.line).toBeGreaterThan(0);
+  });
+});

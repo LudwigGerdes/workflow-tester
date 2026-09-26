@@ -1,4 +1,5 @@
 import { existsSync } from 'node:fs';
+import type { INodeExecutionData } from 'n8n-workflow';
 import { readFile } from 'node:fs/promises';
 import { availableParallelism } from 'node:os';
 import { dirname, relative, resolve } from 'node:path';
@@ -109,6 +110,17 @@ function asItemJson(payload: unknown, trigger: string | undefined, nodes: Workfl
   return wrapWebhook(payload, { vendor: 'unknown' });
 }
 
+/** The `given.pinData` of a case as engine substitutes, or nothing. */
+function pinDataOf(given: Record<string, unknown> | undefined): Record<string, INodeExecutionData[]> {
+  const pinned = given?.pinData;
+  if (!isRecord(pinned)) return {};
+  const out: Record<string, INodeExecutionData[]> = {};
+  for (const [node, items] of Object.entries(pinned)) {
+    if (Array.isArray(items)) out[node] = items as INodeExecutionData[];
+  }
+  return out;
+}
+
 /** Run every case in a repo through the tier-1 engine. */
 export async function runTier1(options: RunOptions): Promise<RunReport> {
   const started = performance.now();
@@ -184,6 +196,23 @@ export async function runTier1(options: RunOptions): Promise<RunReport> {
         entry.when.payload ??
         (typeof declared === 'object' && declared !== null ? declared.payload : undefined);
 
+      // Pinned items stand in for a node's output, exactly as a capture's
+      // substitutes do; the case's pins win over the capture's.
+      const pinData = pinDataOf(entry.given);
+      const unknownPins = Object.keys(pinData).filter((name) => !nodes.some((n) => n.name === name));
+      if (unknownPins.length > 0) {
+        outcomes.push({
+          caseId: entry.id,
+          workflow: shownAs,
+          status: 'fail',
+          tier: 1,
+          message: `given.pinData names ${unknownPins.map((n) => `"${n}"`).join(', ')}, not in ${suite.workflow}`,
+          assertions: [],
+        });
+        continue;
+      }
+      const standIns = { ...substitutes, ...pinData };
+
       const trigger = resolveTrigger(nodes, named);
       if (trigger === undefined) {
         outcomes.push({
@@ -209,11 +238,11 @@ export async function runTier1(options: RunOptions): Promise<RunReport> {
           workflow: workflow as EngineInput['workflow'],
           trigger,
           payload: asItemJson(payload, trigger, nodes),
-          // A recorded capture lets the walk carry on past a node it cannot
-          // run, so one HTTP call in the middle costs that node rather than
-          // everything after it. Absent, the walk stops at the boundary as
-          // before.
-          ...(Object.keys(substitutes).length > 0 ? { substitutes } : {}),
+          // A recorded capture or a case's pinData lets the walk carry on past
+          // a node it cannot run, so one HTTP call in the middle costs that
+          // node rather than everything after it. Absent, the walk stops at
+          // the boundary as before.
+          ...(Object.keys(standIns).length > 0 ? { substitutes: standIns } : {}),
           // The worker loads its own descriptions, so it must be told the
           // same version the host just reported — otherwise a case would
           // run against descriptions the report does not name.

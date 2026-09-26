@@ -59,7 +59,7 @@ A removed field is the one to look at first. Whatever reads it later in the work
 
 ## Running past nodes that cannot run offline
 
-An HTTP Request node cannot run offline, so a test normally stops there. With a capture, workflow-tester uses that node's recorded shape and carries on. The report says how many nodes were stood in for, for example `stood in for 1 node from a recorded capture`.
+An HTTP Request node cannot run offline, so a test normally stops there. With a capture, workflow-tester uses that node's recorded shape and carries on. The report says how many nodes were stood in for, for example `stood in for 1 node from pinData or a recorded capture`.
 
 ## Keeping captures up to date
 

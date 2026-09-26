@@ -27,6 +27,7 @@ cases:
 | `title` | Optional. Shown in the report |
 | `when.trigger` | `webhook` or `manual`, or `{ node: <Trigger node name> }` to start from a named trigger |
 | `when.payload` | The request body. workflow-tester wraps it the way a Webhook node delivers it, so `$json.body.…` works as it does in n8n |
+| `given.pinData` | Items a node is taken to have produced, so the run carries on past a node that calls out. See below |
 | `then` | What you expect. See below |
 
 A file with one case can put `when` and `then` at the top level and leave out `cases`.
@@ -51,6 +52,39 @@ n8n turns an expression error into `undefined` and reports nothing.
 ```
 
 When `profile` is missing, reading `.first_name` from it throws. n8n swallows the whole expression, the `??` fallback included. Optional chaining (`?.`) avoids the throw, so the fallback runs.
+
+## Nodes that call out
+
+An HTTP Request node, a credentialed node or a Code node that calls out stops the run: its output is only knowable by running it for real. `given.pinData` supplies that output, the way pinning does in the n8n editor, so everything after the node is still checked.
+
+```yaml
+workflow: ../../workflows/enrich.json
+given:
+  pinData:
+    Fetch Plan:
+      - json: { plan: pro, seats: 5 }
+cases:
+  - id: pro-plan
+    when:
+      trigger: webhook
+      payload: { customer: c_1 }
+    then:
+      node.Route.output[0].json.tier: paid
+  - id: free-plan
+    given:
+      pinData:
+        Fetch Plan:
+          - json: { plan: free, seats: 1 }
+    when:
+      trigger: webhook
+      payload: { customer: c_2 }
+    then:
+      node.Route.output[0].json.tier: free
+```
+
+Keys are node names; values are the items the node produced, in n8n's `{ json: … }` form. A file-level `given` applies to every case, and a case's own pins win. The report lists the nodes that were stood in for. A `capture` of a real execution supplies the same thing for every case without writing it out.
+
+`given.snapshot`, `packs`, `seed` and `faults` describe a mock and are refused until that support lands.
 
 ## Code nodes
 

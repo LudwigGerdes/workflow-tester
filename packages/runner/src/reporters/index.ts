@@ -79,7 +79,7 @@ function stylish(report: RunReport): string {
   const stood = [...new Set(report.outcomes.flatMap((o) => o.substituted ?? []))].sort();
   if (stood.length > 0) {
     lines.push(
-      `stood in for ${stood.length} node${stood.length === 1 ? '' : 's'} from a recorded capture: ${stood.join(', ')}`,
+      `stood in for ${stood.length} node${stood.length === 1 ? '' : 's'} from pinData or a recorded capture: ${stood.join(', ')}`,
     );
     lines.push('  their own behaviour is unverified; what reads them downstream is not');
   }

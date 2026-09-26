@@ -68,16 +68,18 @@
       "type": "object",
       "properties": {
         "snapshot": {
-          "type": "string"
+          "type": "string",
+          "description": "Not supported in this version: a file that sets it is refused at load."
         },
         "packs": {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "description": "Not supported in this version: a file that sets it is refused at load."
         },
         "seed": {
-          "description": "Per-service collections for the generic resource store.",
+          "description": "Per-service collections for the generic resource store. Not supported in this version: a file that sets it is refused at load.",
           "type": "object",
           "additionalProperties": {
             "type": "object"
@@ -87,10 +89,11 @@
           "type": "object",
           "additionalProperties": {
             "$ref": "#/$defs/faultSpec"
-          }
+          },
+          "description": "Not supported in this version: a file that sets it is refused at load."
         },
         "pinData": {
-          "description": "Items pinned per node (n8n's INodeExecutionData[]), so a case can start from recorded boundary items.",
+          "description": "Items a node is taken to have produced, per node name (n8n's INodeExecutionData[]), so the walk carries on past a node the engine cannot run, such as an HTTP Request. A file-level given applies to every case; a case's own pins win.",
           "type": "object",
           "additionalProperties": {
             "type": "array",

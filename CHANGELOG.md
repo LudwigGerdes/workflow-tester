@@ -8,7 +8,12 @@ All notable changes to workflow-tester are recorded here. The format follows
 
 ### Added
 
+- `given.pinData` is honoured: items pinned per node stand in for a node the engine cannot run (an HTTP Request, a credentialed node, a Code node that calls out), so the walk carries on past it. A file-level `given` applies to every case; a case's own pins win. A pin naming a node the workflow does not have fails the case.
 - `source.kind: schema`: a contract can point at a JSON Schema file of your own (`contracts add --schema <file> [--examples <path>] [--name <n>]`), so `gen` works for any webhook, not only the GitHub and Stripe catalogues. Examples are a directory of `.json` files or one file holding a list, each validated against the schema before it is kept. The schema is copied into the shape and its digest is the contract's version.
+
+### Changed
+
+- `given.snapshot`, `packs`, `seed` and `faults` are refused at load with the line number. They validated before but nothing read them, so a case declaring a fault passed for the wrong reason.
 
 ## 0.2.0 — 2026-09-21
 

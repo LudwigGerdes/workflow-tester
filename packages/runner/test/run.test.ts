@@ -283,3 +283,97 @@ describe('reporters', () => {
     expect(text).toContain('::error file=workflows/invoice.json,title=a failing case::');
   });
 });
+
+describe('given.pinData', () => {
+  /** Boundary flow extended: Call API → Use (reads the call's output). */
+  const pastBoundary = {
+    ...withBoundary,
+    nodes: [
+      ...withBoundary.nodes,
+      {
+        parameters: {
+          mode: 'manual', includeOtherFields: false,
+          assignments: { assignments: [{ id: 'u', name: 'plan', value: '={{ $json.plan }}', type: 'string' }] },
+          options: {},
+        },
+        id: 'n5', name: 'Use', type: 'n8n-nodes-base.set', typeVersion: 3.4, position: [660, 0],
+      },
+    ],
+    connections: {
+      ...withBoundary.connections,
+      'Call API': { main: [[{ node: 'Use', type: 'main', index: 0 }]] },
+    },
+  };
+
+  it('stands in for a boundary node so the walk carries on past it', async () => {
+    setup(pastBoundary);
+    writeSuite(`workflow: ../../workflows/invoice.json
+cases:
+  - id: pinned
+    given:
+      pinData:
+        Call API:
+          - json: { plan: pro }
+    when:
+      trigger: webhook
+      payload:
+        body:
+          record:
+            name: 9
+    then:
+      execution.status: success
+      node.Use.output[0].json.plan: pro
+`);
+    const report = await run();
+    expect(report.summary.pass).toBe(1);
+    expect(report.summary.needsExecution).toBe(0);
+    expect(report.outcomes[0]?.substituted).toEqual(['Call API']);
+  });
+
+  it('a file-level given applies to every case, and a case may pin more', async () => {
+    setup(pastBoundary);
+    writeSuite(`workflow: ../../workflows/invoice.json
+given:
+  pinData:
+    Call API:
+      - json: { plan: free }
+cases:
+  - id: file-level
+    when:
+      trigger: webhook
+      payload: { body: { record: { name: 9 } } }
+    then:
+      node.Use.output[0].json.plan: free
+  - id: case-level
+    given:
+      pinData:
+        Call API:
+          - json: { plan: pro }
+    when:
+      trigger: webhook
+      payload: { body: { record: { name: 9 } } }
+    then:
+      node.Use.output[0].json.plan: pro
+`);
+    const report = await run();
+    expect(report.summary.pass).toBe(2);
+  });
+
+  it('fails a case whose pinData names a node the workflow does not have', async () => {
+    setup(pastBoundary);
+    writeSuite(`workflow: ../../workflows/invoice.json
+cases:
+  - id: typo
+    given:
+      pinData:
+        Call APIs:
+          - json: { plan: pro }
+    when:
+      trigger: webhook
+      payload: { body: { record: { name: 9 } } }
+`);
+    const report = await run();
+    expect(report.summary.fail).toBe(1);
+    expect(report.outcomes[0]?.message).toMatch(/pinData.*"Call APIs".*not in/s);
+  });
+});

@@ -274,10 +274,13 @@ export function evaluateThen(
   const status = worst(assertions.map((assertion) => assertion.status));
   const failure = status === 'fail' ? result.failures[0] : undefined;
 
+  // A case with expectations rested on the same stand-ins as one without;
+  // the report has to say so either way.
   return {
     caseId,
     status,
     tier: 1,
+    ...(result.substituted.length > 0 ? { substituted: result.substituted } : {}),
     ...(failure === undefined ? {} : { node: failure.node, parameter: failure.parameter }),
     ...(failure?.resolvedPath === undefined ? {} : { resolvedPath: failure.resolvedPath }),
     message:
