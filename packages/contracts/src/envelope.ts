@@ -21,8 +21,8 @@ export interface EnvelopeOptions {
  *
  * Signature values are fixed placeholders, never real signatures: workflow-tester has no
  * webhook secret and signing one would be meaningless. A workflow that verifies
- * a signature is therefore a tier-2 concern — the mock has to stand in for the
- * verifying call. What matters at tier 1 is that the *shape* is right, so
+ * a signature is therefore a live-run concern — the mock has to stand in for the
+ * verifying call. What matters offline is that the *shape* is right, so
  * `$json.headers['x-github-event']` resolves as it would in production.
  */
 const VENDOR_HEADERS: Record<string, (event?: string) => Record<string, string>> = {

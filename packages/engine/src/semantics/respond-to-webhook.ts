@@ -38,7 +38,7 @@ export const respondToWebhookSemantics: Semantics = (ctx, input) => {
     throw new UnsupportedModeError(ctx.node.name, `${ctx.node.name} responds with a JWT, which needs a credential`);
   }
   if (respondWith === 'binary') {
-    throw new UnsupportedModeError(ctx.node.name, `${ctx.node.name} responds with binary data, which tier 1 does not carry`);
+    throw new UnsupportedModeError(ctx.node.name, `${ctx.node.name} responds with binary data, which the offline walk does not carry`);
   }
 
   const passed: INodeExecutionData[] = input.map((item, index) => ({ ...item, pairedItem: { item: index } }));

@@ -4,6 +4,7 @@ export * from './assert.js';
 export * from './oracle.js';
 export * from './pool.js';
 export * from './run.js';
+export * from './live.js';
 export * from './reporters/index.js';
 export {
   applyStructure,

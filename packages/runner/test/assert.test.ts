@@ -13,7 +13,7 @@ describe('evaluatePath', () => {
   });
 });
 
-/** A tier-1 result with the given overrides. */
+/** A offline result with the given overrides. */
 const result = (overrides: Partial<EngineResult> = {}): EngineResult => ({
   status: 'pass',
   reachedNodes: ['Webhook', 'Extract'],

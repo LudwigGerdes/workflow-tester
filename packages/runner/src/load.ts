@@ -44,12 +44,9 @@ export function testSchema(): Record<string, unknown> & { $id?: string; required
 
 const validate = new Ajv({ strict: false, allErrors: true }).compile(testSchema());
 
-/** `given` keys the schema describes for tier 2 that no engine here honours yet. */
-const UNSUPPORTED_GIVEN = ['snapshot', 'packs', 'seed', 'faults'] as const;
-
 /**
  * Validate a suite object against the published schema, returning what is wrong
- * with it. Used by the tier-2 compiler on its own output: a suite that fails the
+ * with it. Used by the live-run compiler on its own output: a suite that fails the
  * owner's schema is a bug, not something to hand over.
  */
 export function validateSuiteObject(value: unknown): string[] {
@@ -139,28 +136,6 @@ async function readSuite(file: string): Promise<Suite | undefined> {
   const raw = value as Record<string, unknown>;
   const fileGiven = (raw.given ?? {}) as Record<string, unknown>;
 
-  // These keys describe a mock the tier-1 engine does not have. A case that
-  // declares a fault and expects the workflow to cope would pass for the
-  // wrong reason if the key were ignored, so the file is refused instead.
-  const unsupported: SuiteIssue[] = [];
-  const checkGiven = (given: unknown, path: Array<string | number>): void => {
-    if (given === null || typeof given !== 'object') return;
-    for (const key of UNSUPPORTED_GIVEN) {
-      if (!(key in given)) continue;
-      unsupported.push({
-        path: `/${[...path, 'given', key].join('/')}`,
-        message: `given.${key} is not supported in this version; the case would run as if it were absent. Remove it, or pin the node's items with given.pinData`,
-        ...locate(doc, lines, [...path, 'given', key]),
-      });
-    }
-  };
-  checkGiven(raw.given, []);
-  if (Array.isArray(raw.cases)) {
-    raw.cases.forEach((entry: unknown, index) => {
-      if (entry !== null && typeof entry === 'object') checkGiven((entry as { given?: unknown }).given, ['cases', index]);
-    });
-  }
-  if (unsupported.length > 0) throw new SuiteError(file, unsupported);
 
   // The single-case form carries `when` at the top level and no `cases`.
   const declared = Array.isArray(raw.cases)
@@ -225,7 +200,7 @@ export interface LoadOptions {
 /**
  * Wrap a directory of generated cases as a suite.
  *
- * Phase 4 writes real `.test.yaml` files for tier 2; until then the runner reads
+ * Phase 4 writes real `.test.yaml` files for live runs; until then the runner reads
  * `.workflow-tester/cases` directly, so generated and hand-written cases go through one
  * code path from the start.
  */

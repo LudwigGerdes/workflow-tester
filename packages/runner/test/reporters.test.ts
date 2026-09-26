@@ -15,12 +15,12 @@ const report: RunReport = {
   outcomes: [
     {
       caseId: 'fails', title: 'a failing case', workflow: 'workflows/invoice.json',
-      status: 'fail', tier: 1, node: 'Check', parameter: 'conditions',
+      status: 'fail', mode: 'offline', node: 'Check', parameter: 'conditions',
       message: 'condition undecidable', assertions: [], durationMs: 3,
     },
     {
       caseId: 'warns', title: 'a warning case', workflow: 'workflows/invoice.json',
-      status: 'warn', tier: 1, node: 'Somewhere Else',
+      status: 'warn', mode: 'offline', node: 'Somewhere Else',
       message: 'an assignment went missing', assertions: [], durationMs: 2,
     },
   ],
@@ -133,11 +133,11 @@ describe('JUnit', () => {
       ...report.outcomes,
       {
         caseId: 'passes', title: 'a passing case', workflow: 'workflows/signup.json',
-        status: 'pass', tier: 1, message: 'ok', assertions: [], durationMs: 4,
+        status: 'pass', mode: 'offline', message: 'ok', assertions: [], durationMs: 4,
       },
       {
         caseId: 'waits', title: 'a deferred case', workflow: 'workflows/signup.json',
-        status: 'needs-execution', tier: 1, message: 'verified up to Call API', assertions: [], durationMs: 1,
+        status: 'needs-execution', mode: 'offline', message: 'verified up to Call API', assertions: [], durationMs: 1,
       },
     ],
   };
@@ -165,7 +165,7 @@ describe('JUnit', () => {
     const bare: RunReport = {
       suites: 1,
       summary: { pass: 1, fail: 0, warn: 0, needsExecution: 0, durationMs: 0 },
-      outcomes: [{ caseId: 'x', workflow: 'w.json', status: 'pass', tier: 1, message: 'ok', assertions: [] }],
+      outcomes: [{ caseId: 'x', workflow: 'w.json', status: 'pass', mode: 'offline', message: 'ok', assertions: [] }],
     };
     const xml = await renderReport(bare, 'junit');
     expect(xml).toContain('<testcase name="x" classname="w.json" time="0.000"/>');
@@ -208,7 +208,7 @@ describe('stylish and structure findings', () => {
     outcomes: [
       {
         caseId: 'nested', title: 'pro user with nested profile', workflow: 'workflows/signup.json',
-        status: 'warn', tier: 1, message: 'every expectation held',
+        status: 'warn', mode: 'offline', message: 'every expectation held',
         assertions: [{ path: 'execution.status', status: 'pass', expected: 'success', actual: 'success' }],
         structure: [
           {

@@ -89,7 +89,7 @@ describe('classifyTerminus', () => {
 });
 
 describe('applyClassification', () => {
-  const clean: Outcome = { caseId: 'c1', status: 'pass', tier: 1, message: 'ok', assertions: [] };
+  const clean: Outcome = { caseId: 'c1', status: 'pass', mode: 'offline', message: 'ok', assertions: [] };
   const noShapes = { findings: [], unchecked: [] };
 
   it('keeps a happy ending with an intact contract green', () => {

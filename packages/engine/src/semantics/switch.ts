@@ -26,7 +26,7 @@ export const switchSemantics: Semantics = (ctx, input) => {
     if (params.mode === 'expression') {
       throw new UnsupportedModeError(
         ctx.node.name,
-        'Switch in expression mode computes its output per item; tier 2 runs it',
+        'Switch in expression mode computes its output per item; a live run does it',
       );
     }
 

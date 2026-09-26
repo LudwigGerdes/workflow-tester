@@ -17,7 +17,7 @@ export const renameKeysSemantics: Semantics = (ctx, input) => {
     const params = ctx.resolve(index);
     const additional = (params.additionalOptions ?? {}) as { regexReplacement?: unknown };
     if (additional.regexReplacement !== undefined) {
-      throw new UnsupportedModeError(ctx.node.name, 'Rename Keys by regex; tier 2 runs it');
+      throw new UnsupportedModeError(ctx.node.name, 'Rename Keys by regex; a live run does it');
     }
 
     const renames = ((params.keys ?? {}) as { key?: KeyRename[] }).key ?? [];

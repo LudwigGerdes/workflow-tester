@@ -15,7 +15,7 @@ export const removeDuplicatesSemantics: Semantics = (ctx, input) => {
   if (operation !== 'removeDuplicateInputItems') {
     throw new UnsupportedModeError(
       ctx.node.name,
-      `Remove Duplicates "${operation}" depends on stored history from previous executions; tier 2 runs it`,
+      `Remove Duplicates "${operation}" depends on stored history from previous executions; a live run does it`,
     );
   }
 

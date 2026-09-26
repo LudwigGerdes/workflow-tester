@@ -68,7 +68,7 @@ describe('capture then substitute, end to end', () => {
   it('stops at the HTTP node before anything is captured', async () => {
     await run(['run'], io());
     // Nothing past the call is verified yet: that is the state capture fixes.
-    expect(out.join('\n')).toMatch(/tier 2|boundary|needs/i);
+    expect(out.join('\n')).toMatch(/live|boundary|needs/i);
   });
 
   it('carries past it once a real execution is captured', async () => {

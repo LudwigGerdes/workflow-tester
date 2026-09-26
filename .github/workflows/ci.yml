@@ -43,7 +43,7 @@ jobs:
         working-directory: packages/cli
         run: node dist/bin.js gen --check
 
-      - name: Run tier 1
+      - name: Run offline
         working-directory: packages/cli
         run: node dist/bin.js run --format sarif > "$GITHUB_WORKSPACE/workflow-tester.sarif"
 

@@ -55,7 +55,7 @@ export interface Warning {
 
 /**
  * A path that ended at a node the engine does not interpret. Not an error: the
- * workflow is verified up to here, and `inputItems` is what tier 2 pins.
+ * workflow is verified up to here, and `inputItems` is what a live run pins.
  */
 export interface Boundary {
   node: string;
@@ -173,7 +173,7 @@ export class ImpureCallError extends Error {
  * Thrown by semantics that recognise the node but not the mode it is configured
  * in — Switch in expression mode, Merge combining by fields, Sort by code. The
  * walker turns this into a `boundary`, not a failure: the workflow is verified
- * up to here and the rest is tier 2's business.
+ * up to here and the rest is a live run's business.
  */
 export class UnsupportedModeError extends Error {
   constructor(

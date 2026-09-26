@@ -1,5 +1,5 @@
 /**
- * `workflow-tester-engine` — the tier-1 interpreter.
+ * `workflow-tester-engine` — the offline interpreter.
  *
  * Walks a workflow from its trigger, evaluating every parameter expression with
  * n8n's own engine and applying our semantics for the expression-pure node

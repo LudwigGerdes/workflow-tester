@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { renderReport } from '../src/reporters/index.js';
-import { runTier1 } from '../src/run.js';
+import { runOffline } from '../src/run.js';
 
 let dir: string;
 
@@ -69,9 +69,9 @@ beforeEach(() => {
   dir = mkdtempSync(join(tmpdir(), 'workflow-tester-run-'));
 });
 
-const run = (options = {}) => runTier1({ dir, sandbox: false, ...options });
+const run = (options = {}) => runOffline({ dir, sandbox: false, ...options });
 
-describe('runTier1', () => {
+describe('runOffline', () => {
   it('passes a case whose expressions all resolve', async () => {
     setup();
     writeSuite(`workflow: ../../workflows/invoice.json
@@ -205,7 +205,7 @@ cases:
           record:
             name: 9
 `);
-    const report = await runTier1({ dir });
+    const report = await runOffline({ dir });
     expect(report.summary.pass).toBe(1);
   }, 60_000);
 
@@ -228,16 +228,16 @@ describe('reporters', () => {
     suites: 1,
     summary: { pass: 1, fail: 1, warn: 0, needsExecution: 1, durationMs: 12 },
     outcomes: [
-      { caseId: 'aaa', title: 'a passing case', workflow: 'workflows/invoice.json', status: 'pass' as const, tier: 1 as const, message: 'ok', assertions: [] },
+      { caseId: 'aaa', title: 'a passing case', workflow: 'workflows/invoice.json', status: 'pass' as const, mode: 'offline' as const, message: 'ok', assertions: [] },
       {
         caseId: 'bbb', title: 'a failing case', workflow: 'workflows/invoice.json',
-        status: 'fail' as const, tier: 1 as const, node: 'Check', parameter: 'conditions',
+        status: 'fail' as const, mode: 'offline' as const, node: 'Check', parameter: 'conditions',
         resolvedPath: 'body.record.name → undefined', message: 'condition undecidable',
         assertions: [{ path: 'node.Check.items', status: 'fail' as const, expected: 1, actual: 0 }],
       },
       {
         caseId: 'ccc', title: 'a deferred case', workflow: 'workflows/invoice.json',
-        status: 'needs-execution' as const, tier: 1 as const, node: 'Call API', message: 'verified up to Call API',
+        status: 'needs-execution' as const, mode: 'offline' as const, node: 'Call API', message: 'verified up to Call API',
         assertions: [{ path: 'calls', status: 'needs-execution' as const, message: 'needs a real execution' }],
       },
     ],
@@ -258,7 +258,7 @@ describe('reporters', () => {
     expect(parsed.outcomes).toHaveLength(3);
   });
 
-  it('renders junit with needs-tier2 as skipped', async () => {
+  it('renders junit with needs-execution as skipped', async () => {
     const xml = await renderReport(report, 'junit');
     expect(xml).toContain('<testsuites name="workflow-tester"');
     expect(xml).toContain('<testsuite name="workflows/invoice.json"');
@@ -376,5 +376,29 @@ cases:
     const report = await run();
     expect(report.summary.fail).toBe(1);
     expect(report.outcomes[0]?.message).toMatch(/pinData.*"Call APIs".*not in/s);
+  });
+});
+
+describe('cases only a real run can judge', () => {
+  it('are reported as needing --live, naming the keys, and skipped when the caller runs live', async () => {
+    setup();
+    writeSuite(`workflow: ../../workflows/invoice.json
+cases:
+  - id: faulted
+    given:
+      faults:
+        acme: { status: 503 }
+    when:
+      trigger: webhook
+      payload: { body: { record: { name: 9 } } }
+    then:
+      noUnmatched: true
+`);
+    const report = await run();
+    expect(report.summary.needsExecution).toBe(1);
+    expect(report.outcomes[0]?.message).toMatch(/--live/);
+    expect(report.outcomes[0]?.message).toMatch(/given\.faults, then\.noUnmatched/);
+    const skipped = await runOffline({ dir, sandbox: false, liveCases: 'skip' });
+    expect(skipped.outcomes).toHaveLength(0);
   });
 });

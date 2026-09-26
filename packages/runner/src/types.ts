@@ -5,7 +5,7 @@
  * owner's fixture carries both the flat dotted form (`execution.status`,
  * `node.Slack.items`, `node.Fetch.output[0].json.id`) and a nested one, and a
  * loader that normalised either would no longer round-trip what it was given.
- * `calls` and `noUnmatched` are tier-2 only.
+ * `calls` and `noUnmatched` are live-run only.
  */
 export type Then = Record<string, unknown>;
 

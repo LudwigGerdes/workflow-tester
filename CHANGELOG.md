@@ -8,6 +8,7 @@ All notable changes to workflow-tester are recorded here. The format follows
 
 ### Added
 
+- `run --live` runs the cases only a real run can judge on your n8n instance against integration-mock: `given.packs` and `given.faults` are applied through the mock's admin API, the case runs as a throwaway copy of the workflow (created, published, fired through its webhook, read, deleted), and `then.calls`, `then.noUnmatched`, `execution.*` and `node.*` are judged against the execution n8n recorded and the calls the mock served. Outcomes carry `mode: 'live'` and the execution id. `--mock <url>` / `INTEGRATION_MOCK_ADMIN` name the admin port. `given.snapshot` and `given.seed` are not supported yet.
 - Tests are found at any depth under `.workflow-tester/tests/` (dot directories and `node_modules` skipped), and `testsDirs` in `.workflow-tester/config.yaml` names other directories to read them from, such as `workflows` for tests kept beside their workflow.
 - Reports carry timings and identity. JUnit: one `<testsuite>` per workflow with counts and `time`, `time` per case, and properties naming the workflow-tester version and the node descriptions used. SARIF: the real tool version, a rule entry per result kind with a help link, node-level locations (logical location and the line the workflow names the node on), `partialFingerprints` per case, an invocation with start and end times. The JSON report and `last.json` carry `startedAt` and per-outcome `durationMs`.
 - Captures record their provenance: tool version, source (export file, or the instance's base URL — never the key), execution id and status, and the workflow's id, name and `versionId`. Older captures without these fields still read.
@@ -16,7 +17,7 @@ All notable changes to workflow-tester are recorded here. The format follows
 
 ### Changed
 
-- `given.snapshot`, `packs`, `seed` and `faults` are refused at load with the line number. They validated before but nothing read them, so a case declaring a fault passed for the wrong reason.
+- A case with `given.packs`, `given.faults`, `then.calls` or `then.noUnmatched` is reported offline as needing a real run, naming the keys and `--live`. It validated before but nothing read it, so a case declaring a fault passed for the wrong reason.
 
 ## 0.2.0 — 2026-09-21
 
@@ -86,7 +87,7 @@ Initial public release.
   produced here`, with the node and parameter) under its case, and names the
   boundary node when `execution.status` cannot be judged. Both used to be
   visible only in `--format json`.
-- The `init` scaffold no longer says "needs tier 2".
+- The `init` scaffold no longer says "needs a live run".
 
 ### Added
 

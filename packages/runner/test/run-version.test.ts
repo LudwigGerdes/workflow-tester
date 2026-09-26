@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { runTier1 } from '../src/run.js';
+import { runOffline } from '../src/run.js';
 
 /** A repo with one workflow and one case. */
 function repo(): string {
@@ -34,7 +34,7 @@ function repo(): string {
 
 describe('the version a run uses', () => {
   it('reports the bundled floor when nothing is pinned', async () => {
-    const report = await runTier1({ dir: repo(), sandbox: false });
+    const report = await runOffline({ dir: repo(), sandbox: false });
     expect(report.nodeTypes?.exact).toBe(true);
     expect(report.nodeTypes?.version).toBe('2.10.0');
   });
@@ -42,7 +42,7 @@ describe('the version a run uses', () => {
   it('honours a pinned version, and says the match is not exact', async () => {
     // Nothing is extracted for 9.9.9, so the floor stands in — and the report
     // has to say so, or the degraded finding is invisible.
-    const report = await runTier1({ dir: repo(), sandbox: false, n8nVersion: '9.9.9' });
+    const report = await runOffline({ dir: repo(), sandbox: false, n8nVersion: '9.9.9' });
     expect(report.nodeTypes?.exact).toBe(false);
     expect(report.nodeTypes?.note).toMatch(/9\.9\.9/);
   });

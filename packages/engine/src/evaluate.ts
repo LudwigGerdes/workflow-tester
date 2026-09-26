@@ -14,7 +14,7 @@ import { nodeType, predecessors } from './workflow.js';
 
 /**
  * Inert stand-ins for the execution-scoped values n8n injects. Filled with
- * harmless constants: tier 1 verifies expression *shape*, and anything that
+ * harmless constants: the offline walk verifies expression *shape*, and anything that
  * genuinely depends on a live execution belongs past a boundary.
  */
 const ADDITIONAL_KEYS: IWorkflowDataProxyAdditionalKeys = {

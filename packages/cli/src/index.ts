@@ -34,7 +34,7 @@ const USAGE: Record<string, string> = {
 
   run: `  workflow-tester run [<workflow.json>] [--only generated|tests] [--format <f>]
                        [--fail-on warn] [--concurrency N]
-      Run every case through the tier-1 engine. --format is stylish
+      Run every case through the offline engine. --format is stylish
       (default), json, junit, sarif or github-actions.`,
 
   explain: `  workflow-tester explain <caseId>

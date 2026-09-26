@@ -20,9 +20,9 @@ function compare(a: unknown, b: unknown): number {
 /**
  * Sort v1 in `simple` mode.
  *
- * `random` is a boundary because it is not a function of its input — a tier-1
+ * `random` is a boundary because it is not a function of its input — an offline
  * result would differ from the run it claims to predict. `code` runs arbitrary
- * JavaScript, which is tier 2's business.
+ * JavaScript, which is a live run's business.
  */
 export const sortSemantics: Semantics = (ctx, input) => {
   const params = ctx.resolve(0);
@@ -31,8 +31,8 @@ export const sortSemantics: Semantics = (ctx, input) => {
     throw new UnsupportedModeError(
       ctx.node.name,
       type === 'random'
-        ? 'Sort in random order is not a function of its input; tier 2 runs it'
-        : 'Sort by code runs JavaScript; tier 2 runs it',
+        ? 'Sort in random order is not a function of its input; a live run does it'
+        : 'Sort by code runs JavaScript; a live run does it',
     );
   }
 

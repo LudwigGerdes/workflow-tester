@@ -6,6 +6,7 @@ import { dirname, relative, resolve } from 'node:path';
 import { runInSandbox, walk, loadNodeTypes, type EngineInput, type EngineResult } from 'workflow-tester-engine';
 import { wrapWebhook, substitutesFor, readCapture, outcomesFor } from 'workflow-tester-contracts';
 import { loadSuites } from './load.js';
+import { mockGivenOf, needsLive } from './live.js';
 import { evaluateThen, type Outcome } from './oracle.js';
 import { applyStructure, checkStructure } from './structure-check.js';
 import { caseFromCapture } from './capture-case.js';
@@ -19,6 +20,12 @@ export interface RunOptions {
   dir: string;
   /** Where hand-written tests live, relative to `dir`. Default `.workflow-tester/tests`. */
   testsDirs?: string[];
+  /**
+   * What to do with a case only a real run can judge (mock-only `given`,
+   * `then.calls`, `noUnmatched`): report it as needs-execution naming
+   * `--live`, or leave it out because the caller runs it at live.
+   */
+  liveCases?: 'report' | 'skip';
   /** Narrow to generated cases or hand-written tests. */
   only?: 'generated' | 'tests';
   /** Only suites whose workflow file name matches. */
@@ -79,7 +86,7 @@ const isRecord = (v: unknown): v is Record<string, unknown> =>
  * Resolve what a case's `trigger` refers to: a node by name, a kind such as
  * `webhook`, or — when it says nothing — the workflow's only trigger.
  */
-function resolveTrigger(nodes: WorkflowNode[], requested: string | undefined): string | undefined {
+export function resolveTrigger(nodes: WorkflowNode[], requested: string | undefined): string | undefined {
   if (requested !== undefined) {
     const named = nodes.find((node) => node.name === requested);
     if (named !== undefined) return named.name;
@@ -125,8 +132,8 @@ function pinDataOf(given: Record<string, unknown> | undefined): Record<string, I
   return out;
 }
 
-/** Run every case in a repo through the tier-1 engine. */
-export async function runTier1(options: RunOptions): Promise<RunReport> {
+/** Run every case in a repo through the offline engine. */
+export async function runOffline(options: RunOptions): Promise<RunReport> {
   const started = performance.now();
   const startedAt = new Date().toISOString();
   const { generated, tests, captured } = await loadSuites(options.dir, {
@@ -174,7 +181,7 @@ export async function runTier1(options: RunOptions): Promise<RunReport> {
           caseId: entry.id,
           workflow: suite.workflow,
           status: 'fail',
-          tier: 1,
+          mode: 'offline',
           message: `workflow not found: ${suite.workflow} (from ${suite.file})`,
           assertions: [],
         });
@@ -195,6 +202,23 @@ export async function runTier1(options: RunOptions): Promise<RunReport> {
     const shownAs = relative(options.dir, workflowFile);
 
     for (const entry of suite.cases) {
+      if (needsLive(entry)) {
+        if (options.liveCases === 'skip') continue;
+        const why = [
+          ...Object.keys(mockGivenOf(entry.given) ?? {}).map((k) => `given.${k}`),
+          ...['calls', 'noUnmatched'].filter((k) => entry.then?.[k] !== undefined).map((k) => `then.${k}`),
+        ];
+        outcomes.push({
+          caseId: entry.id,
+          workflow: shownAs,
+          ...(entry.title === undefined ? {} : { title: entry.title }),
+          status: 'needs-execution',
+          mode: 'offline',
+          message: `needs a real run against the mock (${why.join(', ')}): workflow-tester run --live`,
+          assertions: [],
+        });
+        continue;
+      }
       // A trigger is named directly (`trigger: webhook`) or given as an object
       // carrying its own payload (`trigger: { node: Webhook, payload: … }`).
       const declared = entry.when.trigger;
@@ -212,7 +236,7 @@ export async function runTier1(options: RunOptions): Promise<RunReport> {
           caseId: entry.id,
           workflow: shownAs,
           status: 'fail',
-          tier: 1,
+          mode: 'offline',
           message: `given.pinData names ${unknownPins.map((n) => `"${n}"`).join(', ')}, not in ${suite.workflow}`,
           assertions: [],
         });
@@ -226,7 +250,7 @@ export async function runTier1(options: RunOptions): Promise<RunReport> {
           caseId: entry.id,
           workflow: shownAs,
           status: 'fail',
-          tier: 1,
+          mode: 'offline',
           message:
             named === undefined
               ? 'this workflow has no single trigger; name one in `when.trigger`'
@@ -317,7 +341,7 @@ export async function runTier1(options: RunOptions): Promise<RunReport> {
         caseId: job.entry.id,
         workflow: job.shownAs,
         status: 'fail',
-        tier: 1,
+        mode: 'offline',
         message: `${result.status}: ${(result as { message: string }).message}`,
         assertions: [],
         durationMs,

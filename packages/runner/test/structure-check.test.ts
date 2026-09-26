@@ -72,7 +72,7 @@ describe('applyStructure', () => {
   const base: Outcome = {
     caseId: 'c1',
     status: 'pass',
-    tier: 1,
+    mode: 'offline',
     message: 'ok',
     assertions: [],
   };

@@ -33,7 +33,7 @@ function deepMerge(earlier: IDataObject, later: IDataObject): IDataObject {
  * `append`, `combine` by position, and `chooseBranch`. Combining by matching
  * fields or by SQL is a boundary — the outcome depends on data relationships
  * the engine would have to guess at, and a plausible-looking wrong answer is
- * worse than an honest "tier 2 runs this".
+ * worse than an honest "a live run does this".
  */
 export const mergeSemantics: Semantics = (ctx, _input) => {
   const params = ctx.resolve(0);
@@ -66,7 +66,7 @@ export const mergeSemantics: Semantics = (ctx, _input) => {
     if (combineBy !== 'combineByPosition') {
       throw new UnsupportedModeError(
         ctx.node.name,
-        `Merge combining by ${combineBy === 'combineAll' ? 'all combinations' : 'matching fields'} depends on data relationships; tier 2 runs it`,
+        `Merge combining by ${combineBy === 'combineAll' ? 'all combinations' : 'matching fields'} depends on data relationships; a live run does it`,
       );
     }
 
@@ -77,7 +77,7 @@ export const mergeSemantics: Semantics = (ctx, _input) => {
     if (resolveClash === 'addSuffix') {
       throw new UnsupportedModeError(
         ctx.node.name,
-        'Merge with addSuffix clash handling renames clashing keys; tier 2 runs it',
+        'Merge with addSuffix clash handling renames clashing keys; a live run does it',
       );
     }
 
@@ -108,5 +108,5 @@ export const mergeSemantics: Semantics = (ctx, _input) => {
     return { outputs: [merged] };
   }
 
-  throw new UnsupportedModeError(ctx.node.name, `Merge in ${mode} mode; tier 2 runs it`);
+  throw new UnsupportedModeError(ctx.node.name, `Merge in ${mode} mode; a live run does it`);
 };

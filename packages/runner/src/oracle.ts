@@ -18,7 +18,7 @@ export interface Outcome {
   workflow?: string;
   title?: string;
   /**
-   * Where tier 1 stopped, and what it had computed by then. A real run can be
+   * Where the offline walk stopped, and what it had computed by then. A real run can be
    * pinned to that node with these items, so it skips the prefix the engine
    * already verified.
    */
@@ -29,7 +29,10 @@ export interface Outcome {
    */
   substituted?: string[];
   status: OutcomeStatus;
-  tier: 1;
+  /** 1: walked offline by the engine. 2: run on an instance against the mock. */
+  mode: 'offline' | 'live';
+  /** Live runs only: the execution n8n recorded. */
+  executionId?: string;
   node?: string;
   parameter?: string;
   expression?: string;
@@ -74,7 +77,7 @@ export function oracle(result: EngineResult, caseId = ''): Outcome {
     return {
       caseId,
       status: 'fail',
-      tier: 1,
+      mode: 'offline',
       node: failure.node,
       parameter: failure.parameter,
       ...(failure.expression === undefined ? {} : { expression: failure.expression }),
@@ -89,7 +92,7 @@ export function oracle(result: EngineResult, caseId = ''): Outcome {
     return {
       caseId,
       status: 'needs-execution',
-      tier: 1,
+      mode: 'offline',
       node: boundary.node,
       message: `verified up to ${boundary.node} (${boundary.type}); running past it needs a real execution`,
       assertions: [],
@@ -101,7 +104,7 @@ export function oracle(result: EngineResult, caseId = ''): Outcome {
     return {
       caseId,
       status: 'warn',
-      tier: 1,
+      mode: 'offline',
       node: warning.node,
       ...(warning.parameter === undefined ? {} : { parameter: warning.parameter }),
       message: warning.message,
@@ -112,7 +115,7 @@ export function oracle(result: EngineResult, caseId = ''): Outcome {
   return {
     caseId,
     status: 'pass',
-    tier: 1,
+    mode: 'offline',
     message: 'every expression resolved',
     assertions: [],
     ...stood,
@@ -120,7 +123,7 @@ export function oracle(result: EngineResult, caseId = ''): Outcome {
 }
 
 /**
- * Evaluate a case's declared expectations against a tier-1 result.
+ * Evaluate a case's declared expectations against a offline result.
  *
  * Keys are a flat dotted form — `execution.status`,
  * `node.Slack.items`, `node.Fetch.output[0].json.id` — with the nested
@@ -180,7 +183,7 @@ export function evaluateThen(
         expected: raw,
         message: result.reachedNodes.includes(node)
           ? `${node} is past a boundary`
-          : `${node} was not reached at tier 1`,
+          : `${node} was not reached offline`,
       });
       return;
     }
@@ -242,7 +245,7 @@ export function evaluateThen(
           path: key,
           status: 'needs-execution',
           expected: raw,
-          message: 'this execution expectation is not one tier 1 can evaluate',
+          message: 'this execution expectation is not one the offline walk can evaluate',
         });
       }
       continue;
@@ -269,7 +272,7 @@ export function evaluateThen(
       path: key,
       status: 'needs-execution',
       expected: raw,
-      message: `tier 1 does not know how to evaluate "${key}"`,
+      message: `the offline walk does not know how to evaluate "${key}"`,
     });
   }
 
@@ -281,7 +284,7 @@ export function evaluateThen(
   return {
     caseId,
     status,
-    tier: 1,
+    mode: 'offline',
     ...(result.substituted.length > 0 ? { substituted: result.substituted } : {}),
     ...(failure === undefined ? {} : { node: failure.node, parameter: failure.parameter }),
     ...(failure?.resolvedPath === undefined ? {} : { resolvedPath: failure.resolvedPath }),

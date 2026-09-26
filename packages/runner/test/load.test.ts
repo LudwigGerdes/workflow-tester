@@ -81,9 +81,9 @@ instance: dev
     await expect(loadSuites(dir)).rejects.toBeInstanceOf(SuiteError);
   });
 
-  it('accepts tier-2 assertions without running them', async () => {
+  it('accepts live-run assertions without running them', async () => {
     writeTest(
-      'tier2.test.yaml',
+      'live.test.yaml',
       `workflow: ../../workflows/invoice.json
 cases:
   - id: calls
@@ -158,14 +158,9 @@ describe('discovery', () => {
 });
 
 describe('given keys that need a mock', () => {
-  it('are refused at load, naming the key, rather than silently ignored', async () => {
-    writeTest(
-      'faults.test.yaml',
-      `${VALID}given:\n  faults:\n    stripe: { status: 503 }\n`,
-    );
-    const error = await loadSuites(dir).catch((e: unknown) => e as SuiteError);
-    expect(error).toBeInstanceOf(SuiteError);
-    expect((error as SuiteError).issues[0]?.message).toMatch(/given\.faults.*not supported/s);
-    expect((error as SuiteError).issues[0]?.line).toBeGreaterThan(0);
+  it('load fine; the run reports them as needing --live', async () => {
+    writeTest('faults.test.yaml', `${VALID}given:\n  faults:\n    stripe: { status: 503 }\n`);
+    const { tests } = await loadSuites(dir);
+    expect(tests[0]?.cases[0]?.given).toEqual({ faults: { stripe: { status: 503 } } });
   });
 });

@@ -1,23 +1,38 @@
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import {
   FORMATS,
   loadSuites,
+  needsLive,
   renderReport,
-  runTier1,
+  resolveTrigger,
+  runOffline,
+  runLive,
   testSchema,
+  type Outcome,
   type ReportFormat,
   type RunReport,
+  type LiveJob,
 } from 'workflow-tester-runner';
+import { createMockAdmin, createWorkflowRunner, type MockAdmin, type WorkflowRunner } from 'workflow-tester-instance';
 import { stringify } from 'yaml';
 import { EXIT, parseArgs, type Io } from '../io.js';
 import { configPath, readConfig } from '../config.js';
+import { instanceConfig } from '../instance-config.js';
 import { VERSION } from '../version.js';
 
 const REPORT_PATH = join('.workflow-tester', 'reports', 'last.json');
 
-export async function runCommand(argv: string[], io: Io): Promise<number> {
+/** The clients a live run talks to; injectable so the command is testable without a network. */
+export interface RunDeps {
+  mock?: MockAdmin;
+  runner?: WorkflowRunner;
+}
+
+const DEFAULT_MOCK_ADMIN = 'http://127.0.0.1:8081';
+
+export async function runCommand(argv: string[], io: Io, deps: RunDeps = {}): Promise<number> {
   const { positional, flags } = parseArgs(argv);
 
   const format = (typeof flags.format === 'string' ? flags.format : 'stylish') as ReportFormat;
@@ -61,18 +76,40 @@ export async function runCommand(argv: string[], io: Io): Promise<number> {
     }
   }
 
+  // A live run needs an instance to run on and a mock to run against. Both are
+  // resolved before anything runs, so a missing key fails the command, not
+  // the fifth case.
+  const live = flags['live'] === true;
+  let liveDeps: { mock: MockAdmin; runner: WorkflowRunner } | undefined;
+  if (live) {
+    const config = instanceConfig(io, flags);
+    if ('error' in config) {
+      io.err(`${config.error} (--live runs cases on your instance)`);
+      return EXIT.usage;
+    }
+    const mockUrl = typeof flags['mock'] === 'string' ? flags['mock'] : (io.env?.['INTEGRATION_MOCK_ADMIN'] ?? DEFAULT_MOCK_ADMIN);
+    const token = io.env?.['INTEGRATION_MOCK_ADMIN_TOKEN'];
+    liveDeps = {
+      mock: deps.mock ?? createMockAdmin({ url: mockUrl, ...(token === undefined ? {} : { token }) }),
+      runner: deps.runner ?? createWorkflowRunner(config),
+    };
+  }
+
   // The repository says which n8n release its workflows run on; absent, the
   // bundled descriptions are used and the report says so.
   const { n8nVersion, testsDirs } = readConfig(io);
 
-  const report = await runTier1({
+  const offline = await runOffline({
     dir: io.cwd,
     ...(testsDirs === undefined ? {} : { testsDirs }),
     ...(only === undefined ? {} : { only }),
     ...(positional[0] === undefined ? {} : { workflow: positional[0] }),
     ...(concurrency === undefined ? {} : { concurrency }),
     ...(n8nVersion === undefined ? {} : { n8nVersion }),
+    ...(live ? { liveCases: 'skip' as const } : {}),
   });
+
+  const report = liveDeps === undefined ? offline : await withLive(offline, liveDeps, io, { testsDirs, workflow: positional[0] });
 
   // `root` is the repo the run was invoked against, which is what the workflow
   // paths in the report are relative to — not necessarily process.cwd().
@@ -85,6 +122,55 @@ export async function runCommand(argv: string[], io: Io): Promise<number> {
   if (report.summary.fail > 0) return EXIT.findings;
   if (failOn !== 'error' && report.summary.warn > 0) return EXIT.findings;
   return EXIT.ok;
+}
+
+/** Run the cases the offline walk left out on the instance against the mock, and fold them into the report. */
+async function withLive(
+  offline: RunReport,
+  deps: { mock: MockAdmin; runner: WorkflowRunner },
+  io: Io,
+  filter: { testsDirs?: string[]; workflow?: string },
+): Promise<RunReport> {
+  const { tests } = await loadSuites(io.cwd, { ...(filter.testsDirs === undefined ? {} : { testsDirs: filter.testsDirs }) });
+  const jobs: LiveJob[] = [];
+  const failed: Outcome[] = [];
+  for (const suite of tests) {
+    if (filter.workflow !== undefined && !suite.workflow.includes(filter.workflow)) continue;
+    const workflowFile = resolve(dirname(suite.file), suite.workflow);
+    const shownAs = relative(io.cwd, workflowFile);
+    const cases = suite.cases.filter(needsLive);
+    if (cases.length === 0) continue;
+    if (!existsSync(workflowFile)) {
+      for (const entry of cases) failed.push({ caseId: entry.id, workflow: shownAs, status: 'fail', mode: 'live', message: `workflow not found: ${suite.workflow}`, assertions: [] });
+      continue;
+    }
+    const workflow = JSON.parse(await readFile(workflowFile, 'utf8')) as { nodes?: Array<{ name: string; type: string }> };
+    for (const entry of cases) {
+      const declared = entry.when.trigger;
+      const named = typeof declared === 'string' ? declared : declared?.node;
+      const trigger = resolveTrigger(workflow.nodes ?? [], named);
+      if (trigger === undefined) {
+        failed.push({ caseId: entry.id, workflow: shownAs, status: 'fail', mode: 'live', message: named === undefined ? 'this workflow has no single trigger; name one in `when.trigger`' : `no trigger matching "${named}"`, assertions: [] });
+        continue;
+      }
+      const payload = entry.when.payload ?? (typeof declared === 'object' && declared !== null ? declared.payload : undefined);
+      jobs.push({ entry, shownAs, workflow, trigger, payload });
+    }
+  }
+  const ran = await runLive(jobs, { mock: deps.mock, instance: deps.runner });
+  const outcomes = [...offline.outcomes, ...failed, ...ran].sort((a, b) => a.caseId.localeCompare(b.caseId) || (a.node ?? '').localeCompare(b.node ?? ''));
+  return {
+    ...offline,
+    outcomes,
+    summary: {
+      ...offline.summary,
+      pass: outcomes.filter((o) => o.status === 'pass').length,
+      fail: outcomes.filter((o) => o.status === 'fail').length,
+      warn: outcomes.filter((o) => o.status === 'warn').length,
+      needsExecution: outcomes.filter((o) => o.status === 'needs-execution').length,
+      durationMs: offline.summary.durationMs + ran.reduce((sum, o) => sum + (o.durationMs ?? 0), 0),
+    },
+  };
 }
 
 export function schemaCommand(io: Io): number {

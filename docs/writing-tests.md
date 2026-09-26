@@ -89,7 +89,30 @@ cases:
 
 Keys are node names; values are the items the node produced, in n8n's `{ json: … }` form. A file-level `given` applies to every case, and a case's own pins win. The report lists the nodes that were stood in for. A `capture` of a real execution supplies the same thing for every case without writing it out.
 
-`given.snapshot`, `packs`, `seed` and `faults` describe a mock and are refused until that support lands.
+`given.packs` and `given.faults` describe a mock and need a real run; see below.
+
+## Running live against the mock
+
+Everything above runs offline and stops at the first node that calls out. `run --live` sends the cases that need more to your n8n instance, with its outbound calls served by [integration-mock](https://workflowtools.dev/integration-mock), and judges the execution n8n recorded plus the calls the mock saw.
+
+```bash
+integration-mock start && integration-mock packs enable acme
+export N8N_API_URL=https://n8n.example.com N8N_API_KEY=…
+workflow-tester run --live
+```
+
+The instance must already reach the mock: proxy mode through the environment `integration-mock ca install` prints, or URLs swapped with `integration-mock creds swap`. workflow-tester changes nothing in the workflow but the trigger's webhook path. Each case runs as a throwaway copy of the workflow (created, published, fired, read, deleted), one at a time, since the mock's state is shared.
+
+A case runs live when it has any of these; every other case still runs offline in the same command.
+
+| Key | Meaning |
+|---|---|
+| `given.packs` | The packs the mock enables for this case |
+| `given.faults` | Faults to inject, per service: `{ status, delayMs, empty, after, once }`. Replaced wholesale per case, never inherited |
+| `then.calls` | What the mock must have seen: a list of `{ service, method, path, count }` (or `gte`/`lte`); `path` takes `*` |
+| `then.noUnmatched` | `true` fails the case when any call reached the mock that no route answered |
+
+`execution.status`, `execution.errorNode`, `node.<Name>.items` and `node.<Name>.output[…]` are judged against the real execution. Without `--live` these cases are reported as needing a real run, naming the keys. `--mock <url>` (or `INTEGRATION_MOCK_ADMIN`, default `http://127.0.0.1:8081`) names the mock's admin port; `INTEGRATION_MOCK_ADMIN_TOKEN` its token when it is bound off loopback. `given.snapshot` and `given.seed` are not supported yet.
 
 ## Code nodes
 

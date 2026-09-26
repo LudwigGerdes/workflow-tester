@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { run } from '../src/index.js';
+import { runCommand } from '../src/commands/run.js';
 
 let dir: string;
 let out: string[];
@@ -216,5 +217,77 @@ describe('explain', () => {
     setup();
     expect(await run(['explain', 'good'], io())).toBe(2);
     expect(stderr()).toMatch(/workflow-tester run/);
+  });
+});
+
+describe('run --live', () => {
+  const writeSuite = (body: string): void => writeFileSync(join(dir, '.workflow-tester/tests/invoice.test.yaml'), body);
+  const suite = `workflow: ../../workflows/invoice.json
+cases:
+  - id: faulted
+    given:
+      faults:
+        acme: { status: 503, once: true }
+    when:
+      trigger: webhook
+      payload: { body: { record: { name: 9 } } }
+    then:
+      execution.status: success
+      calls:
+        - { service: acme, method: POST, count: 1 }
+      noUnmatched: true
+  - id: plain
+    when:
+      trigger: webhook
+      payload: { body: { record: { name: 9 } } }
+    then:
+      execution.status: success
+`;
+  const fakes = () => {
+    const events: string[] = [];
+    const mock = {
+      enablePacks: async (ids: string[]) => void events.push(`enable ${ids.join(',')}`),
+      setFault: async (service: string, spec: unknown) => void events.push(`fault ${service} ${JSON.stringify(spec)}`),
+      clearFaults: async () => void events.push('clear'),
+      resetStores: async () => void events.push('reset'),
+      log: async () => [{ ts: 1, service: 'acme', method: 'POST', path: '/orders', status: 201, matchedRoute: 'create' }],
+    };
+    const runs: unknown[] = [];
+    const runner = {
+      run: async (input: { workflow: unknown; trigger: string; payload: unknown }) => {
+        runs.push(input);
+        return { execution: { id: '9', status: 'success', data: { resultData: { runData: {} } } }, id: '9' };
+      },
+    };
+    return { mock, runner, events, runs };
+  };
+
+  it('runs the cases that need a mock on the instance, and folds them into the report', async () => {
+    setup();
+    writeSuite(suite);
+    const { mock, runner, events, runs } = fakes();
+    const code = await runCommand(['--live', '--instance', 'https://n8n.example.test', '--format', 'json'], { ...io(), env: { N8N_API_KEY: 'k' } }, { mock, runner });
+    expect(code).toBe(0);
+    const report = JSON.parse(stdout()) as { outcomes: Array<{ caseId: string; mode: string; status: string; executionId?: string }>; summary: { pass: number; needsExecution: number } };
+    expect(report.outcomes.map((o) => [o.caseId, o.mode, o.status])).toEqual([['faulted', 'live', 'pass'], ['plain', 'offline', 'pass']]);
+    expect(report.outcomes[0]?.executionId).toBe('9');
+    expect(report.summary).toMatchObject({ pass: 2, needsExecution: 0 });
+    expect(events).toEqual(['clear', 'reset', 'fault acme {"status":503,"once":true}']);
+    expect((runs[0] as { trigger: string; payload: unknown }).trigger).toBe('Webhook');
+  });
+
+  it('without --live the same case is reported as needing one', async () => {
+    setup();
+    writeSuite(suite);
+    expect(await run(['run', '--format', 'json'], io())).toBe(0);
+    const report = JSON.parse(stdout()) as { summary: { needsExecution: number; pass: number } };
+    expect(report.summary).toMatchObject({ needsExecution: 1, pass: 1 });
+  });
+
+  it('refuses --live without an instance', async () => {
+    setup();
+    writeSuite(suite);
+    expect(await runCommand(['--live'], io(), fakes())).toBe(2);
+    expect(err.join('\n')).toMatch(/--live runs cases on your instance/);
   });
 });

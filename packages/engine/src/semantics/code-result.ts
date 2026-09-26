@@ -5,7 +5,7 @@ import type { IDataObject, INodeExecutionData } from 'n8n-workflow';
  *
  * Being strict here is the point. n8n rejects these shapes at run time, so
  * accepting one would mean this engine reports a pass for a workflow that
- * fails in production — the confidently-wrong result this whole tier exists to
+ * fails in production — the confidently-wrong result the offline walk exists to
  * avoid.
  */
 export class CodeResultError extends Error {

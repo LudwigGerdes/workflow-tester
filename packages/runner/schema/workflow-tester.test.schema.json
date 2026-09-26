@@ -69,17 +69,17 @@
       "properties": {
         "snapshot": {
           "type": "string",
-          "description": "Not supported in this version: a file that sets it is refused at load."
+          "description": "Not supported in this version: a file that sets it is refused at load. Not supported yet: a case that sets it fails under --live and is reported as needing a real run offline."
         },
         "packs": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "Not supported in this version: a file that sets it is refused at load."
+          "description": "Not supported in this version: a file that sets it is refused at load. Needs `workflow-tester run --live`; offline the case is reported as needing a real run."
         },
         "seed": {
-          "description": "Per-service collections for the generic resource store. Not supported in this version: a file that sets it is refused at load.",
+          "description": "Per-service collections for the generic resource store. Not supported yet: a case that sets it fails under --live and is reported as needing a real run offline.",
           "type": "object",
           "additionalProperties": {
             "type": "object"
@@ -90,7 +90,7 @@
           "additionalProperties": {
             "$ref": "#/$defs/faultSpec"
           },
-          "description": "Not supported in this version: a file that sets it is refused at load."
+          "description": "Not supported in this version: a file that sets it is refused at load. Needs `workflow-tester run --live`; offline the case is reported as needing a real run."
         },
         "pinData": {
           "description": "Items a node is taken to have produced, per node name (n8n's INodeExecutionData[]), so the walk carries on past a node the engine cannot run, such as an HTTP Request. A file-level given applies to every case; a case's own pins win.",

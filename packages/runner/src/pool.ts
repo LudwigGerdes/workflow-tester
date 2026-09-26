@@ -1,7 +1,7 @@
 /**
  * Run a bounded number of jobs at a time, preserving input order.
  *
- * Each tier-1 case runs in its own worker thread, so an unbounded fan-out over a
+ * Each offline case runs in its own worker thread, so an unbounded fan-out over a
  * few hundred cases would spawn a few hundred threads. Results come back in the
  * order the jobs were given regardless of the order they finish, which is what
  * keeps a report identical at any concurrency.

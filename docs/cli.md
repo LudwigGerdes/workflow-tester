@@ -3,7 +3,7 @@
 | Command | What it does |
 |---|---|
 | `workflow-tester init [--n8n-version <v>] [--no-ask]` | Create `.workflow-tester/` with a commented example test |
-| `workflow-tester run [<workflow.json>] [--only generated\|tests] [--format <f>] [--fail-on warn] [--concurrency N]` | Run every test |
+| `workflow-tester run [<workflow.json>] [--only generated\|tests] [--format <f>] [--fail-on warn] [--concurrency N] [--live [--instance <url>] [--mock <url>]]` | Run every test; `--live` runs the cases that need a mock on your instance against integration-mock |
 | `workflow-tester contracts add <workflow.json> --vendor <v> --events <a,b> [--trigger <name>]` | Say which vendor events a workflow's trigger receives |
 | `workflow-tester contracts add <workflow.json> --schema <file> [--examples <path>] [--name <n>] [--trigger <name>]` | Use a JSON Schema of your own as the trigger's payload |
 | `workflow-tester contracts update [<workflow.json>...] [--all] [--fetch] [--vendor <v>]` | Refresh contracts from the vendor catalogues and schema files |
