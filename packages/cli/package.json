@@ -1,6 +1,6 @@
 {
   "name": "workflow-tester",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Contract-driven tests for n8n workflows: generate the payload variants a trigger can receive and check every expression against them, offline",
   "keywords": [
     "n8n",

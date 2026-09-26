@@ -1,6 +1,6 @@
 {
   "name": "workflow-tester-engine",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Offline n8n workflow walker: expression evaluation with n8n-workflow, pure-node semantics, boundaries, a node:vm sandbox for Code nodes",
   "keywords": [

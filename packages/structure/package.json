@@ -1,6 +1,6 @@
 {
   "name": "workflow-tester-structure",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Static reads of an n8n workflow for workflow-tester: which paths expressions touch, guards, lineage through Set and Code nodes",
   "keywords": [

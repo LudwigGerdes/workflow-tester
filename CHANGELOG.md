@@ -6,6 +6,8 @@ All notable changes to workflow-tester are recorded here. The format follows
 
 ## [Unreleased]
 
+## 0.3.0 — 2026-09-26
+
 ### Added
 
 - `run --live` runs the cases only a real run can judge on your n8n instance against integration-mock: `given.packs` and `given.faults` are applied through the mock's admin API, the case runs as a throwaway copy of the workflow (created, published, fired through its webhook, read, deleted), and `then.calls`, `then.noUnmatched`, `execution.*` and `node.*` are judged against the execution n8n recorded and the calls the mock served. Outcomes carry `mode: 'live'` and the execution id. `--mock <url>` / `INTEGRATION_MOCK_ADMIN` name the admin port. `given.snapshot` and `given.seed` are not supported yet.
