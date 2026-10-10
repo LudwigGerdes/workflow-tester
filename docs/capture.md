@@ -22,6 +22,8 @@ workflow-tester capture workflows/invoice.json --execution execution.json
 
 The capture is stored in `workflows/invoice.contract.yaml`, next to the workflow.
 
+If you use [integration-mock](https://workflowtools.dev/integration-mock), `integration-mock snapshot` has already saved this file, with secrets redacted, as `.integration-mock/snapshots/<workflow id>/<execution id>.export.json`. Pass it as `--execution`. Without integration-mock, save the execution as above; the capture is the same.
+
 ## From your n8n instance
 
 ```bash

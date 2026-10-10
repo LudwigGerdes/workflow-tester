@@ -24,6 +24,16 @@ No. `run`, `gen` and `explain` work offline. These commands use the network, eac
 | `node-types --version` | The npm registry |
 | `node-types --instance` | Your n8n instance |
 | `contracts update --fetch` | The vendor's published spec |
+| `run --live` | Your n8n instance, and [integration-mock](https://workflowtools.dev/integration-mock)'s admin port for the cases that need it |
+
+### Does it need the other tools?
+
+No. workflow-tester installs and runs on its own, without [workflow-lint](https://workflowtools.dev/workflow-lint), [integration-mock](https://workflowtools.dev/integration-mock) or [workflow-render](https://workflowtools.dev/workflow-render). Two features use integration-mock when you have it:
+
+| Feature | With integration-mock | Without it |
+|---|---|---|
+| `run --live` | Cases with `given.packs`, `given.faults`, `then.calls` or `then.noUnmatched` run on your instance against the mock | `run` reports them as needing a real run and does not fail them; every other case runs as usual. See [Without integration-mock](https://workflowtools.dev/workflow-tester/writing-tests#without-integration-mock) |
+| `capture --execution` | Takes the redacted execution file `integration-mock snapshot` saved | Takes an execution you save from n8n's API |
 
 ### Why does a case say "needs a real execution"?
 

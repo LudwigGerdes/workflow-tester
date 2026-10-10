@@ -114,6 +114,17 @@ A case runs live when it has any of these; every other case still runs offline i
 
 `execution.status`, `execution.errorNode`, `node.<Name>.items` and `node.<Name>.output[…]` are judged against the real execution. Without `--live` these cases are reported as needing a real run, naming the keys. `--mock <url>` (or `INTEGRATION_MOCK_ADMIN`, default `http://127.0.0.1:8081`) names the mock's admin port; `INTEGRATION_MOCK_ADMIN_TOKEN` its token when it is bound off loopback. `given.snapshot` and `given.seed` are not supported yet.
 
+### Without integration-mock
+
+workflow-tester does not need integration-mock. Only the cases with the keys above use it, and this is what they do when it is not there:
+
+| You run | The cases that need the mock | Every other case | Exit code |
+|---|---|---|---|
+| `workflow-tester run` | Reported as needing a real run, naming the keys (`·` in the terminal, `skipped` in JUnit). Not failed | Run as usual | From the other cases only, `--fail-on warn` included |
+| `workflow-tester run --live`, mock not started | Fail with `cannot reach integration-mock at <url> — is it started?` | Run as usual | 1 |
+
+To leave the mock out of CI, run without `--live`. A file with no mock keys never contacts it.
+
 ## Code nodes
 
 Code nodes run in a sandbox with the same data n8n gives them. A Code node that calls out, for example with `$helpers.httpRequest`, stops the run at that node.
