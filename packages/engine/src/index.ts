@@ -15,4 +15,5 @@ export { semanticsFor, isPureType, pureTypeNames } from './semantics/index.js';
 export { harvest, NEEDED_TYPES } from './node-types/harvest.js';
 export { cacheRoot, readStored, type StoredPack } from './node-types/stored.js';
 export { walk, walkWith } from './walk.js';
+export * from './http-plan.js';
 export { runInSandbox, type SandboxResult, type SandboxOptions, type SandboxFailure } from './sandbox/host.js';

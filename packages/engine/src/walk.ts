@@ -18,6 +18,7 @@ import {
   type Warning,
 } from './types.js';
 import { buildWorkflow, nodeType, predecessors, successors } from './workflow.js';
+import { HTTP_REQUEST_TYPE, planHttpRequest } from './http-plan.js';
 
 /** A required parameter that resolved to nothing is a failure, per spec §4. */
 const isEmpty = (value: unknown): boolean => value === undefined || value === '';
@@ -159,12 +160,24 @@ export function walk(input: EngineInput, nodeTypes: NodeTypeSource): EngineResul
         continue;
       }
       if (substitute()) continue;
-      boundaries.push({
+      const boundary: Boundary = {
         node: name,
         type: node.type,
         reason: isPureType(node.type) ? 'unsupported-mode' : 'not-pure',
         inputItems: byInput.flat(),
-      });
+      };
+      if (input.planRequests === true && node.type === HTTP_REQUEST_TYPE) {
+        try {
+          boundary.request = planHttpRequest(
+            node.typeVersion,
+            inputItems.map((_, i) => resolveParameters(wf, node, runData, inputItems, i)),
+          );
+        } catch (error) {
+          failures.push(withSource(toFailure(error, name), error, node));
+          continue;
+        }
+      }
+      boundaries.push(boundary);
       continue;
     }
 

@@ -38,6 +38,8 @@ export interface EngineInput {
   routed?: Record<string, INodeExecutionData[][]>;
   /** The node fails with this message, as n8n fails a node that throws. */
   raised?: Record<string, string>;
+  /** Describe the requests an HTTP Request boundary would send (`run --mock`). */
+  planRequests?: boolean;
 }
 
 export interface Failure {
@@ -71,6 +73,8 @@ export interface Boundary {
   /** Which call ended the path. Present only for `impure-call`. */
   call?: string;
   inputItems: INodeExecutionData[];
+  /** The requests an HTTP Request node would send; only when `planRequests` was asked for. */
+  request?: import('./http-plan.js').HttpPlan;
 }
 
 export interface EngineResult {
