@@ -112,12 +112,19 @@ cases:
       out: (s: string) => out.push(s),
       err: (s: string) => out.push(s),
     });
-    const report = JSON.parse(out.join('\n')) as { outcomes: Array<{ caseId: string; status: string; message: string }> };
-    // Every expectation held in both; the fault lands on the error branch, which
-    // the classifier reports as a warning rather than a pass.
+    const report = JSON.parse(out.join('\n')) as {
+      outcomes: Array<{ caseId: string; status: string; message: string; classification?: unknown }>;
+    };
+    // Every expectation held in both. The fault lands on the error branch, which
+    // the classifier knows as a failure path; the warning on that case is the
+    // structure check noting Pick reads `properties`, which that path never carries.
     expect(report.outcomes.map((o) => [o.caseId, o.status, o.message])).toEqual([
       ['down', 'warn', 'every expectation held'],
       ['seeded', 'pass', 'every expectation held'],
+    ]);
+    expect(report.outcomes.map((o) => o.classification)).toEqual([
+      [{ node: 'Alert', kind: 'known-unhappy' }],
+      [{ node: 'Pick', kind: 'happy' }],
     ]);
     expect(code).toBe(0);
   });

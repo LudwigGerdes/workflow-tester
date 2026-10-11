@@ -153,6 +153,12 @@ export function walk(input: EngineInput, nodeTypes: NodeTypeSource): EngineResul
           from === undefined ? undefined : { previousNode: from.node, previousNodeOutput: from.output },
         );
         substituted.push(name);
+        // Items on the error output (the last, past the first) mean the error
+        // path was taken — the same record a throw routed by the engine leaves.
+        const lastIndex = routedOutputs.length - 1;
+        if (node.onError === 'continueErrorOutput' && lastIndex > 0 && (routedOutputs[lastIndex]?.length ?? 0) > 0) {
+          errorOutputs.push(name);
+        }
         routedOutputs.forEach((items, output) => {
           if (items.length === 0) return;
           for (const edge of successors(wf, name)) if (edge.output === output) queue.push(edge.node);
