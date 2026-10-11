@@ -50,3 +50,16 @@ describe('itemsFromReplies', () => {
     });
   });
 });
+
+describe('itemsFromReplies: JSON bodies stored as strings', () => {
+  it('a JSON-encoded string body is parsed, as n8n parses it', () => {
+    expect(itemsFromReplies(plan(), [json('{"id":7}')], {}, 1)).toEqual({ routed: [[{ json: { id: 7 }, pairedItem: { item: 0 } }]] });
+    expect(itemsFromReplies(plan(), [json('[{"a":1},{"a":2}]')], {}, 1)).toEqual({
+      routed: [[{ json: { a: 1 }, pairedItem: { item: 0 } }, { json: { a: 2 }, pairedItem: { item: 0 } }]],
+    });
+  });
+  it('an unparseable JSON body raises, or is {} under neverError', () => {
+    expect(itemsFromReplies(plan(), [json('not json')], {}, 1)).toEqual({ raised: 'Response body is not valid JSON' });
+    expect(itemsFromReplies(plan({ neverError: true }), [json('not json')], {}, 1)).toEqual({ routed: [[{ json: {}, pairedItem: { item: 0 } }]] });
+  });
+});

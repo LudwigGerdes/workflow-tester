@@ -45,7 +45,18 @@ export function itemsFromReplies(
     const isJson =
       plan.responseFormat === 'json' ||
       (plan.responseFormat === 'autodetect' && contentType.includes('application/json'));
-    const body = isJson && (reply.body === undefined || reply.body === '') ? {} : reply.body;
+    let body: unknown = reply.body;
+    if (isJson && (body === undefined || body === '')) body = {};
+    else if (isJson && typeof body === 'string') {
+      // Some packs store a body as JSON text; n8n parses what the wire carries
+      // (jsonParse under autodetect, JSON.parse for format json).
+      try {
+        body = JSON.parse(body) as unknown;
+      } catch {
+        if (!plan.neverError) return { raised: 'Response body is not valid JSON' };
+        body = {};
+      }
+    }
     if (plan.fullResponse) {
       regular.push({
         json: asJson({
