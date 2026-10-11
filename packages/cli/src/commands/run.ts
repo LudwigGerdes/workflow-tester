@@ -39,6 +39,11 @@ export async function runCommand(argv: string[], io: Io, deps: RunDeps = {}): Pr
   // URL; a value that is not http(s) is given back as the positional it was.
   for (const flag of ['mock', 'live'] as const) {
     const value = flags[flag];
+    // `host:port` is an address without its scheme, not a workflow file.
+    if (flag === 'mock' && typeof value === 'string' && /^[\w.-]+:\d+(\/.*)?$/.test(value)) {
+      io.err(`workflow-tester: --mock takes an http(s) URL — did you mean http://${value}?`);
+      return EXIT.usage;
+    }
     if (typeof value === 'string' && !/^https?:\/\//.test(value)) {
       positional.unshift(value);
       flags[flag] = true;

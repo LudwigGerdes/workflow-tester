@@ -339,6 +339,13 @@ describe('run: cases that need the mock', () => {
     expect(stdout()).toContain('✓ a name is present');
   });
 
+  it('run --mock with a scheme-less address says to add http://', async () => {
+    withMockCase();
+    const code = await runCommand(['--mock', '127.0.0.1:8081'], io());
+    expect(code).toBe(2);
+    expect(stderr()).toContain('--mock takes an http(s) URL — did you mean http://127.0.0.1:8081?');
+  });
+
   it('run --live workflows/invoice.json: the path is the workflow too', async () => {
     withMockCase();
     const code = await runCommand(['--live', 'workflows/invoice.json'], io());
