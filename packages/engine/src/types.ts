@@ -31,10 +31,17 @@ export interface EngineInput {
    * business, which keeps this package free of contract knowledge.
    */
   substitutes?: Record<string, INodeExecutionData[]>;
+  /**
+   * Stand-ins per output index, for a node whose answer lands on more than
+   * its first output — an HTTP call that failed into its error output.
+   */
+  routed?: Record<string, INodeExecutionData[][]>;
+  /** The node fails with this message, as n8n fails a node that throws. */
+  raised?: Record<string, string>;
 }
 
 export interface Failure {
-  kind: 'expression-error' | 'required-undefined' | 'condition-undefined' | 'deliberate-stop';
+  kind: 'expression-error' | 'required-undefined' | 'condition-undefined' | 'deliberate-stop' | 'node-error';
   node: string;
   parameter: string;
   expression?: string;
