@@ -36,6 +36,18 @@ describe('stand-ins beyond the first output', () => {
     expect(result.reachedNodes).not.toContain('Ok');
     expect(result.substituted).toContain('HTTP');
     expect(result.boundaries).toEqual([]);
+    // Same record the engine keeps when it routes a throw itself.
+    expect(result.errorOutputs).toEqual(['HTTP']);
+  });
+
+  it('a routed answer on the regular output only is not an error path', async () => {
+    const result = await walkWith({
+      workflow: workflow('continueErrorOutput'),
+      trigger: 'Webhook',
+      payload: { body: {} },
+      routed: { HTTP: [[{ json: { ok: true } }], []] },
+    });
+    expect(result.errorOutputs).toEqual([]);
   });
 
   it('a raised node error fails the run at that node', async () => {
