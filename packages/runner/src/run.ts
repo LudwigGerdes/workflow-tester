@@ -3,10 +3,12 @@ import type { INodeExecutionData } from 'n8n-workflow';
 import { readFile } from 'node:fs/promises';
 import { availableParallelism } from 'node:os';
 import { dirname, relative, resolve } from 'node:path';
-import { runInSandbox, walk, loadNodeTypes, type EngineInput, type EngineResult } from 'workflow-tester-engine';
+import { runInSandbox, walk, loadNodeTypes, type EngineInput, type EngineResult, type SandboxFailure, type SandboxResult } from 'workflow-tester-engine';
 import { wrapWebhook, substitutesFor, readCapture, outcomesFor } from 'workflow-tester-contracts';
 import { loadSuites } from './load.js';
-import { mockGivenOf, mockNeedOf, needsLive } from './live.js';
+import { applyGiven, evaluateMockCalls, mockGivenOf, mockNeedOf, type MockCall, type MockControl } from './live.js';
+import { walkWithMock, type ServeClient } from './offline-mock.js';
+import { snapshotStandIns } from './snapshot.js';
 import { evaluateThen, type Outcome } from './oracle.js';
 import { applyStructure, checkStructure } from './structure-check.js';
 import { caseFromCapture } from './capture-case.js';
@@ -43,6 +45,12 @@ export interface RunOptions {
    * Absent, the bundled descriptions are used and the report says so.
    */
   n8nVersion?: string;
+  /**
+   * A local integration-mock for offline runs (`run --mock`). Given, cases
+   * that describe a mock run offline against it, one at a time since its
+   * state is shared; absent, they are reported as needing the mock.
+   */
+  mock?: MockControl & ServeClient;
 }
 
 export interface RunSummary {
@@ -78,6 +86,8 @@ interface WorkflowNode {
   name: string;
   type: string;
 }
+
+const isSandboxFailure = (r: SandboxResult): r is SandboxFailure => r.status === 'timeout' || r.status === 'crashed';
 
 const isRecord = (v: unknown): v is Record<string, unknown> =>
   v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -168,6 +178,8 @@ export async function runOffline(options: RunOptions): Promise<RunReport> {
     workflowFile: string;
     entry: SuiteCase;
     input: EngineInput;
+    /** Runs against the local mock, one case at a time. */
+    mock: boolean;
   }
 
   const jobs: Job[] = [];
@@ -204,9 +216,9 @@ export async function runOffline(options: RunOptions): Promise<RunReport> {
     for (const entry of suite.cases) {
       // Under --live every case that names a mock key runs there, a
       // snapshot-only one included; the caller runs them.
-      if (options.liveCases === 'skip' && mockNeedOf(entry) !== 'none') continue;
-      if (needsLive(entry)) {
-        if (options.liveCases === 'skip') continue;
+      const need = mockNeedOf(entry);
+      if (options.liveCases === 'skip' && need !== 'none') continue;
+      if (need === 'mock' && options.mock === undefined) {
         const why = [
           ...Object.keys(mockGivenOf(entry.given) ?? {}).map((k) => `given.${k}`),
           ...['calls', 'noUnmatched'].filter((k) => entry.then?.[k] !== undefined).map((k) => `then.${k}`),
@@ -217,7 +229,7 @@ export async function runOffline(options: RunOptions): Promise<RunReport> {
           ...(entry.title === undefined ? {} : { title: entry.title }),
           status: 'needs-execution',
           mode: 'offline',
-          message: `needs a real run against the mock (${why.join(', ')}): workflow-tester run --live`,
+          message: `needs the mock (${why.join(', ')}): workflow-tester run --mock, or --live`,
           assertions: [],
         });
         continue;
@@ -245,7 +257,25 @@ export async function runOffline(options: RunOptions): Promise<RunReport> {
         });
         continue;
       }
-      const standIns = { ...substitutes, ...pinData };
+      // A snapshot stands in between a capture and the case's own pins.
+      let fromSnapshot: Record<string, INodeExecutionData[]> = {};
+      const snapshotPath = entry.given?.['snapshot'];
+      if (typeof snapshotPath === 'string') {
+        try {
+          fromSnapshot = snapshotStandIns(suite.file, snapshotPath);
+        } catch (error) {
+          outcomes.push({
+            caseId: entry.id,
+            workflow: shownAs,
+            status: 'fail',
+            mode: 'offline',
+            message: error instanceof Error ? error.message : String(error),
+            assertions: [],
+          });
+          continue;
+        }
+      }
+      const standIns = { ...substitutes, ...fromSnapshot, ...pinData };
 
       const trigger = resolveTrigger(nodes, named);
       if (trigger === undefined) {
@@ -268,6 +298,7 @@ export async function runOffline(options: RunOptions): Promise<RunReport> {
         shownAs,
         workflowFile,
         entry,
+        mock: need === 'mock',
         input: {
           workflow: workflow as EngineInput['workflow'],
           trigger,
@@ -303,6 +334,7 @@ export async function runOffline(options: RunOptions): Promise<RunReport> {
           shownAs,
           workflowFile,
           entry: { id: derived.id, title: derived.title, when: {} },
+          mock: false,
           input: {
             workflow: workflow as EngineInput['workflow'],
             trigger: derivedTrigger,
@@ -324,8 +356,8 @@ export async function runOffline(options: RunOptions): Promise<RunReport> {
   // the sandbox costs nothing.
   const nodeTypes = await loadNodeTypes(options.n8nVersion);
 
-  const results = await mapPooled(
-    jobs,
+  const pooled: Array<{ job: Job; result: Awaited<ReturnType<typeof runInSandbox>> | EngineResult; durationMs: number; mock?: { calls: MockCall[]; answered: string[] } }> = await mapPooled(
+    jobs.filter((job) => !job.mock),
     options.concurrency ?? availableParallelism(),
     async (job) => {
       // Measured around the engine only, so the number is the case's own
@@ -338,7 +370,38 @@ export async function runOffline(options: RunOptions): Promise<RunReport> {
     },
   );
 
-  for (const { job, result, durationMs } of results) {
+  // Cases against the local mock run one at a time: its state is shared.
+  const results = [...pooled];
+  const mock = options.mock;
+  for (const job of jobs.filter((j) => j.mock)) {
+    const began = performance.now();
+    try {
+      if (mock === undefined) throw new Error('no mock to run against');
+      await applyGiven(mock, mockGivenOf(job.entry.given), {});
+      const since = Date.now();
+      const once = async (input: EngineInput): Promise<EngineResult> => {
+        const r = useSandbox ? await runInSandbox(input, { timeoutMs: options.timeoutMs }) : walk(input, nodeTypes);
+        if (isSandboxFailure(r)) throw new Error(`${r.status}: ${r.message}`);
+        return r;
+      };
+      const { result, answered } = await walkWithMock(job.input, once, mock);
+      const calls = await mock.log(since);
+      results.push({ job, result, durationMs: performance.now() - began, mock: { calls, answered } });
+    } catch (error) {
+      outcomes.push({
+        caseId: job.entry.id,
+        workflow: job.shownAs,
+        ...(job.entry.title === undefined ? {} : { title: job.entry.title }),
+        status: 'fail',
+        mode: 'offline',
+        message: error instanceof Error ? error.message : String(error),
+        assertions: [],
+        durationMs: performance.now() - began,
+      });
+    }
+  }
+
+  for (const { job, result, durationMs, mock: served } of results) {
     if (result.status === 'timeout' || result.status === 'crashed') {
       outcomes.push({
         caseId: job.entry.id,
@@ -359,11 +422,15 @@ export async function runOffline(options: RunOptions): Promise<RunReport> {
       kind: classifyTerminus(job.input.workflow, engine, terminus, outcomesFor(job.workflowFile)),
     }));
 
-    outcomes.push(
-      applyClassification(
+    // `calls` and `noUnmatched` are about the mock's log, not the walk.
+    const walked =
+      job.entry.then === undefined
+        ? undefined
+        : Object.fromEntries(Object.entries(job.entry.then).filter(([key]) => key !== 'calls' && key !== 'noUnmatched'));
+    const outcome = applyClassification(
         applyStructure(
           {
-            ...evaluateThen(job.entry.then, engine, job.entry.id),
+            ...evaluateThen(walked, engine, job.entry.id),
             workflow: job.shownAs,
             durationMs,
             ...(job.entry.title === undefined ? {} : { title: job.entry.title }),
@@ -377,8 +444,27 @@ export async function runOffline(options: RunOptions): Promise<RunReport> {
         ),
         kinds,
         checkTerminalShape(engine, readCapture(job.workflowFile), termini),
-      ),
-    );
+      );
+    const judgesCalls = job.entry.then?.['calls'] !== undefined || job.entry.then?.['noUnmatched'] !== undefined;
+    if (served !== undefined && judgesCalls) {
+      // A count is only true when every outbound call went to the mock: a node
+      // it did not answer (a vendor node, a stand-in) made calls the log lacks.
+      const unanswered = [
+        ...engine.boundaries.map((b) => b.node),
+        ...engine.substituted.filter((name) => !served.answered.includes(name)),
+      ];
+      if (unanswered.length > 0) {
+        outcome.status = 'needs-execution';
+        outcome.message = `then.calls needs every outbound call, but ${unanswered.join(', ')} was not answered by the mock`;
+      } else {
+        outcome.assertions.push(...evaluateMockCalls(job.entry.then, served.calls));
+        if (outcome.assertions.some((a) => a.status === 'fail') && outcome.status !== 'fail') {
+          outcome.status = 'fail';
+          outcome.message = outcome.assertions.find((a) => a.status === 'fail')?.message ?? 'a call expectation failed';
+        }
+      }
+    }
+    outcomes.push(outcome);
   }
 
   // Deterministic regardless of the order jobs finished in.

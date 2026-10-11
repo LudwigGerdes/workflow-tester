@@ -402,3 +402,118 @@ cases:
     expect(skipped.outcomes).toHaveLength(0);
   });
 });
+
+describe('the mock in offline runs', () => {
+  const node = (name: string, type: string, parameters: Record<string, unknown>, typeVersion = 1) =>
+    ({ parameters, id: name, name, type, typeVersion, position: [0, 0] });
+  const pick = node('Pick', 'n8n-nodes-base.set', {
+    mode: 'manual', includeOtherFields: false,
+    assignments: { assignments: [{ id: 'p', name: 'name', value: '={{ $json.name }}', type: 'string' }] },
+    options: {},
+  }, 3.4);
+  const flow = (middle: Array<ReturnType<typeof node>>) => ({
+    id: 'w', name: 'users',
+    nodes: [node('Webhook', 'n8n-nodes-base.webhook', { httpMethod: 'POST', path: 'w', options: {} }, 2), ...middle, pick],
+    connections: Object.fromEntries(
+      ['Webhook', ...middle.map((n) => n.name)].map((from, i, all) => [
+        from,
+        { main: [[{ node: all[i + 1] ?? 'Pick', type: 'main', index: 0 }]] },
+      ]),
+    ),
+  });
+  const getUser = node('Get User', 'n8n-nodes-base.httpRequest', { method: 'GET', url: '={{ "https://api.acme.com/users/" + $json.body.id }}', options: {} }, 4.2);
+
+  type Served = { method: string; url: string; headers: Record<string, string>; body?: unknown };
+  const fakeMock = (over: { serve?: (r: Served) => Promise<{ status: number; headers: Record<string, string>; body: unknown }>; log?: () => Promise<Array<{ ts: number; service: string; method: string; path: string; status: number; matchedRoute: string }>> } = {}) => {
+    const applied: string[] = [];
+    return {
+      applied,
+      clearFaults: async () => void applied.push('clearFaults'),
+      clearSnapshot: async () => void applied.push('clearSnapshot'),
+      resetStores: async () => void applied.push('resetStores'),
+      enablePacks: async (ids: string[]) => void applied.push(`enablePacks:${ids.join(',')}`),
+      activateSnapshot: async () => void applied.push('activateSnapshot'),
+      seedStore: async (service: string) => void applied.push(`seedStore:${service}`),
+      setFault: async (service: string) => void applied.push(`setFault:${service}`),
+      serve: over.serve ?? (async () => ({ status: 200, headers: { 'content-type': 'application/json' }, body: {} })),
+      log: over.log ?? (async () => []),
+    };
+  };
+
+  it('a snapshot-only case runs offline with the export standing in', async () => {
+    setup(flow([node('Fetch', 'n8n-nodes-base.httpRequest', { method: 'GET', url: 'https://api.acme.com/users/1', options: {} }, 4.2)]));
+    mkdirSync(join(dir, '.workflow-tester/tests/snap'), { recursive: true });
+    writeFileSync(join(dir, '.workflow-tester/tests/snap/1.json'), JSON.stringify({ packs: [] }));
+    writeFileSync(
+      join(dir, '.workflow-tester/tests/snap/1.export.json'),
+      JSON.stringify({ data: { resultData: { runData: { Fetch: [{ data: { main: [[{ json: { name: 'Ada' } }]] } }] } } } }),
+    );
+    writeSuite(`workflow: ../../workflows/invoice.json
+cases:
+  - id: from-snapshot
+    given: { snapshot: snap/1.json }
+    when: { trigger: webhook, payload: { body: { id: 1 } } }
+    then:
+      node.Pick.output[0].json.name: Ada
+`);
+    const report = await run();
+    expect(report.outcomes.find((o) => o.caseId === 'from-snapshot')).toMatchObject({ status: 'pass', substituted: ['Fetch'] });
+  });
+
+  it('with a mock, a mock case runs offline: given applied, HTTP answered, calls judged', async () => {
+    setup(flow([getUser]));
+    writeSuite(`workflow: ../../workflows/invoice.json
+cases:
+  - id: with-packs
+    given: { packs: [acme] }
+    when: { trigger: webhook, payload: { body: { id: 1 } } }
+    then:
+      node.Pick.output[0].json.name: Ada
+      calls: [{ service: acme, method: GET, count: 1 }]
+      noUnmatched: true
+`);
+    const served: string[] = [];
+    const mock = fakeMock({
+      serve: async (r) => {
+        served.push(`${r.method} ${r.url}`);
+        return { status: 200, headers: { 'content-type': 'application/json' }, body: { name: 'Ada' } };
+      },
+      log: async () => [{ ts: 2, service: 'acme', method: 'GET', path: '/users/1', status: 200, matchedRoute: 'get' }],
+    });
+    const report = await run({ mock });
+    const outcome = report.outcomes.find((o) => o.caseId === 'with-packs')!;
+    expect(outcome.message).not.toMatch(/needs/);
+    expect(outcome.status).toBe('pass');
+    expect(served).toEqual(['GET https://api.acme.com/users/1']);
+    expect(mock.applied).toEqual(['clearFaults', 'clearSnapshot', 'resetStores', 'enablePacks:acme']);
+    expect(outcome.assertions.map((a) => a.path)).toEqual(expect.arrayContaining(['calls[0]', 'noUnmatched']));
+  });
+
+  it('then.calls with a node the mock did not answer needs a real run, naming the node', async () => {
+    setup(flow([getUser, node('Slack', 'n8n-nodes-base.slack', { resource: 'message', operation: 'post' }, 2.2)]));
+    writeSuite(`workflow: ../../workflows/invoice.json
+cases:
+  - id: calls-past-slack
+    given: { packs: [acme] }
+    when: { trigger: webhook, payload: { body: { id: 1 } } }
+    then:
+      calls: [{ service: acme, count: 1 }]
+`);
+    const report = await run({ mock: fakeMock() });
+    const outcome = report.outcomes.find((o) => o.caseId === 'calls-past-slack')!;
+    expect(outcome.status).toBe('needs-execution');
+    expect(outcome.message).toContain('Slack');
+  });
+
+  it('without a mock, a mock case names --mock and --live', async () => {
+    setup(flow([getUser]));
+    writeSuite(`workflow: ../../workflows/invoice.json
+cases:
+  - id: no-mock
+    given: { packs: [acme] }
+    when: { trigger: webhook, payload: { body: { id: 1 } } }
+`);
+    const report = await run();
+    expect(report.outcomes[0]?.message).toBe('needs the mock (given.packs): workflow-tester run --mock, or --live');
+  });
+});
