@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/LudwigGerdes/workflow-tester/schema/workflow-tester.test.schema.json",
   "title": "workflow-tester test file",
-  "description": "A workflow test file. Carries either a single case (top-level when/then) or a cases list \u2014 never both.",
+  "description": "A workflow test file. Carries either a single case (top-level when/then) or a cases list — never both.",
   "type": "object",
   "properties": {
     "workflow": {
@@ -69,7 +69,7 @@
       "properties": {
         "snapshot": {
           "type": "string",
-          "description": "Not supported in this version: a file that sets it is refused at load. Not supported yet: a case that sets it fails under --live and is reported as needing a real run offline."
+          "description": "A snapshot file written by `integration-mock snapshot`, relative to this test file. Offline, the execution saved beside it stands in for nodes workflow-tester cannot run; under --live it is sent to the mock."
         },
         "packs": {
           "type": "array",
@@ -79,7 +79,7 @@
           "description": "Not supported in this version: a file that sets it is refused at load. Needs `workflow-tester run --live`; offline the case is reported as needing a real run."
         },
         "seed": {
-          "description": "Per-service collections for the generic resource store. Not supported yet: a case that sets it fails under --live and is reported as needing a real run offline.",
+          "description": "Per-service records for the mock's resource stores: { <service>: { <collection>: [records] } }. Needs run --mock or --live, and integration-mock 0.4.0 or later.",
           "type": "object",
           "additionalProperties": {
             "type": "object"

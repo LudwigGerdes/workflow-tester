@@ -89,7 +89,22 @@ cases:
 
 Keys are node names; values are the items the node produced, in n8n's `{ json: … }` form. A file-level `given` applies to every case, and a case's own pins win. The report lists the nodes that were stood in for. A `capture` of a real execution supplies the same thing for every case without writing it out.
 
-`given.packs` and `given.faults` describe a mock and need a real run; see below.
+`given.packs`, `given.faults` and `given.seed` describe a mock; see below.
+
+## Running offline against the mock
+
+`run --mock` keeps the run offline, with no n8n instance, and has a local [integration-mock](https://workflowtools.dev/integration-mock) answer HTTP Request nodes:
+
+```bash
+integration-mock start
+workflow-tester run --mock
+```
+
+The walk stops at an HTTP Request node, works out the request it would send for each item, sends it to the mock's `POST /serve`, and carries on with the reply. `given.packs`, `given.faults` and `given.seed` apply as they do live. `then.calls` and `then.noUnmatched` are judged on the calls workflow-tester sent; if any node that calls out was not answered by the mock (a vendor node such as Slack, or one a snapshot or `pinData` stood in for), the case needs a real run, since a partial count could pass wrongly. `--mock <url>` names the admin port (default `http://127.0.0.1:8081`, or `INTEGRATION_MOCK_ADMIN`). Needs integration-mock 0.4.0 or later.
+
+Answered offline: HTTP Request 4 to 4.5, with query, headers, and JSON, form or raw bodies. Not answered, so the node stays where the walk stops: credentials (none are sent), pagination, batching, binary or multipart bodies, file responses, versions below 4. An error reply follows the node's "On Error" setting; the error item carries `error` only, not n8n's `details`. A node that errors with no error handling is an ending the workflow does not account for, so the case fails even when it expects the error; route the error to an error output to test it.
+
+`given.snapshot` names a snapshot file written by `integration-mock snapshot`, relative to the test file. Offline, with or without `--mock`, each node's output from the execution saved beside it (`<execution id>.export.json`) stands in for the nodes workflow-tester cannot run; a node that ran in a loop stands in with its first pass. A case's own `pinData` wins over the snapshot. Under `--live` the snapshot is sent to the mock instead.
 
 ## Running live against the mock
 
@@ -109,10 +124,12 @@ A case runs live when it has any of these; every other case still runs offline i
 |---|---|
 | `given.packs` | The packs the mock enables for this case |
 | `given.faults` | Faults to inject, per service: `{ status, delayMs, empty, after, once }`. Replaced wholesale per case, never inherited |
+| `given.seed` | Records the mock starts the case with, per service: `{ <service>: { <collection>: [records] } }` |
+| `given.snapshot` | A snapshot the mock replays for this case |
 | `then.calls` | What the mock must have seen: a list of `{ service, method, path, count }` (or `gte`/`lte`); `path` takes `*` |
 | `then.noUnmatched` | `true` fails the case when any call reached the mock that no route answered |
 
-`execution.status`, `execution.errorNode`, `node.<Name>.items` and `node.<Name>.output[…]` are judged against the real execution. Without `--live` these cases are reported as needing a real run, naming the keys. `--mock <url>` (or `INTEGRATION_MOCK_ADMIN`, default `http://127.0.0.1:8081`) names the mock's admin port; `INTEGRATION_MOCK_ADMIN_TOKEN` its token when it is bound off loopback. `given.snapshot` and `given.seed` are not supported yet.
+`execution.status`, `execution.errorNode`, `node.<Name>.items` and `node.<Name>.output[…]` are judged against the real execution. Without `--live` or `--mock` these cases are reported as needing the mock, naming the keys. `--mock <url>` (or `INTEGRATION_MOCK_ADMIN`, default `http://127.0.0.1:8081`) names the mock's admin port; `INTEGRATION_MOCK_ADMIN_TOKEN` its token when it is bound off loopback.
 
 ### Without integration-mock
 
@@ -120,10 +137,11 @@ workflow-tester does not need integration-mock. Only the cases with the keys abo
 
 | You run | The cases that need the mock | Every other case | Exit code |
 |---|---|---|---|
-| `workflow-tester run` | Reported as needing a real run, naming the keys (`·` in the terminal, `skipped` in JUnit). Not failed | Run as usual | From the other cases only, `--fail-on warn` included |
+| `workflow-tester run` | Reported as needing the mock, naming the keys and `--mock` or `--live` (`·` in the terminal, `skipped` in JUnit). Not failed | Run as usual | From the other cases only, `--fail-on warn` included |
+| `workflow-tester run --mock`, mock not started | Fail with `cannot reach integration-mock at <url> — is it started?` | Run as usual | 1 |
 | `workflow-tester run --live`, mock not started | Fail with `cannot reach integration-mock at <url> — is it started?` | Run as usual | 1 |
 
-To leave the mock out of CI, run without `--live`. A file with no mock keys never contacts it.
+A case whose only mock key is `given.snapshot` needs no mock: it runs offline from the files. To leave the mock out of CI, run without `--mock` or `--live`. A file with no mock keys never contacts it.
 
 ## Code nodes
 

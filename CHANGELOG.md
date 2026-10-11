@@ -4,6 +4,22 @@ All notable changes to workflow-tester are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- `run --mock`: an offline run with a local integration-mock answering HTTP Request nodes (versions 4 to 4.5), so `given.packs`, `given.faults`, `given.seed`, `then.calls` and `then.noUnmatched` work without an n8n instance. Needs integration-mock 0.4.0.
+- `given.snapshot`: offline, the execution beside an integration-mock snapshot stands in for the nodes workflow-tester cannot run; under `--live` the snapshot is sent to the mock.
+- `given.seed` under `--live` and `--mock`.
+
+### Changed
+
+- A case that needs the mock now names `--mock` as well as `--live` when run without either.
+
+### Fixed
+
+- `run --live workflows/x.json` read the path as the value of `--live` and ran nothing live; the path is the workflow again, as it is for `--mock`.
+
 ## 0.3.0 — 2026-09-26
 
 ### Added
