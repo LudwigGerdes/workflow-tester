@@ -454,8 +454,14 @@ export async function runOffline(options: RunOptions): Promise<RunReport> {
         ...engine.substituted.filter((name) => !served.answered.includes(name)),
       ];
       if (unanswered.length > 0) {
-        outcome.status = 'needs-execution';
-        outcome.message = `then.calls needs every outbound call, but ${unanswered.join(', ')} was not answered by the mock`;
+        const why = `then.calls needs every outbound call, but ${unanswered.join(', ')} was not answered by the mock`;
+        // A case that already failed stays failed: the count being unknowable
+        // must never turn a real failure into "needs a real run".
+        if (outcome.status === 'fail') outcome.message = `${outcome.message} — then.calls was not judged: ${why}`;
+        else {
+          outcome.status = 'needs-execution';
+          outcome.message = why;
+        }
       } else {
         outcome.assertions.push(...evaluateMockCalls(job.entry.then, served.calls));
         if (outcome.assertions.some((a) => a.status === 'fail') && outcome.status !== 'fail') {
