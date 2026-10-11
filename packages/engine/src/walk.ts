@@ -172,7 +172,11 @@ export function walk(input: EngineInput, nodeTypes: NodeTypeSource): EngineResul
         reason: isPureType(node.type) ? 'unsupported-mode' : 'not-pure',
         inputItems: byInput.flat(),
       };
-      if (input.planRequests === true && node.type === HTTP_REQUEST_TYPE) {
+      if (input.planRequests === true && node.type === HTTP_REQUEST_TYPE && node.retryOnFail === true) {
+        // n8n retries a failing call up to maxTries; one answer from the mock
+        // would make a fault test and a call count disagree with a real run.
+        boundary.request = { unsupported: 'retry on fail is not answered offline' };
+      } else if (input.planRequests === true && node.type === HTTP_REQUEST_TYPE) {
         try {
           boundary.request = planHttpRequest(
             node.typeVersion,

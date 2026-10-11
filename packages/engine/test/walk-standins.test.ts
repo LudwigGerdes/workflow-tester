@@ -83,3 +83,13 @@ describe('request plans at an HTTP Request boundary', () => {
     expect(result.boundaries[0]!.request).toBeUndefined();
   });
 });
+
+describe('request plans: retry on fail', () => {
+  it('an HTTP Request node with Retry On Fail is not answered offline', async () => {
+    const wf = workflow();
+    const http = wf.nodes.find((n) => n.name === 'HTTP')!;
+    http.retryOnFail = true;
+    const result = await walkWith({ workflow: wf, trigger: 'Webhook', payload: { body: {} }, planRequests: true });
+    expect(result.boundaries[0]!.request).toEqual({ unsupported: 'retry on fail is not answered offline' });
+  });
+});
