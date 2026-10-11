@@ -72,9 +72,14 @@ const parse = (v: unknown): unknown => (typeof v === 'string' ? (JSON.parse(v) a
 const stringValues = (h: Record<string, unknown>, lowercase: boolean): Record<string, string> =>
   Object.fromEntries(Object.entries(h).map(([k, v]) => [lowercase ? k.toLowerCase() : k, String(v)]));
 
-const appendAll = (params: URLSearchParams, fields: Record<string, unknown>): void => {
+/**
+ * `repeat` writes an array as `k=a&k=b`, `brackets` as `k[]=a&k[]=b`. A form
+ * body always repeats (legacy.ts: stringify with arrayFormat repeat).
+ */
+const appendAll = (params: URLSearchParams, fields: Record<string, unknown>, arrays: 'repeat' | 'brackets' = 'repeat'): void => {
   for (const [k, v] of Object.entries(fields)) {
-    for (const one of Array.isArray(v) ? v : [v]) params.append(k, String(one));
+    if (!Array.isArray(v)) params.append(k, String(v));
+    else for (const one of v) params.append(arrays === 'brackets' ? `${k}[]` : k, String(one));
   }
 };
 
@@ -100,7 +105,10 @@ function planOne(version: number, p: Record<string, unknown>, itemIndex: number)
   try {
     if (p['sendQuery'] === true) {
       const qs = p['specifyQuery'] === 'json' ? parse(p['jsonQuery']) : fold(pairs(p['queryParameters']), version);
-      appendAll(url.searchParams, isRecord(qs) ? qs : {});
+      // Without "Array Format", or with `indices`, n8n leaves axios's default
+      // serializer, which writes brackets (backend-network legacy.ts sets one
+      // only for repeat and brackets; axios 1.18 measured).
+      appendAll(url.searchParams, isRecord(qs) ? qs : {}, options['queryParameterArrays'] === 'repeat' ? 'repeat' : 'brackets');
     }
 
     let headers: Record<string, string> = {};
