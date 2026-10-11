@@ -126,8 +126,9 @@ without them (`packages/engine/test/without-bundle.test.ts`).
 
 - **Offline-first, no network in tests.** Exactly these commands may reach the
   network, each behind a flag: `contracts update --fetch`, `capture --instance`,
-  `sync`, `node-types --version` / `--instance`. `gen`, `run` and `explain`
-  never do. Networked code lives only in `workflow-tester-instance` and
+  `sync`, `node-types --version` / `--instance`, `run --live` (the instance and
+  integration-mock's admin port) and `run --mock` (integration-mock's admin port
+  only). `gen`, `explain` and a plain `run` never do. Networked code lives only in `workflow-tester-instance` and
   `packages/vendors/src/ingest.ts`; keep it there.
 - **Reuse n8n, do not reimplement it.** Expressions are evaluated by
   `n8n-workflow` (`Expression`, `WorkflowDataProxy`), loaded through the single
