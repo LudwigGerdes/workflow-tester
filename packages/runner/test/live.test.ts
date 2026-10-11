@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { evaluateLive, mockGivenOf, needsLive, runLive, type MockCall, type MockControl, type LiveJob } from '../src/live.js';
+import { evaluateLive, evaluateMockCalls, mockGivenOf, mockNeedOf, needsLive, runLive, type MockCall, type MockControl, type LiveJob } from '../src/live.js';
 
 const execution = (over: Record<string, unknown> = {}) => ({
   id: '77',
@@ -130,3 +130,20 @@ describe('runLive', () => {
   });
 });
 let outcomesSoFar = 0;
+
+describe('what a case asks of the mock', () => {
+  it('mockNeedOf: none, snapshot-only, mock', () => {
+    expect(mockNeedOf({ id: 'a', when: {} })).toBe('none');
+    expect(mockNeedOf({ id: 'a', given: { pinData: {} }, when: {} })).toBe('none');
+    expect(mockNeedOf({ id: 'a', given: { snapshot: 's.json' }, when: {} })).toBe('snapshot-only');
+    expect(mockNeedOf({ id: 'a', given: { snapshot: 's.json', seed: {} }, when: {} })).toBe('mock');
+    expect(mockNeedOf({ id: 'a', given: { snapshot: 's.json' }, when: {}, then: { calls: [] } })).toBe('mock');
+    expect(mockNeedOf({ id: 'a', when: {}, then: { calls: [] } })).toBe('mock');
+    expect(needsLive({ id: 'a', given: { snapshot: 's.json' }, when: {} })).toBe(false);
+  });
+
+  it('evaluateMockCalls judges only calls and noUnmatched', () => {
+    const out = evaluateMockCalls({ calls: [{ service: 'acme', count: 1 }], noUnmatched: true, 'execution.status': 'success' }, [call({})]);
+    expect(out.map((a) => [a.path, a.status])).toEqual([['calls[0]', 'pass'], ['noUnmatched', 'pass']]);
+  });
+});
