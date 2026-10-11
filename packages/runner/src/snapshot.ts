@@ -5,11 +5,20 @@ import type { IDataObject, INodeExecutionData } from 'n8n-workflow';
 const isRecord = (v: unknown): v is Record<string, unknown> =>
   v !== null && typeof v === 'object' && !Array.isArray(v);
 
+/** Parse a file a case points at, naming it when it is not JSON. */
+function readJson(file: string, shown: string, what: string): unknown {
+  try {
+    return JSON.parse(readFileSync(file, 'utf8')) as unknown;
+  } catch {
+    throw new Error(`${what} is not valid JSON: ${shown}`);
+  }
+}
+
 /** The snapshot file a case names, relative to its test file, parsed. */
 export function readSnapshotFile(testFile: string, snapshot: string): unknown {
   const file = resolve(dirname(testFile), snapshot);
   if (!existsSync(file)) throw new Error(`snapshot not found: ${snapshot}`);
-  return JSON.parse(readFileSync(file, 'utf8')) as unknown;
+  return readJson(file, snapshot, 'snapshot');
 }
 
 /** Run 0's first main output of one node, as items. */
@@ -29,10 +38,13 @@ function firstRun(runs: unknown): INodeExecutionData[] | undefined {
  * that ran in a loop stands in with its first pass.
  */
 export function snapshotStandIns(testFile: string, snapshot: string): Record<string, INodeExecutionData[]> {
+  // The case names the snapshot; it has to be there even though offline only
+  // the export beside it is read.
+  readSnapshotFile(testFile, snapshot);
   const exportPath = snapshot.replace(/\.json$/, '.export.json');
   const file = resolve(dirname(testFile), exportPath);
   if (!existsSync(file)) throw new Error(`snapshot export not found: ${exportPath}`);
-  const doc: unknown = JSON.parse(readFileSync(file, 'utf8'));
+  const doc = readJson(file, exportPath, 'snapshot export');
   const data = isRecord(doc) ? doc['data'] : undefined;
   const resultData = isRecord(data) ? data['resultData'] : undefined;
   const runData = isRecord(resultData) ? resultData['runData'] : undefined;

@@ -37,11 +37,27 @@ describe('snapshot stand-ins', () => {
   });
 
   it('names the missing export', () => {
+    writeFileSync(join(dir, 'snap/9.json'), '{}');
     expect(() => snapshotStandIns(join(dir, 'x.test.yaml'), 'snap/9.json')).toThrow('snapshot export not found: snap/9.export.json');
   });
 
   it('reads the snapshot file relative to the test file, and names a missing one', () => {
     expect(readSnapshotFile(join(dir, 'x.test.yaml'), 'snap/4123.json')).toEqual({ packs: [] });
-    expect(() => readSnapshotFile(join(dir, 'x.test.yaml'), 'snap/9.json')).toThrow('snapshot not found: snap/9.json');
+    expect(() => readSnapshotFile(join(dir, 'x.test.yaml'), 'snap/10.json')).toThrow('snapshot not found: snap/10.json');
+  });
+});
+
+describe('snapshot errors name the file', () => {
+  it('offline, a missing snapshot file fails even when an export is there', () => {
+    writeFileSync(join(dir, 'snap/55.export.json'), JSON.stringify({ data: { resultData: { runData: {} } } }));
+    expect(() => snapshotStandIns(join(dir, 'x.test.yaml'), 'snap/55.json')).toThrow('snapshot not found: snap/55.json');
+  });
+
+  it('an unparseable snapshot or export names its path', () => {
+    writeFileSync(join(dir, 'snap/66.json'), '{ not json');
+    writeFileSync(join(dir, 'snap/77.json'), '{}');
+    writeFileSync(join(dir, 'snap/77.export.json'), '{ not json');
+    expect(() => readSnapshotFile(join(dir, 'x.test.yaml'), 'snap/66.json')).toThrow('snapshot is not valid JSON: snap/66.json');
+    expect(() => snapshotStandIns(join(dir, 'x.test.yaml'), 'snap/77.json')).toThrow('snapshot export is not valid JSON: snap/77.export.json');
   });
 });
