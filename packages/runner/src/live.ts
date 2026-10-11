@@ -72,11 +72,22 @@ export function mockGivenOf(given: Record<string, unknown> | undefined): MockGiv
   return Object.keys(out).length === 0 ? undefined : out;
 }
 
-/** Does this case need a real execution: mock-only `given`, or `then.calls`/`noUnmatched`? */
-export const needsLive = (entry: SuiteCase): boolean =>
-  mockGivenOf(entry.given) !== undefined ||
-  entry.then?.['calls'] !== undefined ||
-  entry.then?.['noUnmatched'] !== undefined;
+export type MockNeed = 'none' | 'snapshot-only' | 'mock';
+
+/**
+ * What a case asks of a mock: nothing, only a snapshot (a file, so it runs
+ * offline), or a running mock (`--mock` or `--live`).
+ */
+export function mockNeedOf(entry: SuiteCase): MockNeed {
+  const given = mockGivenOf(entry.given);
+  const judgesCalls = entry.then?.['calls'] !== undefined || entry.then?.['noUnmatched'] !== undefined;
+  if (given === undefined && !judgesCalls) return 'none';
+  const keys = Object.keys(given ?? {});
+  return !judgesCalls && keys.length === 1 && keys[0] === 'snapshot' ? 'snapshot-only' : 'mock';
+}
+
+/** Does this case need a running mock: `packs`, `faults`, `seed`, or `then.calls`/`noUnmatched`? */
+export const needsLive = (entry: SuiteCase): boolean => mockNeedOf(entry) === 'mock';
 
 interface RunData {
   [node: string]: Array<{ data?: { main?: Array<Array<{ json?: unknown }> | null> }; error?: unknown }>;
@@ -140,6 +151,12 @@ function checkCalls(raw: unknown, calls: MockCall[]): AssertionOutcome[] {
       ...(wanted ? {} : { message: `the mock saw ${seen} call(s) matching ${label || 'anything'}` }),
     };
   });
+}
+
+/** `then.calls` and `then.noUnmatched` against the calls the mock served. */
+export function evaluateMockCalls(then: SuiteCase['then'] | undefined, calls: MockCall[]): AssertionOutcome[] {
+  const only = Object.fromEntries(Object.entries(then ?? {}).filter(([k]) => k === 'calls' || k === 'noUnmatched'));
+  return evaluateLive(only, { status: 'success' }, calls);
 }
 
 /** Judge a case's `then` against what n8n recorded and what the mock saw. */
