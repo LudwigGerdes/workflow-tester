@@ -6,7 +6,7 @@ import { dirname, relative, resolve } from 'node:path';
 import { runInSandbox, walk, loadNodeTypes, type EngineInput, type EngineResult } from 'workflow-tester-engine';
 import { wrapWebhook, substitutesFor, readCapture, outcomesFor } from 'workflow-tester-contracts';
 import { loadSuites } from './load.js';
-import { mockGivenOf, needsLive } from './live.js';
+import { mockGivenOf, mockNeedOf, needsLive } from './live.js';
 import { evaluateThen, type Outcome } from './oracle.js';
 import { applyStructure, checkStructure } from './structure-check.js';
 import { caseFromCapture } from './capture-case.js';
@@ -202,6 +202,9 @@ export async function runOffline(options: RunOptions): Promise<RunReport> {
     const shownAs = relative(options.dir, workflowFile);
 
     for (const entry of suite.cases) {
+      // Under --live every case that names a mock key runs there, a
+      // snapshot-only one included; the caller runs them.
+      if (options.liveCases === 'skip' && mockNeedOf(entry) !== 'none') continue;
       if (needsLive(entry)) {
         if (options.liveCases === 'skip') continue;
         const why = [

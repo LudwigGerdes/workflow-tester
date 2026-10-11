@@ -5,6 +5,9 @@ export * from './oracle.js';
 export * from './pool.js';
 export * from './run.js';
 export * from './live.js';
+export * from './snapshot.js';
+export * from './http-replies.js';
+export * from './offline-mock.js';
 export * from './reporters/index.js';
 export {
   applyStructure,

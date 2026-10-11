@@ -9,6 +9,7 @@
  */
 import { evaluatePath, matches, readExpectation } from './assert.js';
 import type { AssertionOutcome, Outcome } from './oracle.js';
+import { readSnapshotFile } from './snapshot.js';
 import type { SuiteCase } from './types.js';
 
 /** What a case's `given` asks of the mock. */
@@ -36,6 +37,9 @@ export interface MockControl {
   setFault(service: string, spec: unknown): Promise<void>;
   clearFaults(): Promise<void>;
   resetStores(): Promise<void>;
+  clearSnapshot(): Promise<void>;
+  activateSnapshot(snapshot: unknown): Promise<void>;
+  seedStore(service: string, seed: Record<string, unknown[]>): Promise<void>;
   log(since: number): Promise<MockCall[]>;
 }
 
@@ -51,6 +55,8 @@ export interface LiveJob {
   workflow: unknown;
   trigger: string;
   payload: unknown;
+  /** The test file the case came from; `given.snapshot` is relative to it. */
+  testFile: string;
 }
 
 export interface LiveDeps {
@@ -215,11 +221,25 @@ export function evaluateLive(then: SuiteCase['then'] | undefined, execution: unk
   return assertions;
 }
 
-/** Put the mock in the state a case asks for. Faults are replaced wholesale, never inherited. */
-async function applyGiven(mock: MockControl, given: MockGiven | undefined): Promise<void> {
+const isSeed = (v: unknown): v is Record<string, unknown[]> =>
+  v !== null && typeof v === 'object' && !Array.isArray(v) && Object.values(v).every((x) => Array.isArray(x));
+
+/**
+ * Put the mock in the state a case asks for. Faults are replaced wholesale.
+ * The snapshot goes after packs (enabling packs replaces the set, activating
+ * a snapshot adds to it) and the seed after the snapshot (activating one
+ * clears every store).
+ */
+export async function applyGiven(mock: MockControl, given: MockGiven | undefined, opts: { snapshot?: unknown }): Promise<void> {
   await mock.clearFaults();
+  await mock.clearSnapshot();
   await mock.resetStores();
   if (given?.packs !== undefined) await mock.enablePacks(given.packs);
+  if (opts.snapshot !== undefined) await mock.activateSnapshot(opts.snapshot);
+  for (const [service, seed] of Object.entries(given?.seed ?? {})) {
+    if (!isSeed(seed)) throw new Error(`given.seed.${service} must map each collection to a list of records`);
+    await mock.seedStore(service, seed);
+  }
   for (const [service, spec] of Object.entries(given?.faults ?? {})) await mock.setFault(service, spec);
 }
 
@@ -233,10 +253,8 @@ export async function runLive(jobs: LiveJob[], deps: LiveDeps): Promise<Outcome[
     let execution: unknown;
     let id: string | undefined;
     try {
-      if (given?.snapshot !== undefined || given?.seed !== undefined) {
-        throw new Error(`given.${given.snapshot !== undefined ? 'snapshot' : 'seed'} is not supported by --live yet`);
-      }
-      await applyGiven(deps.mock, given);
+      const snapshot = given?.snapshot === undefined ? undefined : readSnapshotFile(job.testFile, given.snapshot);
+      await applyGiven(deps.mock, given, { snapshot });
       const since = now();
       ({ execution, id } = await deps.instance.run({ workflow: job.workflow, trigger: job.trigger, payload: job.payload }));
       const calls = await deps.mock.log(since);

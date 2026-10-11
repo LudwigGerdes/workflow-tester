@@ -250,6 +250,10 @@ cases:
       setFault: async (service: string, spec: unknown) => void events.push(`fault ${service} ${JSON.stringify(spec)}`),
       clearFaults: async () => void events.push('clear'),
       resetStores: async () => void events.push('reset'),
+      clearSnapshot: async () => void events.push('clear-snapshot'),
+      activateSnapshot: async () => void events.push('snapshot'),
+      seedStore: async (service: string) => void events.push(`seed ${service}`),
+      serve: async () => ({ status: 200, headers: {}, body: {} }),
       log: async () => [{ ts: 1, service: 'acme', method: 'POST', path: '/orders', status: 201, matchedRoute: 'create' }],
     };
     const runs: unknown[] = [];
@@ -272,7 +276,7 @@ cases:
     expect(report.outcomes.map((o) => [o.caseId, o.mode, o.status])).toEqual([['faulted', 'live', 'pass'], ['plain', 'offline', 'pass']]);
     expect(report.outcomes[0]?.executionId).toBe('9');
     expect(report.summary).toMatchObject({ pass: 2, needsExecution: 0 });
-    expect(events).toEqual(['clear', 'reset', 'fault acme {"status":503,"once":true}']);
+    expect(events).toEqual(['clear', 'clear-snapshot', 'reset', 'fault acme {"status":503,"once":true}']);
     expect((runs[0] as { trigger: string; payload: unknown }).trigger).toBe('Webhook');
   });
 
