@@ -137,6 +137,27 @@ export function walk(input: EngineInput, nodeTypes: NodeTypeSource): EngineResul
         : semanticsFor(node.type, node.typeVersion);
 
     if (semantics === undefined) {
+      const raisedMessage = input.raised?.[name];
+      if (raisedMessage !== undefined) {
+        failures.push({ kind: 'node-error', node: name, parameter: '', message: raisedMessage, itemIndex: 0 });
+        continue;
+      }
+      const routedOutputs = input.routed?.[name];
+      if (routedOutputs !== undefined) {
+        const from = incoming.find((edge) => runData.outputsOf(edge.node) !== undefined);
+        outputs[name] = routedOutputs;
+        runData.setOutputs(
+          name,
+          routedOutputs,
+          from === undefined ? undefined : { previousNode: from.node, previousNodeOutput: from.output },
+        );
+        substituted.push(name);
+        routedOutputs.forEach((items, output) => {
+          if (items.length === 0) return;
+          for (const edge of successors(wf, name)) if (edge.output === output) queue.push(edge.node);
+        });
+        continue;
+      }
       if (substitute()) continue;
       boundaries.push({
         node: name,
