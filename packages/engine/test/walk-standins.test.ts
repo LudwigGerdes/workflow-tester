@@ -50,3 +50,24 @@ describe('stand-ins beyond the first output', () => {
     expect(result.reachedNodes).not.toContain('Ok');
   });
 });
+
+describe('request plans at an HTTP Request boundary', () => {
+  const planned = (): WorkflowJson => {
+    const wf = workflow();
+    const http = wf.nodes.find((n) => n.name === 'HTTP')!;
+    http.parameters = { method: 'GET', url: '={{ "https://api.acme.com/v1/orders/" + $json.body.id }}', options: {} };
+    return wf;
+  };
+
+  it('with planRequests, the boundary carries the requests per input item', async () => {
+    const result = await walkWith({ workflow: planned(), trigger: 'Webhook', payload: { body: { id: 'o_1' } }, planRequests: true });
+    expect(result.boundaries[0]!.request).toMatchObject({
+      requests: [{ itemIndex: 0, method: 'GET', url: 'https://api.acme.com/v1/orders/o_1' }],
+    });
+  });
+
+  it('without it, the boundary is as before', async () => {
+    const result = await walkWith({ workflow: planned(), trigger: 'Webhook', payload: { body: { id: 'o_1' } } });
+    expect(result.boundaries[0]!.request).toBeUndefined();
+  });
+});
