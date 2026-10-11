@@ -164,3 +164,15 @@ describe('given keys that need a mock', () => {
     expect(tests[0]?.cases[0]?.given).toEqual({ faults: { stripe: { status: 503 } } });
   });
 });
+
+describe('the schema describes the mock keys as they behave', () => {
+  it('no mock key claims it is refused at load, and each names --mock and --live', () => {
+    const given = (testSchema() as { $defs: { given: { properties: Record<string, { description?: string }> } } }).$defs.given.properties;
+    for (const key of ['packs', 'faults', 'seed']) {
+      const text = given[key]?.description ?? '';
+      expect(text, key).not.toMatch(/refused at load|Not supported/);
+      expect(text, key).toMatch(/--mock/);
+      expect(text, key).toMatch(/--live/);
+    }
+  });
+});

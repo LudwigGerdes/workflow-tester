@@ -76,7 +76,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Not supported in this version: a file that sets it is refused at load. Needs `workflow-tester run --live`; offline the case is reported as needing a real run."
+          "description": "The integration-mock packs to enable for this case. Needs `workflow-tester run --mock` (offline, a local mock answers HTTP Request nodes) or `--live`; without either the case is reported as needing the mock."
         },
         "seed": {
           "description": "Per-service records for the mock's resource stores: { <service>: { <collection>: [records] } }. Needs run --mock or --live, and integration-mock 0.4.0 or later.",
@@ -90,7 +90,7 @@
           "additionalProperties": {
             "$ref": "#/$defs/faultSpec"
           },
-          "description": "Not supported in this version: a file that sets it is refused at load. Needs `workflow-tester run --live`; offline the case is reported as needing a real run."
+          "description": "Faults the mock injects for this case, per service: { status, delayMs, empty, after, once }. Needs `workflow-tester run --mock` or `--live`; without either the case is reported as needing the mock."
         },
         "pinData": {
           "description": "Items a node is taken to have produced, per node name (n8n's INodeExecutionData[]), so the walk carries on past a node the engine cannot run, such as an HTTP Request. A file-level given applies to every case; a case's own pins win.",
