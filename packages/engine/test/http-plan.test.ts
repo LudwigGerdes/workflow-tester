@@ -44,7 +44,14 @@ describe('planHttpRequest', () => {
       queryParameters: { parameters: [{ name: 'tag', value: 'a' }, { name: 'tag', value: 'b' }] },
     };
     expect((planHttpRequest(4.2, [p]) as Planned).requests[0]!.url).toBe('https://api.acme.com/v1/orders?tag=b');
-    expect((planHttpRequest(4.3, [p]) as Planned).requests[0]!.url).toBe('https://api.acme.com/v1/orders?tag=a&tag=b');
+    // From 4.3 a repeated name is an array. With no "Array Format" option
+    // n8n leaves axios 1.18's default serializer, which writes brackets
+    // (measured: tag%5B%5D=a&tag%5B%5D=b); only `repeat` writes the name bare.
+    expect((planHttpRequest(4.3, [p]) as Planned).requests[0]!.url).toBe('https://api.acme.com/v1/orders?tag%5B%5D=a&tag%5B%5D=b');
+    const repeat = { ...p, options: { queryParameterArrays: 'repeat' } };
+    expect((planHttpRequest(4.3, [repeat]) as Planned).requests[0]!.url).toBe('https://api.acme.com/v1/orders?tag=a&tag=b');
+    const brackets = { ...p, options: { queryParameterArrays: 'brackets' } };
+    expect((planHttpRequest(4.3, [brackets]) as Planned).requests[0]!.url).toBe('https://api.acme.com/v1/orders?tag%5B%5D=a&tag%5B%5D=b');
   });
 
   it('json body string is parsed; form string and raw keep their content types', () => {
