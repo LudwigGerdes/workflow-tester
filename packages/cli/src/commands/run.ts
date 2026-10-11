@@ -34,6 +34,16 @@ const DEFAULT_MOCK_ADMIN = 'http://127.0.0.1:8081';
 
 export async function runCommand(argv: string[], io: Io, deps: RunDeps = {}): Promise<number> {
   const { positional, flags } = parseArgs(argv);
+  // `--mock` and `--live` may be given bare. parseArgs takes the next word as
+  // their value, so `run --mock workflows/x.json` would read the workflow as a
+  // URL; a value that is not http(s) is given back as the positional it was.
+  for (const flag of ['mock', 'live'] as const) {
+    const value = flags[flag];
+    if (typeof value === 'string' && !/^https?:\/\//.test(value)) {
+      positional.unshift(value);
+      flags[flag] = true;
+    }
+  }
 
   const format = (typeof flags.format === 'string' ? flags.format : 'stylish') as ReportFormat;
   if (!FORMATS.includes(format)) {
@@ -79,7 +89,10 @@ export async function runCommand(argv: string[], io: Io, deps: RunDeps = {}): Pr
   // A live run needs an instance to run on and a mock to run against. Both are
   // resolved before anything runs, so a missing key fails the command, not
   // the fifth case.
-  const live = flags['live'] === true;
+  const live = flags['live'] !== undefined;
+  const offlineMock = !live && flags['mock'] !== undefined;
+  const mockUrl = typeof flags['mock'] === 'string' ? flags['mock'] : (io.env?.['INTEGRATION_MOCK_ADMIN'] ?? DEFAULT_MOCK_ADMIN);
+  const mockToken = io.env?.['INTEGRATION_MOCK_ADMIN_TOKEN'];
   let liveDeps: { mock: MockAdmin; runner: WorkflowRunner } | undefined;
   if (live) {
     const config = instanceConfig(io, flags);
@@ -87,10 +100,8 @@ export async function runCommand(argv: string[], io: Io, deps: RunDeps = {}): Pr
       io.err(`${config.error} (--live runs cases on your instance)`);
       return EXIT.usage;
     }
-    const mockUrl = typeof flags['mock'] === 'string' ? flags['mock'] : (io.env?.['INTEGRATION_MOCK_ADMIN'] ?? DEFAULT_MOCK_ADMIN);
-    const token = io.env?.['INTEGRATION_MOCK_ADMIN_TOKEN'];
     liveDeps = {
-      mock: deps.mock ?? createMockAdmin({ url: mockUrl, ...(token === undefined ? {} : { token }) }),
+      mock: deps.mock ?? createMockAdmin({ url: mockUrl, ...(mockToken === undefined ? {} : { token: mockToken }) }),
       runner: deps.runner ?? createWorkflowRunner(config),
     };
   }
@@ -107,6 +118,10 @@ export async function runCommand(argv: string[], io: Io, deps: RunDeps = {}): Pr
     ...(concurrency === undefined ? {} : { concurrency }),
     ...(n8nVersion === undefined ? {} : { n8nVersion }),
     ...(live ? { liveCases: 'skip' as const } : {}),
+    // Offline, with a local integration-mock answering HTTP Request nodes.
+    ...(offlineMock
+      ? { mock: deps.mock ?? createMockAdmin({ url: mockUrl, ...(mockToken === undefined ? {} : { token: mockToken }) }) }
+      : {}),
   });
 
   const report = liveDeps === undefined ? offline : await withLive(offline, liveDeps, io, { testsDirs, workflow: positional[0] });

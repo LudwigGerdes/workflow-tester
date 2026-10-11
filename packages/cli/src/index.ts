@@ -34,8 +34,12 @@ const USAGE: Record<string, string> = {
 
   run: `  workflow-tester run [<workflow.json>] [--only generated|tests] [--format <f>]
                        [--fail-on warn] [--concurrency N]
+                       [--mock [url] | --live [--instance <url>] [--mock <url>]]
       Run every case through the offline engine. --format is stylish
-      (default), json, junit, sarif or github-actions.`,
+      (default), json, junit, sarif or github-actions.
+      --mock answers HTTP Request nodes from a local integration-mock, still
+      offline; url is its admin port (default http://127.0.0.1:8081).
+      --live runs the cases that need the mock on your n8n instance.`,
 
   explain: `  workflow-tester explain <caseId>
       Print a case as a test file, plus what the last run made of it.`,
