@@ -505,6 +505,23 @@ cases:
     expect(outcome.message).toContain('Slack');
   });
 
+  it('then.calls refusal never hides a real failure', async () => {
+    setup(flow([getUser, node('Slack', 'n8n-nodes-base.slack', { resource: 'message', operation: 'post' }, 2.2)]));
+    writeSuite(`workflow: ../../workflows/invoice.json
+cases:
+  - id: failing-and-calls
+    given: { packs: [acme] }
+    when: { trigger: webhook, payload: { body: { id: 1 } } }
+    then:
+      node.Get User.items: 9
+      calls: [{ service: acme, count: 1 }]
+`);
+    const report = await run({ mock: fakeMock() });
+    const outcome = report.outcomes.find((o) => o.caseId === 'failing-and-calls')!;
+    expect(outcome.status).toBe('fail');
+    expect(outcome.message).toContain('then.calls was not judged');
+  });
+
   it('without a mock, a mock case names --mock and --live', async () => {
     setup(flow([getUser]));
     writeSuite(`workflow: ../../workflows/invoice.json
