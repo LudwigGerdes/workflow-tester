@@ -71,3 +71,19 @@ describe('walkWithMock', () => {
     expect(last?.raised).toEqual({ A: 'the mock answered 503' });
   });
 });
+
+describe('walkWithMock: legacy continueOnFail', () => {
+  it('a node with continueOnFail and no onError continues on its regular output', async () => {
+    const legacy: WorkflowJson = { nodes: [{ ...http('A'), continueOnFail: true }], connections: {} };
+    let last: EngineInput | undefined;
+    const walkOnce = async (input: EngineInput): Promise<EngineResult> => {
+      last = input;
+      return input.routed?.['A'] === undefined && input.raised?.['A'] === undefined
+        ? { ...empty, status: 'boundary', boundaries: [httpBoundary('A', 'https://x.io/a')] }
+        : empty;
+    };
+    await walkWithMock({ workflow: legacy, trigger: 'T', payload: {} }, walkOnce, { serve: async () => ({ status: 503, headers: {}, body: {} }) });
+    expect(last?.raised).toEqual({});
+    expect(last?.routed?.['A']).toEqual([[{ json: { error: 'the mock answered 503' }, pairedItem: { item: 0 } }]]);
+  });
+});

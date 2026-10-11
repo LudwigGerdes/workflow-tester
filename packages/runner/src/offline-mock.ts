@@ -51,10 +51,13 @@ export async function walkWithMock(
         );
       }
       const node = input.workflow.nodes.find((n) => n.name === boundary.node);
+      // A workflow saved before "On Error" existed says `continueOnFail: true`,
+      // which n8n still reads as continuing on the regular output.
+      const onError = node?.onError ?? (node?.continueOnFail === true ? 'continueRegularOutput' : undefined);
       const outcome = itemsFromReplies(
         plan,
         replies,
-        node?.onError === undefined ? {} : { onError: node.onError },
+        onError === undefined ? {} : { onError },
         errorOutputIndex(input.workflow, boundary.node),
       );
       if ('raised' in outcome) raised[boundary.node] = outcome.raised;
