@@ -310,6 +310,42 @@ describe('run: cases that need the mock', () => {
       noUnmatched: true
 `;
 
+  const withMockCase = (): void => {
+    setup();
+    const file = join(dir, '.workflow-tester/tests/invoice.test.yaml');
+    writeFileSync(file, readFileSync(file, 'utf8') + MOCK_CASE);
+  };
+  const offlineMock = (served: string[]) => ({
+    enablePacks: async () => {}, setFault: async () => {}, clearFaults: async () => {}, resetStores: async () => {},
+    clearSnapshot: async () => {}, activateSnapshot: async () => {}, seedStore: async () => {},
+    serve: async (r: { url: string }) => (served.push(r.url), { status: 200, headers: {}, body: {} }),
+    log: async () => [],
+  });
+
+  it('run --mock workflows/invoice.json: the path is the workflow, not the mock URL', async () => {
+    withMockCase();
+    const code = await runCommand(['--mock', 'workflows/invoice.json', '--format', 'json'], io(), { mock: offlineMock([]) });
+    expect(code).not.toBe(2);
+    const report = JSON.parse(stdout()) as { outcomes: Array<{ caseId: string; message: string; workflow: string }> };
+    expect(report.outcomes.map((o) => o.workflow)).toEqual(['workflows/invoice.json', 'workflows/invoice.json']);
+    expect(report.outcomes.find((o) => o.caseId === 'crm-down')?.message).not.toMatch(/needs the mock/);
+  });
+
+  it('run --mock with no mock running fails the mock case, runs the rest, exits 1', async () => {
+    withMockCase();
+    const code = await runCommand(['--mock', 'http://127.0.0.1:9'], io());
+    expect(code).toBe(1);
+    expect(stdout()).toContain('cannot reach integration-mock at http://127.0.0.1:9');
+    expect(stdout()).toContain('✓ a name is present');
+  });
+
+  it('run --live workflows/invoice.json: the path is the workflow too', async () => {
+    withMockCase();
+    const code = await runCommand(['--live', 'workflows/invoice.json'], io());
+    expect(code).toBe(2);
+    expect(stderr()).toContain('no instance url');
+  });
+
   it('without --mock or --live: needs a real run, not failed, exit 0 even with --fail-on warn', async () => {
     setup();
     const file = join(dir, '.workflow-tester/tests/invoice.test.yaml');
