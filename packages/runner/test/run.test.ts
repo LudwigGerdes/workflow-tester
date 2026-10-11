@@ -460,6 +460,28 @@ cases:
     expect(report.outcomes.find((o) => o.caseId === 'from-snapshot')).toMatchObject({ status: 'pass', substituted: ['Fetch'] });
   });
 
+  it("a case's own pinData wins over the snapshot for the same node", async () => {
+    setup(flow([node('Fetch', 'n8n-nodes-base.httpRequest', { method: 'GET', url: 'https://api.acme.com/users/1', options: {} }, 4.2)]));
+    mkdirSync(join(dir, '.workflow-tester/tests/snap'), { recursive: true });
+    writeFileSync(join(dir, '.workflow-tester/tests/snap/1.json'), JSON.stringify({ packs: [] }));
+    writeFileSync(
+      join(dir, '.workflow-tester/tests/snap/1.export.json'),
+      JSON.stringify({ data: { resultData: { runData: { Fetch: [{ data: { main: [[{ json: { name: 'Ada' } }]] } }] } } } }),
+    );
+    writeSuite(`workflow: ../../workflows/invoice.json
+cases:
+  - id: pinned-wins
+    given:
+      snapshot: snap/1.json
+      pinData: { Fetch: [{ json: { name: Grace } }] }
+    when: { trigger: webhook, payload: { body: { id: 1 } } }
+    then:
+      node.Pick.output[0].json.name: Grace
+`);
+    const report = await run();
+    expect(report.outcomes.find((o) => o.caseId === 'pinned-wins')).toMatchObject({ status: 'pass' });
+  });
+
   it('with a mock, a mock case runs offline: given applied, HTTP answered, calls judged', async () => {
     setup(flow([getUser]));
     writeSuite(`workflow: ../../workflows/invoice.json
