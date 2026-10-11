@@ -60,7 +60,7 @@ export function itemsFromReplies(
     if (plan.fullResponse) {
       regular.push({
         json: asJson({
-          ...(isJson ? { body } : { data: body }),
+          ...(isJson ? { body } : { [plan.outputPropertyName]: body }),
           headers: reply.headers,
           statusCode: reply.status,
           statusMessage: STATUS_TEXT[reply.status] ?? '',
@@ -68,7 +68,7 @@ export function itemsFromReplies(
         pairedItem,
       });
     } else if (!isJson) {
-      regular.push({ json: asJson({ data: body }), pairedItem });
+      regular.push({ json: asJson({ [plan.outputPropertyName]: body }), pairedItem });
     } else if (Array.isArray(body)) {
       for (const element of body) regular.push({ json: asJson(element), pairedItem });
     } else {

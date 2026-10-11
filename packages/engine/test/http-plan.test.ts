@@ -32,6 +32,7 @@ describe('planHttpRequest', () => {
       fullResponse: false,
       neverError: false,
       responseFormat: 'autodetect',
+      outputPropertyName: 'data',
     });
   });
 
@@ -75,6 +76,11 @@ describe('planHttpRequest', () => {
     [4.2, { url: '/relative' }, 'the URL does not evaluate to an absolute http(s) URL'],
   ])('v%s %j is unsupported: %s', (version, over, reason) => {
     expect(planHttpRequest(version, [{ ...base, ...over }])).toEqual({ unsupported: reason });
+  });
+
+  it('carries Put Output in Field, default data', () => {
+    expect(planHttpRequest(4.2, [base])).toMatchObject({ outputPropertyName: 'data' });
+    expect(planHttpRequest(4.2, [{ ...base, options: { response: { response: { outputPropertyName: 'html' } } } }])).toMatchObject({ outputPropertyName: 'html' });
   });
 
   it('pagination set to off is fine', () => {
