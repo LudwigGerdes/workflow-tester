@@ -20,6 +20,8 @@ export type HttpPlan =
       fullResponse: boolean;
       neverError: boolean;
       responseFormat: 'autodetect' | 'json' | 'text';
+      /** Where a text reply goes ("Put Output in Field", default `data`). */
+      outputPropertyName: string;
     }
   | { unsupported: string };
 
@@ -184,5 +186,6 @@ export function planHttpRequest(typeVersion: number, resolved: Array<Record<stri
     fullResponse: response['fullResponse'] === true,
     neverError: response['neverError'] === true,
     responseFormat: format === 'json' || format === 'text' ? format : 'autodetect',
+    outputPropertyName: typeof response['outputPropertyName'] === 'string' && response['outputPropertyName'] !== '' ? response['outputPropertyName'] : 'data',
   };
 }

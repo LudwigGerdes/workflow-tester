@@ -10,7 +10,7 @@ const httpBoundary = (node: string, url: string): Boundary => ({
   type: 'n8n-nodes-base.httpRequest',
   reason: 'not-pure',
   inputItems: [{ json: {} }],
-  request: { requests: [{ itemIndex: 0, method: 'GET', url, headers: {} }], fullResponse: false, neverError: false, responseFormat: 'autodetect' },
+  request: { requests: [{ itemIndex: 0, method: 'GET', url, headers: {} }], fullResponse: false, neverError: false, responseFormat: 'autodetect', outputPropertyName: 'data' },
 });
 const http = (name: string) => ({ name, type: 'n8n-nodes-base.httpRequest', typeVersion: 4.2, parameters: {}, position: [0, 0] as [number, number], id: name });
 const workflow: WorkflowJson = { nodes: [http('A'), http('B')], connections: {} };
@@ -54,7 +54,7 @@ describe('walkWithMock', () => {
       rounds += 1;
       return input.routed?.['A'] !== undefined
         ? empty
-        : { ...empty, status: 'boundary', boundaries: [{ ...httpBoundary('A', ''), inputItems: [], request: { requests: [], fullResponse: false, neverError: false, responseFormat: 'autodetect' } }] };
+        : { ...empty, status: 'boundary', boundaries: [{ ...httpBoundary('A', ''), inputItems: [], request: { requests: [], fullResponse: false, neverError: false, responseFormat: 'autodetect', outputPropertyName: 'data' } }] };
     };
     const out = await walkWithMock({ workflow, trigger: 'T', payload: {} }, walkOnce, never);
     expect(out.answered).toEqual(['A']);

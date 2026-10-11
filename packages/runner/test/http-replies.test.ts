@@ -6,6 +6,7 @@ const plan = (over = {}) => ({
   fullResponse: false,
   neverError: false,
   responseFormat: 'autodetect' as const,
+  outputPropertyName: 'data',
   ...over,
 });
 const json = (body: unknown, status = 200): ServeReply => ({ status, headers: { 'content-type': 'application/json' }, body });
@@ -61,5 +62,14 @@ describe('itemsFromReplies: JSON bodies stored as strings', () => {
   it('an unparseable JSON body raises, or is {} under neverError', () => {
     expect(itemsFromReplies(plan(), [json('not json')], {}, 1)).toEqual({ raised: 'Response body is not valid JSON' });
     expect(itemsFromReplies(plan({ neverError: true }), [json('not json')], {}, 1)).toEqual({ routed: [[{ json: {}, pairedItem: { item: 0 } }]] });
+  });
+});
+
+describe('itemsFromReplies: Put Output in Field', () => {
+  it('a text reply goes under outputPropertyName, as n8n puts it', () => {
+    const text = { status: 200, headers: { 'content-type': 'text/html' }, body: '<p>hi</p>' };
+    expect(itemsFromReplies(plan({ outputPropertyName: 'html' }), [text], {}, 1)).toEqual({ routed: [[{ json: { html: '<p>hi</p>' }, pairedItem: { item: 0 } }]] });
+    const full = itemsFromReplies(plan({ outputPropertyName: 'html', fullResponse: true }), [text], {}, 1) as { routed: Array<Array<{ json: Record<string, unknown> }>> };
+    expect(full.routed[0]![0]!.json['html']).toBe('<p>hi</p>');
   });
 });
