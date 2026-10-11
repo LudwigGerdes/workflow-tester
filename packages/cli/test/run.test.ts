@@ -316,7 +316,7 @@ describe('run: cases that need the mock', () => {
     writeFileSync(file, readFileSync(file, 'utf8') + MOCK_CASE);
     const code = await runCommand(['--fail-on', 'warn'], io());
     expect(code).toBe(0);
-    expect(stdout()).toContain('needs a real run against the mock (given.packs, given.faults, then.noUnmatched)');
+    expect(stdout()).toContain('needs the mock (given.packs, given.faults, then.noUnmatched): workflow-tester run --mock, or --live');
     expect(stdout()).toContain('✓ a name is present');
   });
 });
