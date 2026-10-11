@@ -4,7 +4,7 @@ import { dirname, join, relative, resolve } from 'node:path';
 import {
   FORMATS,
   loadSuites,
-  needsLive,
+  mockNeedOf,
   renderReport,
   resolveTrigger,
   runOffline,
@@ -138,7 +138,9 @@ async function withLive(
     if (filter.workflow !== undefined && !suite.workflow.includes(filter.workflow)) continue;
     const workflowFile = resolve(dirname(suite.file), suite.workflow);
     const shownAs = relative(io.cwd, workflowFile);
-    const cases = suite.cases.filter(needsLive);
+    // A snapshot-only case runs offline from the export beside the snapshot;
+    // under --live it goes to the mock with the rest.
+    const cases = suite.cases.filter((entry) => mockNeedOf(entry) !== 'none');
     if (cases.length === 0) continue;
     if (!existsSync(workflowFile)) {
       for (const entry of cases) failed.push({ caseId: entry.id, workflow: shownAs, status: 'fail', mode: 'live', message: `workflow not found: ${suite.workflow}`, assertions: [] });
@@ -154,7 +156,7 @@ async function withLive(
         continue;
       }
       const payload = entry.when.payload ?? (typeof declared === 'object' && declared !== null ? declared.payload : undefined);
-      jobs.push({ entry, shownAs, workflow, trigger, payload });
+      jobs.push({ entry, shownAs, workflow, trigger, payload, testFile: suite.file });
     }
   }
   const ran = await runLive(jobs, { mock: deps.mock, instance: deps.runner });

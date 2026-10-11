@@ -1,5 +1,8 @@
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { evaluateLive, evaluateMockCalls, mockGivenOf, mockNeedOf, needsLive, runLive, type MockCall, type MockControl, type LiveJob } from '../src/live.js';
+import { applyGiven, evaluateLive, evaluateMockCalls, mockGivenOf, mockNeedOf, needsLive, runLive, type MockCall, type MockControl, type LiveJob } from '../src/live.js';
 
 const execution = (over: Record<string, unknown> = {}) => ({
   id: '77',
@@ -86,11 +89,14 @@ describe('runLive', () => {
       setFault: async (service, spec) => void events.push(`fault ${service} ${JSON.stringify(spec)}`),
       clearFaults: async () => void events.push('clear-faults'),
       resetStores: async () => void events.push('reset'),
+      clearSnapshot: async () => void events.push('clear-snapshot'),
+      activateSnapshot: async (s) => void events.push(`snapshot ${JSON.stringify(s)}`),
+      seedStore: async (service, seed) => void events.push(`seed ${service} ${JSON.stringify(seed)}`),
       log: async () => [call({})],
     };
     return { mock, events };
   };
-  const job = (entry: LiveJob['entry']): LiveJob => ({ entry, shownAs: 'workflows/orders.json', workflow: {}, trigger: 'Webhook', payload: { id: 'x' } });
+  const job = (entry: LiveJob['entry'], testFile = '/nowhere/orders.test.yaml'): LiveJob => ({ entry, shownAs: 'workflows/orders.json', workflow: {}, trigger: 'Webhook', payload: { id: 'x' }, testFile });
 
   it('applies given to the mock, runs on the instance, and reads the log since the run began', async () => {
     const { mock, events } = fakeMock();
@@ -99,13 +105,13 @@ describe('runLive', () => {
       [job({ id: 'c1', given: { packs: ['acme'], faults: { acme: { status: 503, once: true } } }, when: {}, then: { calls: [{ service: 'acme', count: 1 }], 'execution.status': 'success' } })],
       { mock, instance: { run: async (input) => (runs.push(input), { execution: execution(), id: '77' }) } },
     );
-    expect(events).toEqual(['clear-faults', 'reset', 'enable acme', 'fault acme {"status":503,"once":true}']);
+    expect(events).toEqual(['clear-faults', 'clear-snapshot', 'reset', 'enable acme', 'fault acme {"status":503,"once":true}']);
     expect(runs).toHaveLength(1);
     expect(outcomes[0]).toMatchObject({ status: 'pass', mode: 'live', executionId: '77', caseId: 'c1' });
     expect(outcomes[0]?.message).toMatch(/1 call\(s\) served/);
   });
 
-  it('a failing expectation, an instance error, and an unsupported given each fail the case with a reason', async () => {
+  it('a failing expectation, an instance error, and a missing snapshot each fail the case with a reason', async () => {
     const { mock } = fakeMock();
     const outcomes = await runLive(
       [
@@ -126,10 +132,50 @@ describe('runLive', () => {
     expect(outcomes.map((o) => o.status)).toEqual(['fail', 'fail', 'fail']);
     expect(outcomes[0]?.message).toMatch(/no route answered/);
     expect(outcomes[1]?.message).toMatch(/401/);
-    expect(outcomes[2]?.message).toMatch(/given\.snapshot is not supported/);
+    expect(outcomes[2]?.message).toBe('snapshot not found: latest');
   });
 });
 let outcomesSoFar = 0;
+
+describe('applyGiven', () => {
+  it('clears faults, snapshot and stores, then packs, snapshot, seed, faults — in that order', async () => {
+    const applied: string[] = [];
+    const rec = (name: string) => async (...args: unknown[]) => void applied.push(args.length === 0 ? name : `${name}:${JSON.stringify(args[0])}`);
+    const mock: MockControl = {
+      clearFaults: rec('clearFaults'),
+      clearSnapshot: rec('clearSnapshot'),
+      resetStores: rec('resetStores'),
+      enablePacks: rec('enablePacks'),
+      activateSnapshot: rec('activateSnapshot'),
+      seedStore: rec('seedStore'),
+      setFault: rec('setFault'),
+      log: async () => [],
+    };
+    await applyGiven(mock, { packs: ['acme'], seed: { acme: { things: [] } }, faults: { acme: { status: 503 } } }, { snapshot: { packs: [] } });
+    expect(applied).toEqual([
+      'clearFaults', 'clearSnapshot', 'resetStores', 'enablePacks:["acme"]', 'activateSnapshot:{"packs":[]}',
+      'seedStore:"acme"', 'setFault:"acme"',
+    ]);
+  });
+
+  it('runLive reads given.snapshot relative to the test file and sends it', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'workflow-tester-live-snap-'));
+    mkdirSync(join(dir, 'snap'));
+    writeFileSync(join(dir, 'snap/1.json'), JSON.stringify({ packs: [] }));
+    const events: string[] = [];
+    const mock: MockControl = {
+      clearFaults: async () => {}, clearSnapshot: async () => {}, resetStores: async () => {}, enablePacks: async () => {},
+      setFault: async () => {}, seedStore: async () => {}, log: async () => [],
+      activateSnapshot: async (s) => void events.push(JSON.stringify(s)),
+    };
+    const entry = { id: 's', given: { snapshot: 'snap/1.json' }, when: {} };
+    await runLive([{ entry, shownAs: 'w.json', workflow: {}, trigger: 'Webhook', payload: {}, testFile: join(dir, 'x.test.yaml') }], {
+      mock,
+      instance: { run: async () => ({ execution: execution() }) },
+    });
+    expect(events).toEqual(['{"packs":[]}']);
+  });
+});
 
 describe('what a case asks of the mock', () => {
   it('mockNeedOf: none, snapshot-only, mock', () => {
