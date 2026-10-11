@@ -291,3 +291,28 @@ cases:
     expect(err.join('\n')).toMatch(/--live runs cases on your instance/);
   });
 });
+
+describe('run: cases that need the mock', () => {
+  const MOCK_CASE = `
+  - id: crm-down
+    title: needs the mock
+    given:
+      packs: [hubspot]
+      faults: { hubspot: { status: 503 } }
+    when:
+      trigger: webhook
+      payload: { body: { record: { name: Ada } } }
+    then:
+      noUnmatched: true
+`;
+
+  it('without --mock or --live: needs a real run, not failed, exit 0 even with --fail-on warn', async () => {
+    setup();
+    const file = join(dir, '.workflow-tester/tests/invoice.test.yaml');
+    writeFileSync(file, readFileSync(file, 'utf8') + MOCK_CASE);
+    const code = await runCommand(['--fail-on', 'warn'], io());
+    expect(code).toBe(0);
+    expect(stdout()).toContain('needs a real run against the mock (given.packs, given.faults, then.noUnmatched)');
+    expect(stdout()).toContain('✓ a name is present');
+  });
+});
